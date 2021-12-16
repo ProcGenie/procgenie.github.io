@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>ProcGenie</title>
+    <title>ProcGenie: Hand-Crafted Procedural Text Generation</title>
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="indexNew.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,23 +16,18 @@
     <h1 id="headline">ProcGenie</h1>
     <nav class="slab" id="navbar">
       <div class="dropdown">
-        <span onclick ="fileDropdown()" class="dropbtn seplinks">File</span>
-        <div id="fileDropdown" class="dropdown-content">
-          <a href="#">New</a>
-          <a href="#">Save</a>
-          <a href="#">Load</a>
-          <a href="#">Export</a>
-          <a href="#">Run</a>
-        </div>
-      </div>
-      <div class="dropdown">
         <span onclick ="ruleDropdown()" class="dropbtn seplinks">Grammars</span>
         <div id="ruleDropdown" class="dropdown-content">
           <a href="#" id="create-rule-btn">Create Rule</a>
           <a href="#" id="list-rules-btn">List Rules</a>
+          <a href="#" id="help-btn">Help</a>
         </div>
       </div>
     </nav>
+
+    <div class="hidable" id="help">
+      <h2 class="intro-text">ProcGenie is a hand-crafted procedural text generation tool for designing and running complex replacement grammars. Tutorials will be available on <a href="https://www.youtube.com/channel/UC82CE0l5S1NeCMRGjmQba9A/videos">Youtube.</a></h2>
+    </div>
 
     <!--General Settings Page Page-->
     <div class="slab hidable" id="general-settings-page">
@@ -861,7 +856,7 @@
 
       <div id="right-div">
         <div class="main-text" id="main-text-box">
-      
+
         </div>
         <div id="new-choices-box">
 
@@ -884,8 +879,6 @@
     <script src="compromise-numbers.js"></script>
     <script src="lodash.js"></script>
     <script src="runcomp.js"></script>
-
-    <script src="collections.js"></script>
     <script src="index.js"></script>
     <script src="indexNew.js"></script>
 

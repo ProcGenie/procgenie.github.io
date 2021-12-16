@@ -399,6 +399,20 @@ textarea {
 	display: none;
 }
 
+.intro-text {
+  margin-left: auto;
+	margin-right: auto;
+	padding: 20px;
+  margin-top: 3vh;
+  font-size: 4em;
+  color: #353b48;
+  font-weight: bold;
+	max-width: 80vw;
+	border: 1px solid black;
+	box-shadow: 3px 3px 3px grey;
+	text-align: center;
+}
+
 #main-text-box {
   margin-top: 4vh;
   margin-bottom: 4vh;
@@ -432,5 +446,9 @@ textarea {
 .choice:hover {
   cursor: pointer;
 	background: white;
+	color: black;
+}
+
+.intro-text a {
 	color: black;
 }

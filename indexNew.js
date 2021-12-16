@@ -237,3 +237,9 @@ GID("list-rules-btn").onclick = function() {
 }
 
 hideAll();
+GID("help").style.display = "block"
+
+GID("help-btn").onclick = function() {
+  hideAll();
+  GID("help").style.display = "block"
+}
