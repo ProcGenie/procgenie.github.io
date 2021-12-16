@@ -1,0 +1,167 @@
+#headline {
+  font-size: 3.5em;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  color: #dfe6e9;
+  background: #636e72;
+  font-family: 'Alfa Slab One', cursive;
+}
+
+.headline-image {
+  margin-top: 25px;
+  height: 400px;
+  width: 200px;
+}
+
+.center {
+  text-align: center;
+}
+
+.slab {
+  font-family: 'Alfa Slab One', cursive;
+}
+
+#navbar {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 10px;
+  font-size: 1.5em;
+  background: #dfe6e9
+}
+
+/* Dropdown Button */
+.dropbtn {
+  cursor: pointer;
+}
+
+/* Dropdown button on hover & focus */
+.dropbtn:hover, .dropbtn:focus {
+  color: #2980B9;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {color: #2980B9}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}
+
+.seplinks {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.hidable {
+  display: none;
+}
+
+.table-form {
+  display: table;
+  padding: 10px;
+
+}
+
+div .tableRow {
+  display: table-row;
+}
+
+div .tableRow p {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px;
+}
+
+div .tableRow p:first-child {
+
+}
+
+.full-cell {
+  width: 100%;
+}
+
+.dict-heading {
+	padding-top: 20px;
+	padding-bottom: 20px;
+	padding-left: 20px;
+	border-bottom: 1px solid black;
+}
+
+.dict-sidebar {
+	position: fixed;
+	right: 0px;
+	top: 0px;
+	height: 100vh;
+	border-left: 1px solid black;
+	background: white;
+	font-size: 1.5em;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.dict-sidebar a {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.create-header {
+	padding-left: 20px;
+	font-size: 1.5em;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.creation-box {
+	margin-top: 20px;
+	margin-bottom: 20px;
+	padding-left: 20px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid black;
+}
+
+.creation-box-header {
+	margin-top: 20px;
+	padding-left: 20px;
+	font-size: 1.5em;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.create-rule-select {
+	margin-bottom: 15px;
+}
+
+.grammar-gen {
+  display: none;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+.clickable:hover {
+	color: blue;
+}

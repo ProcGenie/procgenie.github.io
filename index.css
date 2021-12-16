@@ -1,0 +1,435 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ul,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-spacing: 0;
+}
+
+textarea {
+	background: rgba(40, 42, 54, 0.99);
+	color: #bdc3c7;
+	font-size: 1.5em;
+}
+
+.dark-theme {
+	background: rgba(40, 42, 54, 0.99);
+	color: #bdc3c7;
+}
+
+
+.small-icon {
+  width: 8vh;
+  height: 8vh;
+}
+
+.small-icon:hover {
+  cursor: pointer;
+}
+
+.small-subheading {
+	margin-bottom: 20px;
+	text-decoration: underline;
+}
+
+#cell-box {
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	position: absolute;
+	display: none;
+}
+
+#settings-box {
+	width: 100vw;
+	height: 100vh;
+	border: 5px solid black;
+	box-shadow: 3px 3px 3px grey;
+	top: 0;
+	position: absolute;
+	display: none;
+	overflow: scroll;
+}
+
+#grid-select-box {
+  width: 99vw;
+  height: 85vh;
+  border: 5px solid black;
+  box-shadow: 3px 3px 3px grey;
+  top: 0;
+  position: absolute;
+  display: none;
+	overflow: scroll;
+}
+
+.t {
+	font-size: 3em;
+	padding: 25px;
+	margin-bottom: 25px;
+}
+
+.c {
+	text-align: center;
+	font-size: 3em;
+	padding: 25px;
+}
+
+.c:hover {
+	cursor: pointer;
+	color: green;
+}
+
+.bgimg {
+	display: block;
+	width: 100vw;
+
+	max-height: 480px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+.toolbar {
+  font-size: 1.2em;
+  display: inline-block;
+  position: fixed;
+  bottom: 0;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: 105%;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+#help-box {
+	width: 100vw;
+	height: 100vh;
+	border: 5px solid black;
+	box-shadow: 3px 3px 3px grey;
+	top: 0;
+	position: absolute;
+	display: none;
+	overflow: scroll;
+}
+
+.main-heading {
+	text-align: center;
+	font-size: 3em;
+	font-weight: bold;
+	padding-top: 10vh;
+	padding-bottom: 10vh;
+	border-bottom: 3px solid black;
+	margin-top: 10vh;
+}
+
+.main-text {
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 90vw;
+	margin-top: 10vh;
+	font-family: serif;
+	line-height: 1.5em;
+}
+
+.subheading {
+	text-align: center;
+	font-size: 1.5em;
+}
+
+.big-table {
+  width: 98vw;
+  height: 70vh;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.inner-cell {
+  resize: none;
+  width: 98%;
+  height: 100%;
+  border: 1px solid black;
+	font-size: 9px;
+}
+
+.inner-cell:focus {
+	transform: scale(3);
+	font-size: 0.5em
+}
+
+.grid-list {
+	text-align: center;
+	font-size: 2em
+}
+
+.selected-grid {
+	color: green;
+}
+
+.grid-list:hover {
+	cursor: pointer;
+	color: green;
+	border: 1px solid black;
+}
+
+.text-pg {
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+.grid-buttons {
+	background: #bdc3c7;
+	color: black;
+	font-size: 2em;
+	text-align: center;
+	font-family: serif;
+	border: 1px solid black;
+}
+
+.grid-buttons:hover {
+	cursor: pointer;
+	background: #2980b9;
+	color: #bdc3c7;
+}
+
+#add-grid-button {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+#delete-grid-button {
+	padding-bottom: 10px;
+}
+
+#outputText {
+	background: black;
+}
+
+#output-box {
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 50px;
+	width: 80vw;
+	min-height: 200px;
+	margin-top: 5vh;
+	background: rgba(18, 22, 25, 1);
+	border: 3px solid grey;
+	color: grey;
+	font-size: 2em;
+	padding: 50px;
+}
+
+#choices-box {
+	background: rgba(18, 22, 25, 1);
+	border: 3px solid grey;
+	color: grey;
+	font-size: 2em;
+	width: 85vw;
+	margin-left: auto;
+	margin-right: auto;
+	min-height: 200px;
+	padding: 50px;
+}
+
+.choiceslist:hover {
+	cursor: pointer;
+	background: white;
+	color: black;
+}
+
+#gridinfo {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	color: black;
+}
+
+.centered {
+	text-align: center;
+}
+
+#landing {
+	position: absolute;
+	z-index: 50000;
+	width: 100vw;
+	height: 100vh;
+	background: white;
+}
+
+#landing-box {
+	width: 100vw;
+	height: 100vh;
+	border: 3px solid black;
+	box-shadow: 1px 1px 1px black;
+	color: black;
+	overflow: scroll;
+	font-size: 3em;
+}
+
+#landing-box a {
+	color: #16a085;
+}
+
+#gogram {
+	background: #16a085;
+	color: white;
+	text-align: center;
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+
+#gogram:hover {
+	cursor: pointer;
+}
+
+.landing-text {
+	margin-top: 1vh;
+	margin-bottom: 1vh;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+#landing-inside-box {
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 10px;
+}
+
+#landing-inside-box p {
+	margin-bottom: 20px;
+}
+
+.black-and-white {
+	background: black;
+	color: white;
+	font-size: 1.3em;
+	padding: 0.4em
+}
+
+#outputText {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 2;
+	color: black;
+
+	height: 100vh;
+	width: 100vw;
+}
+
+#outputCanvas {
+	display: none;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	background: white;
+	z-index: 1;
+}
+
+.container {
+  display: flex;
+	height: 100vh;
+	background: black;
+}
+
+.container img {
+  height: 98vh;
+  border: 1vh solid black;
+}
+
+#right-div {
+	background: black;
+	color: white;
+	width: 100%;
+	height: 100vh;
+}
+
+#main-text-box {
+  margin-top: 4vh;
+  margin-bottom: 4vh;
+  text-align: center;
+  padding: 3vw;
+	font-size: 3em;
+}
+
+#main-text-img {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#new-choices-box {
+	margin-left: 10vw;
+	margin-right: 10vw;
+  text-align: center;
+	background: black;
+}
+
+.choiceslist {
+	border: 1px solid white;
+	border-radius: 5%;
+  padding-top: 10px;
+  padding-bottom: 10px;
+	font-size: 3em;
+	margin-top: 2vh;
+	margin-bottom: 2vh;
+}
+
+.choice:hover {
+  cursor: pointer;
+	background: white;
+	color: black;
+}

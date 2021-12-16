@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>ProcGenie</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="indexNew.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap" rel="stylesheet">
+  </head>
+  <body>
+
+<!--BEGIN GENERATOR----------------------------->
+<div id="generator-area">
+    <h1 id="headline">ProcGenie</h1>
+    <nav class="slab" id="navbar">
+      <div class="dropdown">
+        <span onclick ="fileDropdown()" class="dropbtn seplinks">File</span>
+        <div id="fileDropdown" class="dropdown-content">
+          <a href="#">New</a>
+          <a href="#">Save</a>
+          <a href="#">Load</a>
+          <a href="#">Export</a>
+          <a href="#">Run</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <span onclick ="ruleDropdown()" class="dropbtn seplinks">Grammars</span>
+        <div id="ruleDropdown" class="dropdown-content">
+          <a href="#" id="create-rule-btn">Create Rule</a>
+          <a href="#" id="list-rules-btn">List Rules</a>
+        </div>
+      </div>
+    </nav>
+
+    <!--General Settings Page Page-->
+    <div class="slab hidable" id="general-settings-page">
+      <form class="table-form">
+        <div class="tableRow">
+          <p>Start Symbol:</p>
+          <p><input type="text" name="startSymbol"></p>
+        </div>
+        <div class="tableRow">
+          <p>Game Title:</p>
+          <p><input type="text" name="gameTitle"></p>
+        </div>
+        <div class="tableRow">
+          <p>Game Subtitle:</p>
+          <p><input type="text" name="gameSubtitle"></p>
+        </div>
+        <div class="tableRow">
+          <p>Game Description:</p>
+          <p><input type="text" name="gameDescription"></p>
+        </div>
+        <div class="tableRow">
+          <p>Resolution:</p>
+          <p>
+            <select name="resolution" class="full-cell">
+              <option value="lowRes">Low</option>
+              <option value="medRes">Medium</option>
+              <option value="highRes">High</option>
+              <option value="responsiveRes">Responsive</option>
+            </select></p>
+        </div>
+        <div class="tableRow">
+          <p>Background Color:</p>
+          <p>
+            <input type="color" class="full-cell" name="backgroundColor">
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Background Opacity:</p>
+          <p>
+            <input class="opacity" type="number" min="0" max ="100" name="backgroundOpacity">
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Menu Color:</p>
+          <p>
+            <input type="color" class="full-cell" name="menuColor">
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Menu Opacity:</p>
+          <p>
+            <input type="number" min="0" max ="100" name="menuOpacity">
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Text Color:</p>
+          <p>
+            <input type="color" class="full-cell" name="textColor">
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Font:</p>
+          <p>
+            <select class="full-cell" name="font">
+              <option value="randomFont">Random</option>
+              <option value="sansserifFont">Sans Serif</option>
+              <option value="monospaceFont">Monospace</option>
+            </select>
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <!--World Map Page-->
+    <div class="slab hidable" id="world-map-page">
+      <form class="table-form">
+        <!--This is what is messing up the width of num entry for some reason-->
+        <div class="tableRow">
+          <p>Name:</p>
+          <p><input type="text" name="worldName"></p>
+        </div>
+        <div class="tableRow">
+          <p>Generation Algorithm:</p>
+          <p>
+            <select name="generationAlgorithm" class="full-cell">
+              <option value="randomAlgorithm">Random</option>
+              <option value="simplexNoise">Simplex Noise</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Roads:</p>
+          <p>
+            <select name="roadSelect" class="full-cell">
+              <option value="none">None</option>
+              <option value="few">Few</option>
+              <option value="moderate">moderate</option>
+              <option value="many">many</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Keep in Memory:</p>
+          <p>
+            <select name="mapInMemory" class="full-cell">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Wraps:</p>
+          <p>
+            <select name="mapWrap" class="full-cell">
+              <option value="random">Random</option>
+              <option value="nowrap">No Wrap</option>
+              <option value="wrap">Wrap</option>
+              <option value="infinite">Infinite</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Tiles:</p>
+          <p>
+            <select class="full-cell" name="worldTile">
+              <option value="randomWorldTile">Random</option>
+              <option value="squareWorldTile">Square</option>
+              <option value="hexWorldTile">Hex</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Tile Lines:</p>
+          <p>
+            <select class="full-cell" name="tileLines">
+              <option value="yesTileLines">Yes</option>
+              <option value="noTileLines">No</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Tile Size (px):</p>
+          <p>
+            <select class="full-cell" name="tileSize">
+              <option value="notset">Zoom Responsive</option>
+              <option value="8">8</option>
+              <option value="16">16</option>
+              <option value="32">32</option>
+              <option value="48">48</option>
+              <option value="64">64</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Zoom Level</p>
+          <p><input class="full-cell" type="number" min="1" max ="1000" name="zoomLevel"></p>
+        </div>
+        <div class="tableRow">
+          <p>Zoomable</p>
+          <p>
+            <select class="full-cell" name="zoomable">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Min Height:</p>
+          <p><input class="full-cell" type="number" min="1" max ="10000000" name="worldHeightMin"></p>
+        </div>
+        <div class="tableRow">
+          <p>Max Height:</p>
+          <p><input class="full-cell"type="number" min="1" max ="10000000" name="worldHeightMax" ></p>
+        </div>
+        <div class="tableRow">
+          <p>Min. Width:</p>
+          <p><input class="full-cell" type="number" min="1" max ="10000000" name="worldWidthMin"></p>
+        </div>
+        <div class="tableRow">
+          <p>Max. Width:</p>
+          <p><input class="full-cell" type="number" min="1" max ="10000000" name="worldWidthMax"></p>
+        </div>
+        <div class="tableRow">
+          <p>Min. Sea Level:</p>
+          <p><input class="full-cell" type="number" min="1" max ="10000000" name="minSeaLevel"></p>
+        </div>
+        <div class="tableRow">
+          <p>Max. Sea Level:</p>
+          <p><input class="full-cell" type="number" min="1" max ="10000000" name="maxSeaLevel"></p>
+        </div>
+        <div class="tableRow">
+          <p>Moisture:</p>
+          <p><input class="full-cell" type="number" min="0" max ="100" name="moistureLevel"></p>
+        </div>
+
+        <div class="tableRow">
+          <p>Rivers:</p>
+          <p>
+            <select class="full-cell" name="rivers">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="random">Random</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="tableRow">
+          <p>Lakes:</p>
+          <p>
+            <select class="full-cell" name="lakes">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="random">Random</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="tableRow">
+          <p>Grassland Factor:</p>
+          <p>
+            <select name="grassFactor" class="full-cell">
+              <option value="randomGrass">Random</option>
+              <option value="noGrass">None</option>
+              <option value="lowGrass">Low</option>
+              <option value="averageGrass">Average</option>
+              <option value="highGrass">High</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Forest Factor:</p>
+          <p>
+            <select name="forestFactor" class="full-cell">
+              <option value="randomForest">Random</option>
+              <option value="noForest">None</option>
+              <option value="lowForest">Low</option>
+              <option value="averageForest">Average</option>
+              <option value="highForest">High</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Desert Factor:</p>
+          <p>
+            <select name="desertFactor" class="full-cell">
+              <option value="randomDesert">Random</option>
+              <option value="noDesert">None</option>
+              <option value="lowDesert">Low</option>
+              <option value="averageDesert">Average</option>
+              <option value="highDesert">High</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Jungle Factor:</p>
+          <p>
+            <select name="jungleFactor" class="full-cell">
+              <option value="randomJungle">Random</option>
+              <option value="noJungle">None</option>
+              <option value="lowJungle">Low</option>
+              <option value="averageJungle">Average</option>
+              <option value="highJungle">High</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="tableRow">
+          <p>Savanna Factor:</p>
+          <p>
+            <select name="savannaFactor" class="full-cell">
+              <option value="randomSavanna">Random</option>
+              <option value="noSavanna">None</option>
+              <option value="lowSavanna">Low</option>
+              <option value="averageSavanna">Average</option>
+              <option value="highSavanna">High</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="tableRow">
+          <p>Tundra Factor:</p>
+          <p>
+            <select name="tundraFactor" class="full-cell">
+              <option value="randomTundra">Random</option>
+              <option value="noTundra">None</option>
+              <option value="lowTundra">Low</option>
+              <option value="averageTundra">Average</option>
+              <option value="highTundra">High</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="tableRow">
+          <p>Polar Factor:</p>
+          <p>
+            <select name="polarFactor" class="full-cell">
+              <option value="randomPolar">Random</option>
+              <option value="noPolar">None</option>
+              <option value="lowPolar">Low</option>
+              <option value="averagePolar">Average</option>
+              <option value="highPolar">High</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Pop. Density:</p>
+          <p>
+            <select name="popDensityFactor" class="full-cell">
+              <option value="randomPopDensity">Random</option>
+              <option value="lowPopDensity">Low</option>
+              <option value="averagePopDensity">Average</option>
+              <option value="highPopDensity">High</option>
+            </select>
+          </p>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="slab hidable" id="keybindings-page">
+      <form class="table-form">
+        <div class="tableRow">
+          <p>Move:</p>
+          <p>
+            <select name="moveSelect" class="full-cell">
+              <option value="numpad">Numpad</option>
+              <option value="wasd">WASD</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>A:</p>
+          <p><input type="text" name="aBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>B:</p>
+          <p><input type="text" name="bBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>C:</p>
+          <p><input type="text" name="cBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>D:</p>
+          <p><input type="text" name="dBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>E:</p>
+          <p><input type="text" name="eBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>F:</p>
+          <p><input type="text" name="fBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>G:</p>
+          <p><input type="text" name="gBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>H:</p>
+          <p><input type="text" name="hBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>I:</p>
+          <p><input type="text" name="iBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>J:</p>
+          <p><input type="text" name="jBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>K:</p>
+          <p><input type="text" name="kBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>L:</p>
+          <p><input type="text" name="lBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>M:</p>
+          <p><input type="text" name="mBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>N:</p>
+          <p><input type="text" name="nBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>O:</p>
+          <p><input type="text" name="oBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>P:</p>
+          <p><input type="text" name="pBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>Q:</p>
+          <p><input type="text" name="qBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>R:</p>
+          <p><input type="text" name="rBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>S:</p>
+          <p><input type="text" name="sBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>T:</p>
+          <p><input type="text" name="tBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>U:</p>
+          <p><input type="text" name="uBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>V:</p>
+          <p><input type="text" name="vBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>W:</p>
+          <p><input type="text" name="wBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>X:</p>
+          <p><input type="text" name="xBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>Y:</p>
+          <p><input type="text" name="yBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>Z:</p>
+          <p><input type="text" name="zBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>ESC:</p>
+          <p><input type="text" name="escBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>ENTER:</p>
+          <p><input type="text" name="enterBind"></p>
+        </div>
+        <div class="tableRow">
+          <p>SPC:</p>
+          <p><input type="text" name="spacebarBind"></p>
+        </div>
+      </form>
+    </div>
+
+    <div class="slab hidable" id="actions-page">
+      actions PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="create-rule-page">
+      create rules PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="list-rules-page">
+      <div class="dict-sidebar">
+        <a href="#rules-a">A</a><br>
+        <a href="#rules-b">B</a><br>
+        <a href="#rules-c">C</a><br>
+        <a href="#rules-d">D</a><br>
+        <a href="#rules-e">E</a><br>
+        <a href="#rules-f">F</a><br>
+        <a href="#rules-g">G</a><br>
+        <a href="#rules-h">H</a><br>
+        <a href="#rules-i">I</a><br>
+        <a href="#rules-j">J</a><br>
+        <a href="#rules-k">K</a><br>
+        <a href="#rules-l">L</a><br>
+        <a href="#rules-m">M</a><br>
+        <a href="#rules-n">N</a><br>
+        <a href="#rules-o">O</a><br>
+        <a href="#rules-p">P</a><br>
+        <a href="#rules-q">Q</a><br>
+        <a href="#rules-r">R</a><br>
+        <a href="#rules-s">S</a><br>
+        <a href="#rules-t">T</a><br>
+        <a href="#rules-u">U</a><br>
+        <a href="#rules-v">V</a><br>
+        <a href="#rules-w">W</a><br>
+        <a href="#rules-x">X</a><br>
+        <a href="#rules-y">Y</a><br>
+        <a href="#rules-z">Z</a>
+      </div>
+      <div class="dict-heading" id="rules-a"><h2>A</h2></div>
+      <div class="dict-heading" id="rules-b"><h2>B</h2></div>
+      <div class="dict-heading" id="rules-c"><h2>C</h2></div>
+      <div class="dict-heading" id="rules-d"><h2>D</h2></div>
+      <div class="dict-heading" id="rules-e"><h2>E</h2></div>
+      <div class="dict-heading" id="rules-f"><h2>F</h2></div>
+      <div class="dict-heading" id="rules-g"><h2>G</h2></div>
+      <div class="dict-heading" id="rules-h"><h2>H</h2></div>
+      <div class="dict-heading" id="rules-i"><h2>I</h2></div>
+      <div class="dict-heading" id="rules-j"><h2>J</h2></div>
+      <div class="dict-heading" id="rules-k"><h2>K</h2></div>
+      <div class="dict-heading" id="rules-l"><h2>L</h2></div>
+      <div class="dict-heading" id="rules-m"><h2>M</h2></div>
+      <div class="dict-heading" id="rules-n"><h2>N</h2></div>
+      <div class="dict-heading" id="rules-o"><h2>O</h2></div>
+      <div class="dict-heading" id="rules-p"><h2>P</h2></div>
+      <div class="dict-heading" id="rules-q"><h2>Q</h2></div>
+      <div class="dict-heading" id="rules-r"><h2>R</h2></div>
+      <div class="dict-heading" id="rules-s"><h2>S</h2></div>
+      <div class="dict-heading" id="rules-t"><h2>T</h2></div>
+      <div class="dict-heading" id="rules-u"><h2>U</h2></div>
+      <div class="dict-heading" id="rules-v"><h2>V</h2></div>
+      <div class="dict-heading" id="rules-w"><h2>W</h2></div>
+      <div class="dict-heading" id="rules-x"><h2>X</h2></div>
+      <div class="dict-heading" id="rules-y"><h2>Y</h2></div>
+      <div class="dict-heading" id="rules-z"><h2>Z</h2></div>
+    </div>
+
+    <div class="slab hidable" id="start-screen-page">
+      start screen PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="battle-screen-page">
+      battle screen PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="character-screen-page">
+      chracter-screen PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="dialogue-page">
+      dialogue PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="choices-page">
+      choices PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="wiki-screen-page">
+      wiki PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="inventory-screen-page">
+      inventory screen PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="pause-menu-page">
+      pause menu PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="credits-screen-page">
+      credits screen PLACEHOLDER
+    </div>
+
+    <div class="slab hidable" id="music-page">
+      <div class="dict-sidebar">
+        <a href="#music-a">A</a><br>
+        <a href="#music-b">B</a><br>
+        <a href="#music-c">C</a><br>
+        <a href="#music-d">D</a><br>
+        <a href="#music-e">E</a><br>
+        <a href="#music-f">F</a><br>
+        <a href="#music-g">G</a><br>
+        <a href="#music-h">H</a><br>
+        <a href="#music-i">I</a><br>
+        <a href="#music-j">J</a><br>
+        <a href="#music-k">K</a><br>
+        <a href="#music-l">L</a><br>
+        <a href="#music-m">M</a><br>
+        <a href="#music-n">N</a><br>
+        <a href="#music-o">O</a><br>
+        <a href="#music-p">P</a><br>
+        <a href="#music-q">Q</a><br>
+        <a href="#music-r">R</a><br>
+        <a href="#music-s">S</a><br>
+        <a href="#music-t">T</a><br>
+        <a href="#music-u">U</a><br>
+        <a href="#music-v">V</a><br>
+        <a href="#music-w">W</a><br>
+        <a href="#music-x">X</a><br>
+        <a href="#music-y">Y</a><br>
+        <a href="#music-z">Z</a>
+      </div>
+      <div class="dict-heading" id="music-a"><h2>A</h2></div>
+      <div class="dict-heading" id="music-b"><h2>B</h2></div>
+      <div class="dict-heading" id="music-c"><h2>C</h2></div>
+      <div class="dict-heading" id="music-d"><h2>D</h2></div>
+      <div class="dict-heading" id="music-e"><h2>E</h2></div>
+      <div class="dict-heading" id="music-f"><h2>F</h2></div>
+      <div class="dict-heading" id="music-g"><h2>G</h2></div>
+      <div class="dict-heading" id="music-h"><h2>H</h2></div>
+      <div class="dict-heading" id="music-i"><h2>I</h2></div>
+      <div class="dict-heading" id="music-j"><h2>J</h2></div>
+      <div class="dict-heading" id="music-k"><h2>K</h2></div>
+      <div class="dict-heading" id="music-l"><h2>L</h2></div>
+      <div class="dict-heading" id="music-m"><h2>M</h2></div>
+      <div class="dict-heading" id="music-n"><h2>N</h2></div>
+      <div class="dict-heading" id="music-o"><h2>O</h2></div>
+      <div class="dict-heading" id="music-p"><h2>P</h2></div>
+      <div class="dict-heading" id="music-q"><h2>Q</h2></div>
+      <div class="dict-heading" id="music-r"><h2>R</h2></div>
+      <div class="dict-heading" id="music-s"><h2>S</h2></div>
+      <div class="dict-heading" id="music-t"><h2>T</h2></div>
+      <div class="dict-heading" id="music-u"><h2>U</h2></div>
+      <div class="dict-heading" id="music-v"><h2>V</h2></div>
+      <div class="dict-heading" id="music-w"><h2>W</h2></div>
+      <div class="dict-heading" id="music-x"><h2>X</h2></div>
+      <div class="dict-heading" id="music-y"><h2>Y</h2></div>
+      <div class="dict-heading" id="music-z"><h2>Z</h2></div>
+
+    </div>
+
+    <div class="slab hidable" id="voices-page">
+      <h2 class="create-header">Create New Voice</h2>
+      <form class="table-form">
+        <div class="tableRow">
+          <p>Voice Name:</p>
+          <p><input type="text" name="voiceName"></p>
+        </div>
+        <div class="tableRow">
+          <p>Chrome Voice:</p>
+          <p>
+            <select name="chrome-voice-select" class="full-cell">
+              <option value="none">None</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Firefox Voice:</p>
+          <p>
+            <select name="firefox-voice-select" class="full-cell">
+              <option value="none">None</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Edge Voice:</p>
+          <p>
+            <select name="edge-voice-select" class="full-cell">
+              <option value="none">None</option>
+            </select>
+          </p>
+        </div>
+        <div class="tableRow">
+          <p>Pitch</p>
+          <p><input type=number step=0.1 min=0 max=2 name="voicePitch"></p>
+        </div>
+        <div class="tableRow">
+          <p>Rate</p>
+          <p><input type=number step=0.1 min=0 max=3 name="voiceRate"></p>
+        </div>
+        <div class="tableRow">
+          <p>Volume</p>
+          <p><input type=number step=0.1 min=0 max=1 name="voiceVolume"></p>
+        </div>
+        <button id="create-voice">Create Voice</button>
+      </form>
+
+      <div class="dict-sidebar">
+        <a href="#voices-a">A</a><br>
+        <a href="#voices-b">B</a><br>
+        <a href="#voices-c">C</a><br>
+        <a href="#voices-d">D</a><br>
+        <a href="#voices-e">E</a><br>
+        <a href="#voices-f">F</a><br>
+        <a href="#voices-g">G</a><br>
+        <a href="#voices-h">H</a><br>
+        <a href="#voices-i">I</a><br>
+        <a href="#voices-j">J</a><br>
+        <a href="#voices-k">K</a><br>
+        <a href="#voices-l">L</a><br>
+        <a href="#voices-m">M</a><br>
+        <a href="#voices-n">N</a><br>
+        <a href="#voices-o">O</a><br>
+        <a href="#voices-p">P</a><br>
+        <a href="#voices-q">Q</a><br>
+        <a href="#voices-r">R</a><br>
+        <a href="#voices-s">S</a><br>
+        <a href="#voices-t">T</a><br>
+        <a href="#voices-u">U</a><br>
+        <a href="#voices-v">V</a><br>
+        <a href="#voices-w">W</a><br>
+        <a href="#voices-x">X</a><br>
+        <a href="#voices-y">Y</a><br>
+        <a href="#voices-z">Z</a>
+      </div>
+      <div class="dict-heading" id="voices-a"><h2>A</h2></div>
+      <div class="dict-heading" id="voices-b"><h2>B</h2></div>
+      <div class="dict-heading" id="voices-c"><h2>C</h2></div>
+      <div class="dict-heading" id="voices-d"><h2>D</h2></div>
+      <div class="dict-heading" id="voices-e"><h2>E</h2></div>
+      <div class="dict-heading" id="voices-f"><h2>F</h2></div>
+      <div class="dict-heading" id="voices-g"><h2>G</h2></div>
+      <div class="dict-heading" id="voices-h"><h2>H</h2></div>
+      <div class="dict-heading" id="voices-i"><h2>I</h2></div>
+      <div class="dict-heading" id="voices-j"><h2>J</h2></div>
+      <div class="dict-heading" id="voices-k"><h2>K</h2></div>
+      <div class="dict-heading" id="voices-l"><h2>L</h2></div>
+      <div class="dict-heading" id="voices-m"><h2>M</h2></div>
+      <div class="dict-heading" id="voices-n"><h2>N</h2></div>
+      <div class="dict-heading" id="voices-o"><h2>O</h2></div>
+      <div class="dict-heading" id="voices-p"><h2>P</h2></div>
+      <div class="dict-heading" id="voices-q"><h2>Q</h2></div>
+      <div class="dict-heading" id="voices-r"><h2>R</h2></div>
+      <div class="dict-heading" id="voices-s"><h2>S</h2></div>
+      <div class="dict-heading" id="voices-t"><h2>T</h2></div>
+      <div class="dict-heading" id="voices-u"><h2>U</h2></div>
+      <div class="dict-heading" id="voices-v"><h2>V</h2></div>
+      <div class="dict-heading" id="voices-w"><h2>W</h2></div>
+      <div class="dict-heading" id="voices-x"><h2>X</h2></div>
+      <div class="dict-heading" id="voices-y"><h2>Y</h2></div>
+      <div class="dict-heading" id="voices-z"><h2>Z</h2></div>
+    </div>
+
+    <div class="slab hidable" id="sound-effects-page">
+      <div class="dict-sidebar">
+        <a href="#sfx-a">A</a><br>
+        <a href="#sfx-b">B</a><br>
+        <a href="#sfx-c">C</a><br>
+        <a href="#sfx-d">D</a><br>
+        <a href="#sfx-e">E</a><br>
+        <a href="#sfx-f">F</a><br>
+        <a href="#sfx-g">G</a><br>
+        <a href="#sfx-h">H</a><br>
+        <a href="#sfx-i">I</a><br>
+        <a href="#sfx-j">J</a><br>
+        <a href="#sfx-k">K</a><br>
+        <a href="#sfx-l">L</a><br>
+        <a href="#sfx-m">M</a><br>
+        <a href="#sfx-n">N</a><br>
+        <a href="#sfx-o">O</a><br>
+        <a href="#sfx-p">P</a><br>
+        <a href="#sfx-q">Q</a><br>
+        <a href="#sfx-r">R</a><br>
+        <a href="#sfx-s">S</a><br>
+        <a href="#sfx-t">T</a><br>
+        <a href="#sfx-u">U</a><br>
+        <a href="#sfx-v">V</a><br>
+        <a href="#sfx-w">W</a><br>
+        <a href="#sfx-x">X</a><br>
+        <a href="#sfx-y">Y</a><br>
+        <a href="#sfx-z">Z</a>
+      </div>
+      <div class="dict-heading" id="sfx-a"><h2>A</h2></div>
+      <div class="dict-heading" id="sfx-b"><h2>B</h2></div>
+      <div class="dict-heading" id="sfx-c"><h2>C</h2></div>
+      <div class="dict-heading" id="sfx-d"><h2>D</h2></div>
+      <div class="dict-heading" id="sfx-e"><h2>E</h2></div>
+      <div class="dict-heading" id="sfx-f"><h2>F</h2></div>
+      <div class="dict-heading" id="sfx-g"><h2>G</h2></div>
+      <div class="dict-heading" id="sfx-h"><h2>H</h2></div>
+      <div class="dict-heading" id="sfx-i"><h2>I</h2></div>
+      <div class="dict-heading" id="sfx-j"><h2>J</h2></div>
+      <div class="dict-heading" id="sfx-k"><h2>K</h2></div>
+      <div class="dict-heading" id="sfx-l"><h2>L</h2></div>
+      <div class="dict-heading" id="sfx-m"><h2>M</h2></div>
+      <div class="dict-heading" id="sfx-n"><h2>N</h2></div>
+      <div class="dict-heading" id="sfx-o"><h2>O</h2></div>
+      <div class="dict-heading" id="sfx-p"><h2>P</h2></div>
+      <div class="dict-heading" id="sfx-q"><h2>Q</h2></div>
+      <div class="dict-heading" id="sfx-r"><h2>R</h2></div>
+      <div class="dict-heading" id="sfx-s"><h2>S</h2></div>
+      <div class="dict-heading" id="sfx-t"><h2>T</h2></div>
+      <div class="dict-heading" id="sfx-u"><h2>U</h2></div>
+      <div class="dict-heading" id="sfx-v"><h2>V</h2></div>
+      <div class="dict-heading" id="sfx-w"><h2>W</h2></div>
+      <div class="dict-heading" id="sfx-x"><h2>X</h2></div>
+      <div class="dict-heading" id="sfx-y"><h2>Y</h2></div>
+      <div class="dict-heading" id="sfx-z"><h2>Z</h2></div>
+
+    </div>
+
+
+    <!--TRANSPLANT-->
+
+    <div class="hidable" id="grammar-gen">
+      <form class="table-form slab">
+        <div class="tableRow">
+          <p>Grid Name:</p>
+          <p><input type="text" name="gridName" id="gridName"></p>
+        </div>
+        <div class="tableRow">
+          <p>Grid Type:</p>
+          <p><input type="text" name="gridType" id="gridType"></p>
+        </div>
+        <div class="tableRow">
+          <p>Is Map:</p>
+          <p>
+            <select id="isMap" name="map" class="full-cell">
+              <option value="no">no</option>
+              <option value="yes">yes</option>
+            </select></p>
+          </p>
+        </div>
+      </form>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="edit-rule-btn">Edit</button>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="delete-rule-btn">Delete</button>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="export">Export</button>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="load-prefabs">Load Prefabs</button>
+      <div id="grid">
+
+      </div>
+
+      <div class="toolbar">
+        <div class="tooltip"><img class="small-icon tooltip" id="plusicon" src="plussign.png"></img><span class="tooltiptext">Zoom In</span></div>
+        <div class="tooltip"><img class="small-icon" id="minusicon" src="minussign.png"></img><span class="tooltiptext">Zoom Out</span></div>
+        <div class="tooltip"><img class="small-icon" id="writeicon" src="write.png"></img><span class="tooltiptext">Results</span></div>
+        <div class="tooltip"><img class="small-icon" id="gridicon" src="grid.png"></img><span class="tooltiptext">Change Grid</span></div>
+        <div class="tooltip"><img class="small-icon" id="generateicon" src="generate.png"></img><span class="tooltiptext">Generate</span></div>
+        <div class="tooltip"><img class="small-icon" id="saveicon" src="save.png"></img><span class="tooltiptext">Save</span></div>
+        <div class="tooltip"><img class="small-icon" id="loadicon" src="load.png"></img><span class="tooltiptext">Load</span></div>
+      </div>
+
+
+      <div id="cell-box">
+        <div id="outputText"></div>
+        <canvas id="outputCanvas"></canvas>
+      </div>
+      <div class="dark-theme" id="grid-select-box">
+        <p id="add-grid-button">Add Grid</p>
+      </div>
+      <div id="gridinfo"></div>
+    </div>
+</div>
+    <!--END GENERATOR----------------------------->
+
+    <!--BEGIN PRODUCER-->
+    <div class="container" id="flexcontainer">
+
+      <div id="right-div">
+        <div class="main-text" id="main-text-box">
+          The sky darkens as you and your men sit around the campfire exchanging stories. It is not long before several of the men have dozed off, and you are left speaking with Reynaldo. "Early morning tomorrow," Reynaldo sighs.
+        </div>
+        <div id="new-choices-box">
+
+        </div>
+      </div>
+    </div>
+
+    <div id="export-box">
+
+    </div>
+
+    <!--END PRODUCER-->
+
+    <script src="middleenglish.js"></script>
+    <script src="simplex-noise.js"></script>
+    <script src="markov.js"></script>
+    <script src="compromise.js"></script>
+    <script src="compromise-sentences.js"></script>
+    <script src="compromise-adjectives.js"></script>
+    <script src="compromise-numbers.js"></script>
+    <script src="lodash.js"></script>
+    <script src="runcomp.js"></script>
+
+    <script src="collections.js"></script>
+    <script src="index.js"></script>
+    <script src="indexNew.js"></script>
+
+    <script src="adjectives.js"></script>
+    <script src="grids2.js"></script>
+    <script src="grids.js"></script>
+    <script src="foods.js"></script>
+    <script src="wordlists.js"></script>
+    <script src="furniture.js"></script>
+    <script src="compilegrids.js"></script>
+  </body>
+</html>
