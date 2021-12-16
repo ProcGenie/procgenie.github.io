@@ -452,3 +452,7 @@ textarea {
 .intro-text a {
 	color: black;
 }
+
+#help {
+	display: block;
+}
