@@ -13,8 +13,17 @@
 
 <!--BEGIN GENERATOR----------------------------->
 <div id="generator-area">
-    <h1 id="headline">ProcGenie</h1>
+
     <nav class="slab" id="navbar">
+      <div class="dropdown">
+        <span onclick ="fileDropdown()" class="dropbtn seplinks">File</span>
+        <div id="fileDropdown" class="dropdown-content">
+          <a href="#" id="new-generator">New</a>
+          <a href="#" id="save-generator">Local Save</a>
+          <a href="#" id="load-generator">Local Load</a>
+          <a href="#" id="export-grid">Export Grid</a>
+        </div>
+      </div>
       <div class="dropdown">
         <span onclick ="ruleDropdown()" class="dropbtn seplinks">Grammars</span>
         <div id="ruleDropdown" class="dropdown-content">
@@ -23,10 +32,41 @@
           <a href="#" id="help-btn">Help</a>
         </div>
       </div>
+      <div class="dropdown">
+        <span onclick ="gridDropdown()" class="dropbtn seplinks">Grids</span>
+        <div id="gridDropdown" class="dropdown-content">
+          <a href="#" id="load-prefabs">Load Prefab Grids</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <span id="run-grid-drop">Run</span>
+      </div>
     </nav>
+    <div id="left-sidebar">
+      <form class="table-form slab">
+        <div class="tableRow">
+          <p>Grid Name:</p>
+          <p><input type="text" name="gridName" id="gridName"></p>
+        </div>
+        <div class="tableRow">
+          <p>Grid Type:</p>
+          <p><input type="text" name="gridType" id="gridType"></p>
+        </div>
+        <div class="tableRow">
+          <p>Is Map:</p>
+          <p>
+            <select id="isMap" name="map" class="full-cell">
+              <option value="no">no</option>
+              <option value="yes">yes</option>
+            </select></p>
+          </p>
+        </div>
+      </form>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
+    </div>
 
     <div class="hidable intro-text" id="help">
-      <h2 class="">ProcGenie is a hand-crafted procedural text generation tool for designing and running complex replacement grammars.</h2><br><p>ProcGenie is a work in progress - follow along on <a href="https://twitter.com/ProcGenie">Twitter</a> for updates and tutorials.</p>
+      <h2>ProcGenie is a hand-crafted procedural text generation tool for designing and running complex replacement grammars.</h2><br><p>ProcGenie is a work in progress - follow along on <a href="https://twitter.com/ProcGenie">Twitter</a> for updates and tutorials.</p>
     </div>
 
     <!--General Settings Page Page-->
@@ -800,30 +840,6 @@
     <!--TRANSPLANT-->
 
     <div class="hidable" id="grammar-gen">
-      <form class="table-form slab">
-        <div class="tableRow">
-          <p>Grid Name:</p>
-          <p><input type="text" name="gridName" id="gridName"></p>
-        </div>
-        <div class="tableRow">
-          <p>Grid Type:</p>
-          <p><input type="text" name="gridType" id="gridType"></p>
-        </div>
-        <div class="tableRow">
-          <p>Is Map:</p>
-          <p>
-            <select id="isMap" name="map" class="full-cell">
-              <option value="no">no</option>
-              <option value="yes">yes</option>
-            </select></p>
-          </p>
-        </div>
-      </form>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="edit-rule-btn">Edit</button>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="delete-rule-btn">Delete</button>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="export">Export</button>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="load-prefabs">Load Prefabs</button>
       <div id="grid">
 
       </div>

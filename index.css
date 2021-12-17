@@ -191,13 +191,6 @@ textarea {
 	font-size: 1.5em;
 }
 
-.big-table {
-  width: 98vw;
-  height: 70vh;
-	margin-left: auto;
-	margin-right: auto;
-}
-
 .inner-cell {
   resize: none;
   width: 98%;
@@ -399,14 +392,13 @@ textarea {
 }
 
 .intro-text {
-  margin-left: auto;
-	margin-right: auto;
+  margin-left: 25vw;
 	padding: 20px;
   margin-top: 3vh;
   font-size: 4em;
   color: #353b48;
   font-weight: bold;
-	max-width: 80vw;
+	max-width: 60vw;
 	border: 1px solid black;
 	box-shadow: 3px 3px 3px grey;
 	text-align: center;
@@ -454,4 +446,62 @@ textarea {
 
 #help {
 	display: block;
+}
+
+#left-sidebar {
+	float: left;
+	width: 15vw;
+	height: 100vh;
+	overflow: scroll;
+	padding-left: 5px;
+	background: rgba(40, 42, 54, 0.99);
+}
+
+#left-sidebar a {
+	color: white;
+	text-decoration: none;
+}
+
+#left-sidebar a:hover {
+	color: #2980b9;
+	text-decoration: none;
+}
+
+#left-sidebar p {
+	color: white;
+	text-decoration: none;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+#left-sidebar p:hover {
+	color: #2980b9;
+	text-decoration: none;
+}
+
+.big-table {
+  width: 80vw;
+  height: 70vh;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 40px
+}
+
+#run-grid-drop:hover {
+	cursor: pointer;
+	color: #2980b9;
+}
+
+.grid-links {
+	margin-left: 1vw;
+}
+
+.grid-links:hover {
+	cursor: pointer;
+}
+
+#new-rule-btn {
+	width: 12vw;
+	font-size: 1.2em;
+	text-align: center;
 }

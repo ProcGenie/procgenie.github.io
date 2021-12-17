@@ -156,6 +156,7 @@ g.month = 1;
 g.day = 1;
 g.year = 2021
 g.locations = [];
+g.gridTypes = ["default"];
 
 function createGrid(n) {
   let grid = {};
@@ -177,7 +178,8 @@ function GID(el) {
 
 function startup() {
   g.grids = [];
-  g.grids.push(createGrid("empty"))
+  g.grids.push(createGrid("newGrid"))
+  g.grids[0].type = "default"
   g.currentGrid = g.grids[0]
   g.magnification = 5
 
@@ -824,9 +826,50 @@ GID("generateicon").onclick = function() {
   runGenerationProcess(null, null, oArr);
 }
 
+GID("new-generator").onclick = function() {
+  let restart = confirm("Start a new generator? You will lose all unsaved progress.")
+  if (restart === true) {
+    g.output = "";
+    g.choices = [];
+    g.speak = [];
+    g.speakers = [];
+    g.arrays = {}
+    g.monthText = "January";
+    g.month = 1;
+    g.day = 1;
+    g.year = 2021
+    g.locations = [];
+    g.gridTypes = ["default"];
+    startup();
+    fillSidebar();
+  }
+}
+
+GID("run-grid-drop").onclick = function() {
+  kv = [];
+  runGenerationProcess(null, null, oArr);
+  GID("generator-area").style.display = "none";
+  GID("flexcontainer").style.display = "flex";
+  //showHide("cell-box")
+  let c = document.getElementById("outputCanvas");
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
+}
+
 GID("saveicon").onclick = function() {
   let n = prompt("What name should this generator be saved under?")
   localStorage.setItem(n, JSON.stringify(g))
+}
+
+GID("save-generator").onclick = function() {
+  let n = prompt("What name should this generator be saved under?")
+  localStorage.setItem(n, JSON.stringify(g))
+}
+
+GID("load-generator").onclick = function() {
+  let n = prompt("What generator would you like to load?")
+  g = JSON.parse(localStorage.getItem(n))
+  drawGrid();
 }
 
 GID("loadicon").onclick = function() {
@@ -1699,7 +1742,8 @@ function normalizeMonth() {
   }
 }
 
-GID("export").onclick = function() {
+
+GID("export-grid").onclick = function() {
   GID("export-box").style.display = "block";
   GID("generator-area").style.display = "none";
   let t = JSON.stringify(g.currentGrid);
@@ -1707,7 +1751,23 @@ GID("export").onclick = function() {
 }
 
 GID("new-rule-btn").onclick = function() {
+  newRule()
+}
+
+function newRule() {
   let n = GID("gridName").value
+  let t = GID("gridType").value;
+
+  let gridTypeExists = false;
+  for (let i = 0; i < g.gridTypes.length; i++) {
+    if (t === g.gridTypes[i]) {
+      gridTypeExists = true;
+    }
+  }
+  if (gridTypeExists === false) {
+    g.gridTypes.push(t);
+    g.gridTypes = g.gridTypes.sort();
+  }
   g.grids.push(createGrid(`${n}`))
   g.currentGrid = g.grids[g.grids.length - 1]
   g.currentGrid.type = GID("gridType").value;
@@ -1715,23 +1775,75 @@ GID("new-rule-btn").onclick = function() {
   g.gridIndex = g.grids.length - 1;
   drawGrid();
   alert(`You created the ${n} grid. The ${n} grid is now your current grid.`)
+  fillSidebar();
 }
 
-GID("edit-rule-btn").onclick = function() {
-  g.currentGrid.name = GID("gridName").value;
-  g.currentGrid.type = GID("gridType").value;
-  g.currentGrid.isMap = GID("isMap").value
-  drawGrid();
+function fillSidebar() {
+  GID("left-sidebar").innerHTML = ``;
+  let text = "";
+  for (let i = 0; i < g.gridTypes.length; i++) {
+    text += `<div id="gridType${g.gridTypes[i]}"><a href="#">&#8680 ${g.gridTypes[i]}</a></div>`
+  }
+  GID("left-sidebar").innerHTML = `
+  <form class="table-form slab">
+    <div class="tableRow">
+      <p>Grid Name:</p>
+      <p><input type="text" name="gridName" id="gridName"></p>
+    </div>
+    <div class="tableRow">
+      <p>Grid Type:</p>
+      <p><input type="text" name="gridType" id="gridType"></p>
+    </div>
+    <div class="tableRow">
+      <p>Is Map:</p>
+      <p>
+        <select id="isMap" name="map" class="full-cell">
+          <option value="no">no</option>
+          <option value="yes">yes</option>
+        </select></p>
+      </p>
+    </div>
+  </form>
+  <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
+  ${text}`;
+  GID("new-rule-btn").onclick = function() {
+    newRule();
+  }
+  for (let i = 0; i < g.gridTypes.length; i++) {
+    GID(`gridType${g.gridTypes[i]}`).onclick = function () {
+      let t = "";
+      let arr = [`<a href="#">&#8681 ${g.gridTypes[i]}</a>`]
+      for (let n = 0; n < g.grids.length; n++) {
+        if (g.grids[n].type === g.gridTypes[i]) {
+          arr.push(`<p class="grid-links" id=grid${g.grids[n].name}-${g.gridTypes[i]}>&#8680 ${g.grids[n].name}</p>`)
+        }
+      }
+      arr = arr.sort();
+      for (let n = 0; n < arr.length; n++) {
+        t += arr[n]
+      }
+      GID(`gridType${g.gridTypes[i]}`).innerHTML = t
+      for (let n = 0; n < g.grids.length; n++) {
+        console.log(g.grids[n].type)
+        console.log(g.grids[n].name);
+        if (g.grids[n].type === g.gridTypes[i]) {
+          GID(`grid${g.grids[n].name}-${g.grids[n].type}`).onclick = function() {
+            g.currentGrid = g.grids[n]
+            GID("gridName").value = g.currentGrid.name;
+            GID("gridType").value = g.currentGrid.type;
+            GID("isMap").value = g.currentGrid.isMap;
+            hideAll();
+            drawGrid();
+            showHide("grammar-gen")
+          }
+        }
+      }
+      for (let n = 0; n < g.gridTypes.length; n++) {
+        if (n !== i) {
+          GID(`gridType${g.gridTypes[n]}`).innerHTML = `<a href="#">&#8680 ${g.gridTypes[n]}</a>`
+        }
+      }
+    }
+  }
 }
-
-GID("delete-rule-btn").onclick = function() {
-  let deleted = g.currentGrid.name;
-  g.grids.splice(g.gridIndex, 1)
-  g.gridIndex -= 1;
-  g.currentGrid = g.grids[g.gridIndex];
-  GID("gridName").value = g.currentGrid.name;
-  GID("gridType").value = g.currentGrid.type;
-  GID("isMap").value = g.currentGrid.isMap;
-  drawGrid();
-  alert(`You have deleted the ${deleted} grid and are now on the ${g.currentGrid.name} grid.`)
-}
+fillSidebar();

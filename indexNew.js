@@ -38,6 +38,10 @@ function ruleDropdown() {
   document.getElementById("ruleDropdown").classList.toggle("show")
 }
 
+function gridDropdown() {
+  document.getElementById("gridDropdown").classList.toggle("show");
+}
+
 function helpDropdown() {
   document.getElementById("helpDropdown").classList.toggle("show")
 }
