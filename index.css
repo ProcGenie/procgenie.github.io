@@ -484,7 +484,7 @@ textarea {
   height: 70vh;
 	margin-left: auto;
 	margin-right: auto;
-	margin-top: 40px
+	margin-top: 10px;
 }
 
 #run-grid-drop:hover {
@@ -498,10 +498,4 @@ textarea {
 
 .grid-links:hover {
 	cursor: pointer;
-}
-
-#new-rule-btn {
-	width: 12vw;
-	font-size: 1.2em;
-	text-align: center;
 }

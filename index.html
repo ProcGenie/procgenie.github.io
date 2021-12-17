@@ -28,7 +28,6 @@
         <span onclick ="ruleDropdown()" class="dropbtn seplinks">Grammars</span>
         <div id="ruleDropdown" class="dropdown-content">
           <a href="#" id="create-rule-btn">Create Rule</a>
-          <a href="#" id="list-rules-btn">List Rules</a>
           <a href="#" id="help-btn">Help</a>
         </div>
       </div>
@@ -43,26 +42,7 @@
       </div>
     </nav>
     <div id="left-sidebar">
-      <form class="table-form slab">
-        <div class="tableRow">
-          <p>Grid Name:</p>
-          <p><input type="text" name="gridName" id="gridName"></p>
-        </div>
-        <div class="tableRow">
-          <p>Grid Type:</p>
-          <p><input type="text" name="gridType" id="gridType"></p>
-        </div>
-        <div class="tableRow">
-          <p>Is Map:</p>
-          <p>
-            <select id="isMap" name="map" class="full-cell">
-              <option value="no">no</option>
-              <option value="yes">yes</option>
-            </select></p>
-          </p>
-        </div>
-      </form>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
+
     </div>
 
     <div class="hidable intro-text" id="help">
@@ -840,6 +820,27 @@
     <!--TRANSPLANT-->
 
     <div class="hidable" id="grammar-gen">
+      <form class="table-form slab">
+        <div class="tableRow">
+          <p>Grid Name:</p>
+          <p><input type="text" name="gridName" id="gridName"></p>
+        </div>
+        <div class="tableRow">
+          <p>Grid Type:</p>
+          <p><input type="text" name="gridType" id="gridType"></p>
+        </div>
+        <div class="tableRow">
+          <p>Is Map:</p>
+          <p>
+            <select id="isMap" name="map" class="full-cell">
+              <option value="no">no</option>
+              <option value="yes">yes</option>
+            </select></p>
+          </p>
+        </div>
+      </form>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
+      <button style="margin-left: 20px; margin-bottom: 20px;" id="delete-rule-btn">Delete</button>
       <div id="grid">
 
       </div>

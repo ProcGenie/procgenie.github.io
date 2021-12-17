@@ -1784,28 +1784,7 @@ function fillSidebar() {
   for (let i = 0; i < g.gridTypes.length; i++) {
     text += `<div id="gridType${g.gridTypes[i]}"><a href="#">&#8680 ${g.gridTypes[i]}</a></div>`
   }
-  GID("left-sidebar").innerHTML = `
-  <form class="table-form slab">
-    <div class="tableRow">
-      <p>Grid Name:</p>
-      <p><input type="text" name="gridName" id="gridName"></p>
-    </div>
-    <div class="tableRow">
-      <p>Grid Type:</p>
-      <p><input type="text" name="gridType" id="gridType"></p>
-    </div>
-    <div class="tableRow">
-      <p>Is Map:</p>
-      <p>
-        <select id="isMap" name="map" class="full-cell">
-          <option value="no">no</option>
-          <option value="yes">yes</option>
-        </select></p>
-      </p>
-    </div>
-  </form>
-  <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
-  ${text}`;
+  GID("left-sidebar").innerHTML = `${text}`;
   GID("new-rule-btn").onclick = function() {
     newRule();
   }
@@ -1847,3 +1826,15 @@ function fillSidebar() {
   }
 }
 fillSidebar();
+
+GID("delete-rule-btn").onclick = function() {
+  let deleted = g.currentGrid.name;
+  g.grids.splice(g.gridIndex, 1)
+  g.gridIndex -= 1;
+  g.currentGrid = g.grids[g.gridIndex];
+  GID("gridName").value = g.currentGrid.name;
+  GID("gridType").value = g.currentGrid.type;
+  GID("isMap").value = g.currentGrid.isMap;
+  drawGrid();
+  alert(`You have deleted the ${deleted} grid and are now on the ${g.currentGrid.name} grid.`)
+}
