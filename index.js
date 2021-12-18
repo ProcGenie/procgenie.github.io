@@ -870,12 +870,14 @@ GID("load-generator").onclick = function() {
   let n = prompt("What generator would you like to load?")
   g = JSON.parse(localStorage.getItem(n))
   drawGrid();
+  fillSidebar();
 }
 
 GID("loadicon").onclick = function() {
   let n = prompt("What generator would you like to load?")
   g = JSON.parse(localStorage.getItem(n))
   drawGrid();
+  fillSidebar();
 }
 
 document.onkeydown = move

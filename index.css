@@ -152,7 +152,7 @@ textarea {
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
+.tooltip:hover tooltiptext {
   visibility: visible;
 }
 
@@ -160,18 +160,20 @@ textarea {
 .tooltip .tooltipintext {
   visibility: hidden;
   color: black;
-	height: 100vh;
-	max-width: 20vw;
+	height: 50vh;
+	width: 80vw;
+	text-align: left;
+	font-size: 0.4em;
 	overflow: scroll;
-  padding: 1vw;
-  border-radius: 6px;
 
   /* Position the tooltip text - see examples below! */
   position: fixed;
   z-index: 1;
-  right: 0px;
-  top: 0px;
+  left: 10vw;
+  bottom: 0px;
 	background: white;
+	border: 1px solid red;
+	line-height: 1;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
