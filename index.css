@@ -124,7 +124,7 @@ textarea {
 .tooltip {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+  border-bottom: 1px dotted white; /* If you want dots under the hoverable text */
 }
 
 .toolbar {
@@ -155,6 +155,30 @@ textarea {
 .tooltip:hover .tooltiptext {
   visibility: visible;
 }
+
+/* Tooltip text */
+.tooltip .tooltipintext {
+  visibility: hidden;
+  color: black;
+	height: 100vh;
+	max-width: 20vw;
+	overflow: scroll;
+  padding: 1vw;
+  border-radius: 6px;
+
+  /* Position the tooltip text - see examples below! */
+  position: fixed;
+  z-index: 1;
+  right: 0px;
+  top: 0px;
+	background: white;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltipintext {
+  visibility: visible;
+}
+
 
 #help-box {
 	width: 100vw;

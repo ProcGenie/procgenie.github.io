@@ -243,6 +243,7 @@ function runCompromise(c, text) {
     console.log(nlp.altOutput)
     return nlp.altOutput;
   } else {
+    return nlpWrap.doc.text();
     return nlpWrap.o
   }
 }

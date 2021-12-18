@@ -674,7 +674,7 @@ function runGenerationProcess(grid, w, objArr) {
 
     for (let i = 0; i < kv.length; i++) {
       if (t.includes(`${kv[i].k}`)) {
-        t = t.replace(`${kv[i].k}`, `<div class="tooltip">${kv[i].k}<span class="tooltiptext">${kv[i].v}</span></div>`)
+        t = t.replace(`${kv[i].k}`, `<div class="tooltip">${kv[i].k}<span class="tooltipintext">${kv[i].v}</span></div>`)
       }
     }
     t = t.replace(/\[choice\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/g, "")
@@ -689,7 +689,7 @@ function runGenerationProcess(grid, w, objArr) {
 
     for (let i = 0; i < kv.length; i++) {
       if (t.includes(`${kv[i].k}`)) {
-        t = t.replace(`${kv[i].k}`, `<div class="tooltip">${kv[i].k}<span class="tooltiptext">${kv[i].v}</span></div>`)
+        t = t.replace(`${kv[i].k}`, `<div class="tooltip">${kv[i].k}<span class="tooltipintext">${kv[i].v}</span></div>`)
       }
     }
     t = t.replace(/\[choice\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/g, "")
@@ -1410,6 +1410,8 @@ function runFunctions(w, t) {
       }
     } else if (t && t.includes("replaceKey(")) {
       let m = t.match(/replaceKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+),\s([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+)\)/)
+      m[1] = replaceVariable(w, m[1]);
+      m[2] = replaceVariable(w, m[2]);
       let exists = false;
       for (let i = 0; i < kv.length; i++) {
         if (kv[i].k === m[1]) {
@@ -1429,6 +1431,8 @@ function runFunctions(w, t) {
       t = t.replace(/replaceKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\]+)\)/, "")
     } else if (t && t.includes("addKey(")) {
       let m = t.match(/addKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+),\s([\w\d\s\,\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+)\)/)
+      m[1] = replaceVariable(w, m[1]);
+      m[2] = replaceVariable(w, m[2]);
       let exists = false;
       for (let i = 0; i < kv.length; i++) {
         if (kv[i].k === m[1]) {
@@ -1512,10 +1516,15 @@ function addComponentTo(w, comp) {
   }
   if (comp.choices && comp.choices.length > 0) {
     for (let i = 0; i < comp.choices.length; i++) {
-      let o = _.cloneDeep(comp.choices[i]);
-      o.text = runGrids(w, o.text);
-      o.text = runFunctions(w, o.text);
-      g.choices.push(o);
+      if (choiceVariablesConflict(w, comp.choices[i])) {
+        //do nothing
+      } else {
+        //add choice to walker
+        let o = _.cloneDeep(comp.choices[i]);
+        o.text = runGrids(w, o.text);
+        o.text = runFunctions(w, o.text);
+        g.choices.push(o);
+      }
     }
   }
   if (comp.background && comp.background.length > 0) {
@@ -1579,6 +1588,22 @@ function variableComparisonsFail(w, compVar) {
   return false;
 }
 
+function choiceVariableComparisonsFail(w, compVar) {
+  let exists = false;
+  for (let i = 0; i < w.variables.length; i++) {
+    if (variablesHaveSameName(w.variables[i], compVar)) {
+      exists = true;
+      if (compare(w.variables[i].value, compVar.operation, compVar.value) === false) {
+        return true;
+      }
+    }
+  }
+  if (exists === false) {
+    return true;
+  }
+  return false;
+}
+
 function variablesConflict(w, c) {
   if (c && c.variables) {
     for (let i = 0; i < c.variables.length; i++) {
@@ -1587,6 +1612,21 @@ function variablesConflict(w, c) {
         return true;
       }
       if (variableComparisonsFail(w, compVar)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function choiceVariablesConflict(w, c) {
+  if (c && c.variables) {
+    for (let i = 0; i < c.variables.length; i++) {
+      let compVar = c.variables[i]
+      if (walkerIsEmptyButComponentCompares(w, compVar)) {
+        return true;
+      }
+      if (choiceVariableComparisonsFail(w, compVar)) {
         return true;
       }
     }
