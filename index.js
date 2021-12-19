@@ -755,7 +755,7 @@ function runGenerationProcess(grid, w, objArr) {
         //let value = m[2].match(/\=\s([\w\s\d\,\!\$\.\+\-\>\<\/\"\”\“\'\(\)\;\:]+)/)[1]
 
         // check to see whether object in grid exists in object array;
-        if (objArr[num]) {
+        if (objArr && objArr[num]) {
           //if object in grid exists in array, set obj to that obj
           obj = objArr[num]
           //check to see whether variable exists on object;
@@ -778,7 +778,13 @@ function runGenerationProcess(grid, w, objArr) {
           obj = {};
           obj[`${name}`] = value;
           newObject = true;
-          objArr[num] = obj;
+          if (objArr) {
+            objArr[num] = obj;
+          } else {
+            objArr = [];
+            objArr[num] = obj;
+          }
+
         }
       }
     }
