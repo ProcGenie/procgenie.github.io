@@ -263,6 +263,11 @@ function process(unprocessed, coords) {
   let total = /\[[\{\}\w\s\+\.\-\=\*\<\>\!\?\d\,\:\;\(\)\$\'\"\”\“\”\“\%\/]+\]/g
   let rx = /x([\-\d]+)/
   let ry = /y([\-\d]+)/
+  let x = parseInt(coords.match(rx)[1]);
+  let y = parseInt(coords.match(ry)[1]);
+  console.log(coords);
+  console.log(x);
+  console.log(y)
   let digits = /\[(\d+)\]/
   let components = unprocessed.split("|")
   let cArr = [];
@@ -272,7 +277,14 @@ function process(unprocessed, coords) {
     c.directions = [];
     c.choices = [];
     c.text = components[j].trim();
-    if (c.text.includes("teleport(")) {
+    if (c.text.includes("loop(")) {
+      c.loop = {};
+      c.loop.x = x;
+      c.loop.y = y;
+      c.loop.gridName = g.currentGrid.name;
+      c.loop.iterations = parseInt(c.text.match(/loop\((\d+)\)/)[1])
+      c.text = c.text.replace(/loop\(\d+\)/, "")
+    } else if (c.text.includes("teleport(")) {
       let m = c.text.match(/teleport\(([\w\d\$\{\}]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\)/)
       c.teleport = {};
       c.teleport.gridName = m[1];
@@ -1148,6 +1160,9 @@ function genLoop(walker) {
   let generating = true;
   while (generating === true) {
     let currentCell = getCell(walker.x, walker.y);
+    console.log(currentCell);
+    console.log(walker);
+    console.log(g);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
 
@@ -1165,6 +1180,21 @@ function genLoop(walker) {
     }
     let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
 
+    if (currentComponent.loop) {
+      g.loop = {};
+      g.loop.gridName = currentComponent.loop.gridName;
+      g.loop.x = currentComponent.loop.x;
+      g.loop.y = currentComponent.loop.y
+      if (g.loop.iterations) {
+        g.loop.iterations += parseInt(currentComponent.loop.iterations);
+        currentComponent.loop.iterations = 0;
+      } else {
+        g.loop.iterations = parseInt(currentComponent.loop.iterations);
+      }
+
+      console.log(g.loop.iterations);
+    }
+
     if (currentComponent.teleport) {
       let gridName = replaceVariable(walker, currentComponent.teleport.gridName);
       let x = replaceVariable(walker, walker.x);
@@ -1178,6 +1208,12 @@ function genLoop(walker) {
       /*currentCell = getCell(walker.x, walker.y);
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
       currentComponent = getComponent(possibleComponents);*/
+    } else if (possibleNextCells.length === 0 && g.loop && g.loop.iterations > 0 && g.choices.length === 0) {
+      console.log(g.loop.iterations);
+      g.currentGrid = getGridByName(g, g.loop.gridName);
+      walker.x = g.loop.x;
+      walker.y = g.loop.y
+      g.loop.iterations -= 1;
     } else if (possibleNextCells.length > 0) {
       let nextCell = getRandomFromArr(possibleNextCells);
       walker.x = nextCell.x;
