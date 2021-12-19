@@ -114,7 +114,6 @@ function replaceVariable(e, localization) {
       while (l.includes("<<")) {
         count += 1;
         let matches = l.match(regex);
-        console.log(matches)
         if (matches) {
           let noDollars = matches[0].replace(/\<\</, "").replace(/\>\>/, "");
           let exists = false;
@@ -1473,6 +1472,23 @@ function runFunctions(w, t) {
 }
 
 function addComponentTo(w, comp) {
+  let hasIterator = false;
+  let iterations;
+  if (comp.text.includes("loop(")) {
+    g.loop = {
+      grid: g.currentGrid.name,
+      x: w.x,
+      y: w.y
+    }
+    if (comp.text.match(/loop\(\d+\)/)) {
+      let m = comp.text.match(/loop\((\d+)\)/)
+      iterations = m[1]
+      g.loop.iterations = parseInt(iterations);
+      comp.text = comp.text.replace(/loop\(\d+\)/, "")
+    }
+
+    comp.text = comp.text.replace(/loop\(\)/, "")
+  }
   if (comp.variables) {
     for (let i = 0; i < comp.variables.length; i++) {
       let exists = false;
@@ -1728,6 +1744,29 @@ function generate(grid, w, continuing, objArr) {
   if (lastGrid !== undefined) {
     g.currentGrid = lastGrid
   }
+  if (g.choices.length === 0) {
+    if (g.loop) {
+      if (g.loop.iterations) {
+        if (g.loop.iterations > 0) {
+          //If no choices and you gave it iterations (think making a list of random names, etc.)
+          let it = parseInt(g.loop.iterations);
+          for (let z = 0; z < it; z++) {
+            console.log(g);
+            g.currentGrid = getGridByName(g, g.loop.grid);
+            walker.x = g.loop.x;
+            walker.y = g.loop.y;
+            res += genLoop(walker);
+          }
+        }
+      } else {
+        g.currentGrid = getGridByName(g, g.loop.grid);
+        walker.x = g.loop.x;
+        walker.y = g.loop.y;
+        res += genLoop(walker);
+      }
+    }
+  }
+  console.log(g);
   return res
 }
 
