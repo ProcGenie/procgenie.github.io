@@ -1180,19 +1180,14 @@ function genLoop(walker) {
     }
     let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
 
+    //LOOPING IS NOW FIXED. NEED TO RESET LOOP ITERATIONS ON COMPONENT AFTER GENERATION RUNS
     if (currentComponent.loop) {
+      currentComponent.loop.iterations -= 1;
       g.loop = {};
       g.loop.gridName = currentComponent.loop.gridName;
       g.loop.x = currentComponent.loop.x;
-      g.loop.y = currentComponent.loop.y
-      if (g.loop.iterations) {
-        g.loop.iterations += parseInt(currentComponent.loop.iterations);
-        currentComponent.loop.iterations = 0;
-      } else {
-        g.loop.iterations = parseInt(currentComponent.loop.iterations);
-      }
-
-      console.log(g.loop.iterations);
+      g.loop.y = currentComponent.loop.y;
+      g.loop.iterations = currentComponent.loop.iterations;
     }
 
     if (currentComponent.teleport) {
@@ -1208,12 +1203,11 @@ function genLoop(walker) {
       /*currentCell = getCell(walker.x, walker.y);
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
       currentComponent = getComponent(possibleComponents);*/
-    } else if (possibleNextCells.length === 0 && g.loop && g.loop.iterations > 0 && g.choices.length === 0) {
+    } else if (possibleNextCells.length === 0 && g.loop && g.loop.iterations > 0 && g.choices.length === 0 && g.currentGrid.name === g.loop.gridName) {
       console.log(g.loop.iterations);
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
       walker.y = g.loop.y
-      g.loop.iterations -= 1;
     } else if (possibleNextCells.length > 0) {
       let nextCell = getRandomFromArr(possibleNextCells);
       walker.x = nextCell.x;
