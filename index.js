@@ -114,7 +114,6 @@ function replaceVariable(e, localization) {
       while (l.includes("<<")) {
         count += 1;
         let matches = l.match(regex);
-        console.log(matches)
         if (matches) {
           let noDollars = matches[0].replace(/\<\</, "").replace(/\>\>/, "");
           let exists = false;
@@ -201,6 +200,7 @@ function normBrackets(s) {
   } else {
     arr.push(s);
   }
+  console.log(arr);
   return arr;
 }
 
@@ -216,7 +216,8 @@ function setVariableArray(v) {
 }
 
 function parseVariableFromText(t) {
-  let matches = t.match(/\s?([\w\s\d\,\!\(\)\$\{\}\.]+)\s(includes|[\*\/\+\=\-\!\<\>]+)\s([\w\s\d\,\!\(\)\$\{\}\.\<\>]+)/);
+  console.log(t);
+  let matches = t.match(/\s?([\w\d\,\!\(\)\$\{\}\.\<\>]+)\s(includes|[\*\/\+\=\-\!\<\>]+)\s([\s\w\d\,\!\(\)\$\{\}\.\<\>]+)/);
   if (matches && matches.length > 0) {
     let o = {};
     o.name = matches[1];
@@ -265,9 +266,6 @@ function process(unprocessed, coords) {
   let ry = /y([\-\d]+)/
   let x = parseInt(coords.match(rx)[1]);
   let y = parseInt(coords.match(ry)[1]);
-  console.log(coords);
-  console.log(x);
-  console.log(y)
   let digits = /\[(\d+)\]/
   let components = unprocessed.split("|")
   let cArr = [];
@@ -320,7 +318,6 @@ function process(unprocessed, coords) {
         } else if (matches[n].includes("=") || matches[n].includes("<") || matches[n].includes(">") || matches[n].includes("includes")) {
           let unprocessedVariables = normBrackets(matches[n])
           c.variables = setVariableArray(unprocessedVariables);
-          console.log(c.variables);
         } else {
           c.directions = normBrackets(matches[n])
         }
@@ -387,9 +384,7 @@ function saveCell(g, coords) {
       drawGrid();
     }
   } else if (v.length > 0 && v.includes("SPLIT(")) {
-    console.log("splitting");
     let m = v.match(/SPLIT\(([\s\S]+)\)(\w+)/);
-    console.log(m);
     if (m && m[1]) {
       let x = parseInt(coords.match(rx)[1]);
       let y = parseInt(coords.match(ry)[1]);
@@ -428,7 +423,6 @@ function saveCell(g, coords) {
     for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
 
       if (g.currentGrid.cellArray[i].coords === coords) {
-        console.log(g.currentGrid.cellArray[i])
         g.currentGrid.cellArray[i].unprocessed = v;
         let cArr = process(g.currentGrid.cellArray[i].unprocessed, coords);
         g.currentGrid.cellArray[i].components = cArr;
@@ -454,7 +448,6 @@ function saveCell(g, coords) {
     let ry = /y([\-\d]+)/
     let x = parseInt(coords.match(rx)[1]);
     let y = parseInt(coords.match(ry)[1]);
-    console.log(`deleting x${x} y${y}`)
     let deleteIndex = false
     for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
       if (g.currentGrid.cellArray[i].coords === coords) {
@@ -1160,9 +1153,6 @@ function genLoop(walker) {
   let generating = true;
   while (generating === true) {
     let currentCell = getCell(walker.x, walker.y);
-    console.log(currentCell);
-    console.log(walker);
-    console.log(g);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
 
@@ -1204,7 +1194,6 @@ function genLoop(walker) {
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
       currentComponent = getComponent(possibleComponents);*/
     } else if (possibleNextCells.length === 0 && g.loop && g.loop.iterations > 0 && g.choices.length === 0 && g.currentGrid.name === g.loop.gridName) {
-      console.log(g.loop.iterations);
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
       walker.y = g.loop.y
@@ -1260,9 +1249,7 @@ function runGrids(w, t) {
             let lastX = w.x;
             let lastY = w.y;
             let nextGrid = getGridByName(g, m[i]);
-            console.log(w);
             res += generate(nextGrid, w);
-            console.log(w);
             g.currentGrid = lastGrid;
             w.x = lastX;
             w.y = lastY;
@@ -1514,13 +1501,10 @@ function addComponentTo(w, comp) {
       let exists = false;
       for (let j = 0; j < w.variables.length; j++) {
         let wv = w.variables[j];
-        console.log(wv);
         wv = replaceVariable(w, wv);
         let cv = _.cloneDeep(comp.variables[i]);
-        console.log(cv);
         cv.name = replaceVariable(w, cv.name);
         cv.value = replaceVariable(w, cv.value);
-        console.log(cv);
         wv.name = runGrids(w, wv.name);
         cv.name = runGrids(w, cv.name)
         wv.name = runFunctions(w, wv.name);
@@ -1768,7 +1752,6 @@ function generate(grid, w, continuing, objArr) {
 }
 
 function addDay(num) {
-  console.log(num);
   for (let i = 0; i < num; i++) {
     g.day += 1;
     if (g.day > 28 && g.monthText === "February") {
@@ -1881,8 +1864,6 @@ function fillSidebar() {
       }
       GID(`gridType${g.gridTypes[i]}`).innerHTML = t
       for (let n = 0; n < g.grids.length; n++) {
-        console.log(g.grids[n].type)
-        console.log(g.grids[n].name);
         if (g.grids[n].type === g.gridTypes[i]) {
           GID(`grid${g.grids[n].name}-${g.grids[n].type}`).onclick = function() {
             g.currentGrid = g.grids[n]
