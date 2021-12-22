@@ -239,6 +239,7 @@ function getChoiceFromMatch(m, coords) {
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
   o.text = m;
+  console.log(o);
   o.text = o.text.replace("choice: ", "")
   o.text = o.text.replace("[", "");
   o.text = o.text.replace("]", "")
@@ -257,6 +258,7 @@ function getChoiceFromMatch(m, coords) {
       }
     }
   }
+  console.log(o);
   return o
 }
 
@@ -275,12 +277,17 @@ function process(unprocessed, coords) {
     c.directions = [];
     c.choices = [];
     c.text = components[j].trim();
+    if (c.text.includes("break()")) {
+      c.break = true;
+      c.text = c.text.replace("break()", "")
+    }
     if (c.text.includes("loop(")) {
       c.loop = {};
       c.loop.x = x;
       c.loop.y = y;
       c.loop.gridName = g.currentGrid.name;
-      c.loop.iterations = parseInt(c.text.match(/loop\((\d+)\)/)[1])
+      c.loop.iterations = parseInt(c.text.match(/loop\(([\w\d]+)\)/)[1])
+      c.loop.maxIterations = c.loop.iterations;
       c.text = c.text.replace(/loop\(\d+\)/, "")
     } else if (c.text.includes("teleport(")) {
       let m = c.text.match(/teleport\(([\w\d\$\{\}]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\)/)
@@ -835,6 +842,14 @@ let oArr = [
 GID("generateicon").onclick = function() {
   kv = [];
   runGenerationProcess(null, null, oArr);
+
+  //reset any loop components; only works on second click for some reason.
+  if (g.loop) {
+    let lg = getGridByName(g, g.loop.gridName);
+    let cell = getCell(lg, g.loop.x, g.loop.y)
+    let component = cell.components[0];
+    component.loop.iterations = component.loop.maxIterations;
+  }
 }
 
 GID("new-generator").onclick = function() {
@@ -859,6 +874,13 @@ GID("new-generator").onclick = function() {
 GID("run-grid-drop").onclick = function() {
   kv = [];
   runGenerationProcess(null, null, oArr);
+  //reset any loop components; only works on second click for some reason.
+  if (g.loop) {
+    let lg = getGridByName(g, g.loop.gridName);
+    let cell = getCell(lg, g.loop.x, g.loop.y)
+    let component = cell.components[0];
+    component.loop.iterations = component.loop.maxIterations;
+  }
   GID("generator-area").style.display = "none";
   GID("flexcontainer").style.display = "flex";
   //showHide("cell-box")
@@ -948,10 +970,10 @@ function move(e) {
 
 GID("flexcontainer").style.display = "none";
 
-function getCell(x, y) {
-  for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
-    if (parseInt(g.currentGrid.cellArray[i].x) === parseInt(x) && parseInt(g.currentGrid.cellArray[i].y) === parseInt(y)) {
-      return g.currentGrid.cellArray[i];
+function getCell(sg, x, y) {
+  for (let i = 0; i < sg.cellArray.length; i++) {
+    if (parseInt(sg.cellArray[i].x) === parseInt(x) && parseInt(sg.cellArray[i].y) === parseInt(y)) {
+      return sg.cellArray[i];
     }
   }
 }
@@ -1152,7 +1174,7 @@ function genLoop(walker) {
   let res = ""
   let generating = true;
   while (generating === true) {
-    let currentCell = getCell(walker.x, walker.y);
+    let currentCell = getCell(g.currentGrid, walker.x, walker.y);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
 
@@ -1171,13 +1193,25 @@ function genLoop(walker) {
     let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
 
     //LOOPING IS NOW FIXED. NEED TO RESET LOOP ITERATIONS ON COMPONENT AFTER GENERATION RUNS
-    if (currentComponent.loop) {
+    if (currentComponent.break) {
+      g.loop.break = true;
+    }
+    if (currentComponent.loop && isNaN(currentComponent.loop.iterations)) {
+      console.log("NOT A NUMBER")
+      g.loop = {};
+      g.loop.gridName = currentComponent.loop.gridName;
+      g.loop.x = currentComponent.loop.x;
+      g.loop.y = currentComponent.loop.y;
+      g.loop.iterations = currentComponent.loop.iterations;
+      g.loop.break = false;
+    } else if (currentComponent.loop) {
       currentComponent.loop.iterations -= 1;
       g.loop = {};
       g.loop.gridName = currentComponent.loop.gridName;
       g.loop.x = currentComponent.loop.x;
       g.loop.y = currentComponent.loop.y;
       g.loop.iterations = currentComponent.loop.iterations;
+      g.loop.break = false;
     }
 
     if (currentComponent.teleport) {
@@ -1193,7 +1227,7 @@ function genLoop(walker) {
       /*currentCell = getCell(walker.x, walker.y);
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
       currentComponent = getComponent(possibleComponents);*/
-    } else if (possibleNextCells.length === 0 && g.loop && g.loop.iterations > 0 && g.choices.length === 0 && g.currentGrid.name === g.loop.gridName) {
+    } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.currentGrid.name === g.loop.gridName) {
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
       walker.y = g.loop.y
@@ -1212,12 +1246,13 @@ function genLoop(walker) {
 function addChoiceToWalker(w, c) {
   if (c.variables) {
     for (let i = 0; i < c.variables.length; i++) {
+      let trueValue = replaceVariable(w, c.variables[i].value)
       let exists = false;
       for (let j = 0; j < w.variables.length; j++) {
         if (variablesHaveSameName(w.variables[j], c.variables[i])) {
           exists = true;
           if (isComparisonOperator(c.variables[i].operation) === false) {
-            let newValue = doMath(w.variables[j].value, c.variables[i].operation, c.variables[i].value, w)
+            let newValue = doMath(w.variables[j].value, c.variables[i].operation, trueValue, w)
             w.variables[j].value = newValue;
           }
         }
@@ -1621,7 +1656,11 @@ function choiceVariableComparisonsFail(w, compVar) {
     }
   }
   if (exists === false) {
-    return true;
+    if (compVar.operation === "=") {
+      return false;
+    } else {
+      return true;
+    }
   }
   return false;
 }
@@ -1697,7 +1736,7 @@ function createPossibleCellsArr(w, component, x, y) {
         validDirection = false;
       }
       if (validDirection === true) {
-        let dir = getCell(targetX, targetY);
+        let dir = getCell(g.currentGrid, targetX, targetY);
 
         //check cell from direction to see if at least one component does not conflict
         let conflicts = true;
