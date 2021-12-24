@@ -432,9 +432,8 @@ textarea {
 }
 
 #main-text-box {
-  margin-top: 4vh;
+  margin-top: 2vh;
   margin-bottom: 4vh;
-  text-align: center;
   padding: 3vw;
 	font-size: 3em;
 }
