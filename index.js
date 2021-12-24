@@ -1177,6 +1177,7 @@ function genLoop(walker) {
     let currentCell = getCell(g.currentGrid, walker.x, walker.y);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
+    let compGen = "";
 
     //THIS WORKS BUT WILL REPLACE COMPONENT FOREVER, does not replace choices because choices are on walker
 
@@ -1184,11 +1185,11 @@ function genLoop(walker) {
 
     addComponentTo(walker, currentComponent);
     if (currentComponent.text.includes("G(")) {
-      res += runGrids(walker, currentComponent.text)
-      res = runFunctions(walker, res);
+      compGen += runGrids(walker, currentComponent.text)
+      compGen = runFunctions(walker, compGen);
     } else {
-      res += replaceVariable(walker, currentComponent.text);
-      res = runFunctions(walker, res);
+      compGen += replaceVariable(walker, currentComponent.text);
+      compGen = runFunctions(walker, compGen);
     }
     let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
 
@@ -1196,6 +1197,15 @@ function genLoop(walker) {
     if (currentComponent.break) {
       g.loop.break = true;
     }
+
+    if (currentComponent.text.includes("LOCK()")) {
+      console.log(currentComponent)
+      currentComponent.text = compGen;
+      currentComponent.text = currentComponent.text.replace("LOCK()", "")
+      compGen = compGen.replace("LOCK()", "")
+    }
+    res += compGen;
+
     if (currentComponent.loop && isNaN(currentComponent.loop.iterations)) {
       console.log("NOT A NUMBER")
       g.loop = {};
