@@ -145,6 +145,8 @@ function getRandomInt(min, max) {
 }
 
 let g = {};
+g.timers = [];
+g.callbacks = [];
 g.output = "";
 g.choices = [];
 g.speak = [];
@@ -235,7 +237,7 @@ function getChoiceFromMatch(m, coords) {
   let ry = /y([\-\d]+)/
   o.x = parseInt(coords.match(rx)[1]);
   o.y = parseInt(coords.match(ry)[1]);
-  let parens = /\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%]+\)/g;
+  let parens = /\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
   o.text = m;
@@ -245,6 +247,11 @@ function getChoiceFromMatch(m, coords) {
   o.text = o.text.replace("]", "")
   o.gridName = g.currentGrid.name;
   for (let z = 0; z < parensArr.length; z++) {
+    if (parensArr[z].includes("timer:")) {
+      let time = parensArr[z].match(/timer\:\s(\d+)/)
+      o.text = o.text.replace(/\(timer\:\s\d+\)/, "")
+      o.timer = time[1];
+    }
     if (parensArr[z].includes("=") || parensArr[z].includes("<") || parensArr[z].includes(">")) {
       let unp = parensArr[z].replace("(", "");
       unp = unp.replace(")", "");
@@ -721,10 +728,23 @@ function runGenerationProcess(grid, w, objArr) {
     let num = n;
     let t = g.choices[n].text.replace(parens, "")
     GID("new-choices-box").innerHTML += `<div class=choiceslist id=choice${num}>${replaceVariable(g.lastWalker, t)}</div>`
+    if (g.choices[n].timer) {
+      let timer = parseInt(g.choices[n].timer) * 1000;
+      let a = setTimeout(function() {
+        GID(`choice${num}`).style.display = "none";
+      }, timer)
+      g.timers.push(a)
+    }
   }
   let els = document.getElementsByClassName("choiceslist");
   for (let n = 0; n < els.length; n++) {
     els[n].onclick = function() {
+      if (g.timers && g.timers.length > 0) {
+        for (let z = 0; z < g.timers.length; z++) {
+          clearTimeout(g.timers[z]);
+        }
+        g.timers = []; //reset choice timers
+      }
       let id = els[n].id.replace("choice", "");
       if (g.oldChoices[id].directions && g.oldChoices[id].directions.length > 0) {
         let walker = g.lastWalker;
@@ -1203,6 +1223,19 @@ function genLoop(walker) {
       currentComponent.text = compGen;
       currentComponent.text = currentComponent.text.replace("LOCK()", "")
       compGen = compGen.replace("LOCK()", "")
+    }
+    if (currentComponent.text.includes("callback(")) {
+      let cb = currentComponent.text.match(/callback\(([\w\s]+)\)/)
+      g.callbacks.push(cb[1])
+      compGen = compGen.replace(/callback\([\w\s]+\)/, "")
+    }
+    if (currentComponent.text.includes("interrupt()")) {
+      if (g.callbacks.length > 0) {
+        compGen = compGen.replace("interrupt()", g.callbacks.shift())
+      } else {
+        console.log(`You called interrupt() in Grid ${g.currentGrid.name} at x: ${walker.x} y: ${walker.y}, but there was no callback to call.`)
+        compGen = compGen.replace("interrupt()", "")
+      }
     }
     res += compGen;
 
