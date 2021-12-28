@@ -145,6 +145,11 @@ function getRandomInt(min, max) {
 }
 
 let g = {};
+g.parser = {
+  active: false,
+  directions: [],
+  gridName: ""
+}
 g.timers = [];
 g.callbacks = [];
 g.output = "";
@@ -241,7 +246,6 @@ function getChoiceFromMatch(m, coords) {
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
   o.text = m;
-  console.log(o);
   o.text = o.text.replace("choice: ", "")
   o.text = o.text.replace("[", "");
   o.text = o.text.replace("]", "")
@@ -265,7 +269,6 @@ function getChoiceFromMatch(m, coords) {
       }
     }
   }
-  console.log(o);
   return o
 }
 
@@ -768,6 +771,28 @@ function runGenerationProcess(grid, w, objArr) {
   } else {
     GID("new-choices-box").style.display = "none";
   }
+  if (g.parser.active) {
+    GID("main-text-box").innerHTML += `<input id="parser"></input><div id="submit-parser">Submit</div>`
+    GID("submit-parser").onclick = function() {
+      parserMove(g.lastWalker);
+      let exists = false;
+      for (let i = 0; i < g.lastWalker.variables.length; i++) {
+        if (g.lastWalker.variables[i].name === "parser") {
+          g.lastWalker.variables[i].value = GID("parser").value;
+          exists = true;
+        }
+      }
+      if (exists === false) {
+        let o = {
+          name: "parser",
+          value: GID("parser").value
+        }
+        g.lastWalker.variables.push(o);
+      }
+      runGenerationProcess(getGridByName(g, g.parser.gridName), g.lastWalker);
+    }
+    g.parser.active = false;
+  }
   textToSpeech(g);
   g.oldChoices = g.choices;
   g.choices = [];
@@ -824,6 +849,31 @@ function runGenerationProcess(grid, w, objArr) {
   }
   let res = GID("main-text-box").innerHTML;
   return res;
+}
+
+function parserMove(walker) {
+  let randDir = g.parser.directions[getRandomInt(0, g.parser.directions.length - 1)];
+  if (randDir === "E") {
+    walker.x += 1;
+  } else if (randDir === "W") {
+    walker.x -= 1;
+  } else if (randDir === "N") {
+    walker.y += 1;
+  } else if (randDir === "S") {
+    walker.y -= 1;
+  } else if (randDir === "NE") {
+    walker.y += 1;
+    walker.x += 1;
+  } else if (randDir === "NW") {
+    walker.y += 1;
+    walker.x -= 1;
+  } else if (randDir === "SW") {
+    walker.y -= 1;
+    walker.x -= 1;
+  } else if (randDir === "SE") {
+    walker.y -= 1;
+    walker.x += 1;
+  }
 }
 
 function textToSpeech(g) {
@@ -1218,6 +1268,19 @@ function genLoop(walker) {
       g.loop.break = true;
     }
 
+    if (currentComponent.text.includes("parse(")) {
+      let m = currentComponent.text.match(/parse\(([\w\,\s]+)\)/)[1]
+      let parseArr = m.split(", ")
+      g.parser = {
+        active: true,
+        directions: parseArr,
+        gridName: g.currentGrid.name,
+        x: currentCell.x,
+        y: currentCell.y
+      }
+      compGen = compGen.replace(/parse\([\w\s\,]+\)/, "")
+    }
+
     if (currentComponent.text.includes("LOCK()")) {
       console.log(currentComponent)
       currentComponent.text = compGen;
@@ -1270,7 +1333,7 @@ function genLoop(walker) {
       /*currentCell = getCell(walker.x, walker.y);
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
       currentComponent = getComponent(possibleComponents);*/
-    } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.currentGrid.name === g.loop.gridName) {
+    } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.parser.active === false) {
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
       walker.y = g.loop.y

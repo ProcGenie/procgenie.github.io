@@ -525,3 +525,27 @@ textarea {
 .grid-links:hover {
 	cursor: pointer;
 }
+
+#parser {
+	background: black;
+	color: white;
+	width: 100%;
+	font-size: 1em;
+	font-family: serif;
+	margin-top: 10vh;
+}
+
+#submit-parser {
+	background: black;
+	color: white;
+	width: 100%;
+	font-size: 1em;
+	font-family: serif;
+	border: 1px solid white;
+	text-align: center;
+	margin-top: 20px;
+}
+
+#submit-parser: hover {
+	cursor: pointer;
+}
