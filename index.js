@@ -1269,7 +1269,7 @@ function genLoop(walker) {
     }
 
     if (currentComponent.text.includes("parse(")) {
-      let m = currentComponent.text.match(/parse\(([\w\,\s]+)\)/)[1]
+      let m = currentComponent.text.match(/parse\(([\w\,\s\d]+)\)/)[1]
       let parseArr = m.split(", ")
       g.parser = {
         active: true,
