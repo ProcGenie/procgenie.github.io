@@ -781,6 +781,7 @@ function addClickToHyperlinks() {
   if (els && els.length > 0) {
     for (let n = 0; n < els.length; n++) {
       els[n].onclick = function() {
+        console.log("clicked!")
         let id = els[n].id.replace("hyperlink", "");
         if (g.oldLinks[id].directions && g.oldLinks[id].directions.length > 0) {
           let walker = g.lastWalker;
@@ -906,11 +907,7 @@ function processRawGeneration(t) {
   t = addHyperlinks(t);
   g.textTimersArr = [];
   t = createTimerArrayAndHTML(t);
-  addClickToHyperlinks();
-  setTextTimerTimeouts();
-  hideOutputIfEmpty(t)
-  addChoicesAndTimers();
-  addChoiceClickEvents()
+  hideOutputIfEmpty(t);
   t = replaceAnythingInBrackets(t);
   return t;
 }
@@ -934,6 +931,9 @@ function addParserIfActive() {
         }
         g.lastWalker.variables.push(o);
       }
+      console.log(g.parser.gridName);
+      console.log(g.lastWalker.x);
+      console.log(g.lastWalker.y);
       runGenerationProcess(getGridByName(g, g.parser.gridName), g.lastWalker);
     }
     g.parser.active = false;
@@ -1009,7 +1009,15 @@ function runGenerationProcess(grid, w, objArr) {
   }
   t = processRawGeneration(t);
   outputText(t);
+  addClickToHyperlinks();
+  setTextTimerTimeouts()
+  addChoicesAndTimers();
+  addChoiceClickEvents()
   hideChoiceBoxIfNone()
+  if (w) {
+    console.log(w.x);
+    console.log(w.y)
+  }
   addParserIfActive();
   textToSpeech(g);
   g.oldChoices = g.choices;
@@ -1443,7 +1451,6 @@ function teleport(walker, currentComponent) {
   walker.x = replaceVariable(walker, currentComponent.teleport.x);
   walker.y = replaceVariable(walker, currentComponent.teleport.y);
 }
-
 
 function genLoop(walker) {
   let res = ""
