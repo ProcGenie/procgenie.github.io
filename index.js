@@ -1469,7 +1469,7 @@ function genLoop(walker) {
     }
 
     if (currentComponent.text.includes("parse(")) {
-      let m = currentComponent.text.match(/parse\(([\w\,\s\d]+)\)/)[1]
+      let m = currentComponent.text.match(/parse\(([\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%]+)\)/)[1]
       let parseArr = m.split(", ")
       g.parser = {
         active: true,
@@ -1481,11 +1481,11 @@ function genLoop(walker) {
       compGen = compGen.replace(/parse\([\w\s\,]+\)/, "")
     }
 
-    if (currentComponent.text.includes("LOCK()")) {
+    if (currentComponent.text.includes("lock()")) {
       console.log(currentComponent)
       currentComponent.text = compGen;
-      currentComponent.text = currentComponent.text.replace("LOCK()", "")
-      compGen = compGen.replace("LOCK()", "")
+      currentComponent.text = currentComponent.text.replace("lock()", "")
+      compGen = compGen.replace("lock()", "")
     }
     if (currentComponent.text.includes("callback(")) {
       let cb = currentComponent.text.match(/callback\(([\{\}\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%\/]+)\)/)
