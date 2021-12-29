@@ -1432,6 +1432,18 @@ function getComponent(possible) {
   }
 }
 
+function teleport(walker, currentComponent) {
+  let gridName = replaceVariable(walker, currentComponent.teleport.gridName);
+  let x = replaceVariable(walker, walker.x);
+  let y = replaceVariable(walker, walker.y);
+  gridName = gridName.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
+  x = `${x}`.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
+  y = `${y}`.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
+  g.currentGrid = getGridByName(g, gridName);
+  walker.x = replaceVariable(walker, currentComponent.teleport.x);
+  walker.y = replaceVariable(walker, currentComponent.teleport.y);
+}
+
 
 function genLoop(walker) {
   let res = ""
@@ -1441,11 +1453,6 @@ function genLoop(walker) {
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
     let compGen = "";
-
-    //THIS WORKS BUT WILL REPLACE COMPONENT FOREVER, does not replace choices because choices are on walker
-
-
-
     addComponentTo(walker, currentComponent);
     if (currentComponent.text.includes("G(")) {
       compGen += runGrids(walker, currentComponent.text)
@@ -1481,9 +1488,9 @@ function genLoop(walker) {
       compGen = compGen.replace("LOCK()", "")
     }
     if (currentComponent.text.includes("callback(")) {
-      let cb = currentComponent.text.match(/callback\(([\w\s]+)\)/)
+      let cb = currentComponent.text.match(/callback\(([\{\}\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%\/]+)\)/)
       g.callbacks.push(cb[1])
-      compGen = compGen.replace(/callback\([\w\s]+\)/, "")
+      compGen = compGen.replace(/callback\([\{\}\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%\/]+\)/, "")
     }
     if (currentComponent.text.includes("interrupt()")) {
       if (g.callbacks.length > 0) {
@@ -1496,7 +1503,6 @@ function genLoop(walker) {
     res += compGen;
 
     if (currentComponent.loop && isNaN(currentComponent.loop.iterations)) {
-      console.log("NOT A NUMBER")
       g.loop = {};
       g.loop.gridName = currentComponent.loop.gridName;
       g.loop.x = currentComponent.loop.x;
@@ -1514,18 +1520,7 @@ function genLoop(walker) {
     }
 
     if (currentComponent.teleport) {
-      let gridName = replaceVariable(walker, currentComponent.teleport.gridName);
-      let x = replaceVariable(walker, walker.x);
-      let y = replaceVariable(walker, walker.y);
-      gridName = gridName.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
-      x = `${x}`.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
-      y = `${y}`.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
-      g.currentGrid = getGridByName(g, gridName);
-      walker.x = replaceVariable(walker, currentComponent.teleport.x);
-      walker.y = replaceVariable(walker, currentComponent.teleport.y);
-      /*currentCell = getCell(walker.x, walker.y);
-      possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
-      currentComponent = getComponent(possibleComponents);*/
+      teleport(walker, currentComponent)
     } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.links.length === 0 && g.parser.active === false) {
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
