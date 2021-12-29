@@ -912,31 +912,42 @@ function processRawGeneration(t) {
   return t;
 }
 
+function submitParser(grid) {
+  console.log(grid);
+  parserMove(g.lastWalker);
+  let exists = false;
+  for (let i = 0; i < g.lastWalker.variables.length; i++) {
+    if (g.lastWalker.variables[i].name === "parser") {
+      g.lastWalker.variables[i].value = GID("parser").value;
+      exists = true;
+    }
+  }
+  if (exists === false) {
+    let o = {
+      name: "parser",
+      value: GID("parser").value
+    }
+    g.lastWalker.variables.push(o);
+  }
+  console.log(g.parser.gridName);
+  console.log(g.lastWalker.x);
+  console.log(g.lastWalker.y);
+  runGenerationProcess(getGridByName(g, grid), g.lastWalker);
+}
+
 function addParserIfActive() {
   if (g.parser.active) {
-    GID("main-text-box").innerHTML += `<input id="parser"></input><div id="submit-parser">Submit</div>`
-    GID("submit-parser").onclick = function() {
-      parserMove(g.lastWalker);
-      let exists = false;
-      for (let i = 0; i < g.lastWalker.variables.length; i++) {
-        if (g.lastWalker.variables[i].name === "parser") {
-          g.lastWalker.variables[i].value = GID("parser").value;
-          exists = true;
-        }
-      }
-      if (exists === false) {
-        let o = {
-          name: "parser",
-          value: GID("parser").value
-        }
-        g.lastWalker.variables.push(o);
-      }
-      console.log(g.parser.gridName);
-      console.log(g.lastWalker.x);
-      console.log(g.lastWalker.y);
-      runGenerationProcess(getGridByName(g, g.parser.gridName), g.lastWalker);
+    function myFunc(evt) {
+      console.log(evt.currentTarget.param)
+      submitParser(evt.currentTarget.param)
     }
+    let grid = g.parser.gridName
+    GID("main-text-box").innerHTML += `<input id="parser"'></input><div id="submit-parser">Submit</div>`
     g.parser.active = false;
+    let el = GID("submit-parser");
+    el.addEventListener('click', myFunc, false);
+    el.param = grid;
+
   }
 }
 
@@ -1233,7 +1244,7 @@ function move(e) {
         }
         g.lastWalker.variables.push(o);
       }
-      runGenerationProcess(getGridByName(g, g.parser.gridName), g.lastWalker);
+      runGenerationProcess(getGridByName(g, g.currentGrid), g.lastWalker);
       g.parser.active = false;
     }
   }
