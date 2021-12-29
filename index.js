@@ -147,7 +147,7 @@ g.parser = {
   gridName: ""
 }
 g.timers = [];
-g.textTimers = [];
+g.textTimersTimeout = [];
 g.callbacks = [];
 g.output = "";
 g.choices = [];
@@ -724,68 +724,61 @@ GID("add-grid-button").onclick = function() {
   resetGridSelect();
 }
 
-function runGenerationProcess(grid, w, objArr) {
-  g.output = "";
-  //SHOULD the first if grid && w be fleshed out more with some of the else logic?
-  if (grid && w) {
-    let t = generate(grid, w, true);
-    console.log(t);
-    if (t.includes("keep()")) {
-      t = t.replace(/keep\(\)/g, "")
-    } else {
-      GID("main-text-box").innerHTML = "";
-    }
-
-    for (let i = 0; i < kv.length; i++) {
-      if (t.includes(`${kv[i].k}`)) {
-        t = t.replace(`${kv[i].k}`, `<div class="tooltip">${kv[i].k}<span class="tooltipintext">${kv[i].v}</span></div>`)
-      }
-    }
-    t = t.replace(/\[choice\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/g, "")
-    t = t.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
-    GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
+function keep(t) {
+  if (t.includes("keep()")) {
+    t = t.replace(/keep\(\)/g, "")
   } else {
-    let t = generate(null, null, null, objArr);
+    GID("main-text-box").innerHTML = "";
+  }
+  return t;
+}
+
+function addKeyValues(t) {
+  for (let i = 0; i < kv.length; i++) {
+    if (t.includes(`${kv[i].k}`)) {
+      t = t.replace(`${kv[i].k}`, `<div class="tooltip">${kv[i].k}<span class="tooltipintext">${kv[i].v}</span></div>`)
+    }
+  }
+  return t;
+}
+
+function deleteUnprocessedChoices(t) {
+  t = t.replace(/\[choice\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/g, "")
+  return t;
+}
+
+function addHyperlinks(t) {
+  for (let i = 0; i < g.links.length; i++) {
+    console.log(g.links[i])
     console.log(t);
-    if (t.includes("keep()")) {
-      t = t.replace(/keep\(\)/g, "")
+    t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
+    console.log(t);
+  }
+  return t;
+}
+
+function createTimerArrayAndHTML(t) {
+  while (t.includes("(timer:")) {
+    //// TODO: change separating text to allow commas, etc in timer text...
+    let m = t.match(/\(timer\:\s(\d+)\,\s([\w\s\.]+)\,?\s?([\w\s]+)?\)/);
+    let o = {
+      timer: m[1],
+      text: m[2]
+    }
+    if (m[3]) {
+      o.replacement = m[3]
     } else {
-      GID("main-text-box").innerHTML = "";
+      o.replacement = "";
     }
+    t = t.replace(/\(timer\:[\w\s\d\,]+\)/, `<span id="textTimer${g.textTimersArr.length}">${m[2]}</span>`)
+    g.textTimersArr.push(o);
+  }
+  return t;
+}
 
-
-    for (let i = 0; i < kv.length; i++) {
-      if (t.includes(`${kv[i].k}`)) {
-        t = t.replace(`${kv[i].k}`, `<div class="tooltip">${kv[i].k}<span class="tooltipintext">${kv[i].v}</span></div>`)
-      }
-    }
-    t = t.replace(/\[choice\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/g, "")
-    for (let i = 0; i < g.links.length; i++) {
-      console.log(g.links[i])
-      console.log(t);
-      t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
-      console.log(t);
-    }
-    let textTimers = [];
-    while (t.includes("(timer:")) {
-      //// TODO: change separating text to allow commas, etc in timer text...
-      let m = t.match(/\(timer\:\s(\d+)\,\s([\w\s\.]+)\,?\s?([\w\s]+)?\)/);
-      let o = {
-        timer: m[1],
-        text: m[2]
-      }
-      if (m[3]) {
-        o.replacement = m[3]
-      } else {
-        o.replacement = "";
-      }
-      t = t.replace(/\(timer\:[\w\s\d\,]+\)/, `<span id="textTimer${textTimers.length}">${m[2]}</span>`)
-      textTimers.push(o);
-    }
-
-    t = t.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
-    GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
-    let els = document.getElementsByClassName("hyperlink-text");
+function addClickToHyperlinks() {
+  let els = document.getElementsByClassName("hyperlink-text");
+  if (els && els.length > 0) {
     for (let n = 0; n < els.length; n++) {
       els[n].onclick = function() {
         let id = els[n].id.replace("hyperlink", "");
@@ -806,25 +799,41 @@ function runGenerationProcess(grid, w, objArr) {
         }
       }
     }
-    if (t.length > 0) {
-      GID("main-text-box").style.display = "block";
-    } else {
-      GID("main-text-box").style.display = "none";
-    }
-    for (let i = 0; i < textTimers.length; i++) {
-      let timer = parseInt(textTimers[i].timer) * 1000;
-      let a = setTimeout(function() {
-        if (textTimers[i].replacement.length > 0) {
-          GID(`textTimer${i}`).innerHTML = textTimers[i].replacement
-        } else {
-          GID(`textTimer${i}`).style.display = "none";
-        }
-      }, timer)
-      g.textTimers.push(a)
-    }
   }
+}
 
+function setTextTimerTimeouts() {
+  for (let i = 0; i < g.textTimersArr.length; i++) {
+    let timer = parseInt(g.textTimersArr[i].timer) * 1000;
+    let a = setTimeout(function() {
+      if (g.textTimersArr[i].replacement.length > 0) {
+        GID(`textTimer${i}`).innerHTML = g.textTimersArr[i].replacement
+      } else {
+        GID(`textTimer${i}`).style.display = "none";
+      }
+    }, timer)
+    g.textTimersTimeout.push(a)
+  }
+}
 
+function outputText(t) {
+  GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
+}
+
+function replaceAnythingInBrackets(t) {
+  t = t.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
+  return t;
+}
+
+function hideOutputIfEmpty(t) {
+  if (t.length > 0) {
+    GID("main-text-box").style.display = "block";
+  } else {
+    GID("main-text-box").style.display = "none";
+  }
+}
+
+function addChoicesAndTimers() {
   GID("new-choices-box").innerHTML = "";
   for (let n = 0; n < g.choices.length; n++) {
     let parens = /\([\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\']+\)/g;
@@ -840,46 +849,73 @@ function runGenerationProcess(grid, w, objArr) {
       g.timers.push(a)
     }
   }
+}
+
+function clearChoiceTimers() {
+  if (g.timers && g.timers.length > 0) {
+    for (let z = 0; z < g.timers.length; z++) {
+      clearTimeout(g.timers[z]);
+    }
+    g.timers = []; //reset choice timers
+  }
+}
+
+function clearTextTimers() {
+  if (g.textTimersTimeout && g.textTimersTimeout.length > 0) {
+    for (let z = 0; z < g.textTimersTimeout.length; z++) {
+      clearTimeout(g.textTimersTimeout[z]);
+    }
+    g.textTimersTimeout = []; //reset choice timers
+  }
+}
+
+function navigateToChoiceDestination(els, n) {
+  let id = els[n].id.replace("choice", "");
+  if (g.oldChoices[id].directions && g.oldChoices[id].directions.length > 0) {
+    let walker = g.lastWalker;
+    addChoiceToWalker(walker, g.oldChoices[id])
+    let directions = g.oldChoices[id].directions;
+    let nextDirection = directions[getRandomInt(0, directions.length - 1)];
+    let possibleNextCells = createPossibleCellsArr(walker, g.oldChoices[id], g.oldChoices[id].x, g.oldChoices[id].y)
+    let choiceGrid = g.oldChoices[id].gridName
+    if (possibleNextCells.length > 0) {
+      let nextCell = getRandomFromArr(possibleNextCells);
+      walker.x = nextCell.x;
+      walker.y = nextCell.y;
+    }
+    g.lastWalker = walker;
+    runGenerationProcess(getGridByName(g, choiceGrid), walker);
+  }
+}
+
+function addChoiceClickEvents() {
   let els = document.getElementsByClassName("choiceslist");
   for (let n = 0; n < els.length; n++) {
     els[n].onclick = function() {
-      if (g.timers && g.timers.length > 0) {
-        for (let z = 0; z < g.timers.length; z++) {
-          clearTimeout(g.timers[z]);
-        }
-        g.timers = []; //reset choice timers
-      }
-      //reset text timers
-      if (g.textTimers && g.textTimers.length > 0) {
-        for (let z = 0; z < g.textTimers.length; z++) {
-          clearTimeout(g.textTimers[z]);
-        }
-        g.textTimers = []; //reset choice timers
-      }
-
-      let id = els[n].id.replace("choice", "");
-      if (g.oldChoices[id].directions && g.oldChoices[id].directions.length > 0) {
-        let walker = g.lastWalker;
-        addChoiceToWalker(walker, g.oldChoices[id])
-        let directions = g.oldChoices[id].directions;
-        let nextDirection = directions[getRandomInt(0, directions.length - 1)];
-        let possibleNextCells = createPossibleCellsArr(walker, g.oldChoices[id], g.oldChoices[id].x, g.oldChoices[id].y)
-        let choiceGrid = g.oldChoices[id].gridName
-        if (possibleNextCells.length > 0) {
-          let nextCell = getRandomFromArr(possibleNextCells);
-          walker.x = nextCell.x;
-          walker.y = nextCell.y;
-        }
-        g.lastWalker = walker;
-        runGenerationProcess(getGridByName(g, choiceGrid), walker);
-      }
+      clearChoiceTimers();
+      clearTextTimers();
+      navigateToChoiceDestination(els, n);
     }
   }
-  if (g.choices.length > 0) {
-    GID("new-choices-box").style.display = "block";
-  } else {
-    GID("new-choices-box").style.display = "none";
-  }
+}
+
+function processRawGeneration(t) {
+  t = keep(t);
+  t = addKeyValues(t);
+  t = deleteUnprocessedChoices(t);
+  t = addHyperlinks(t);
+  g.textTimersArr = [];
+  t = createTimerArrayAndHTML(t);
+  addClickToHyperlinks();
+  setTextTimerTimeouts();
+  hideOutputIfEmpty(t)
+  addChoicesAndTimers();
+  addChoiceClickEvents()
+  t = replaceAnythingInBrackets(t);
+  return t;
+}
+
+function addParserIfActive() {
   if (g.parser.active) {
     GID("main-text-box").innerHTML += `<input id="parser"></input><div id="submit-parser">Submit</div>`
     GID("submit-parser").onclick = function() {
@@ -902,17 +938,21 @@ function runGenerationProcess(grid, w, objArr) {
     }
     g.parser.active = false;
   }
-  textToSpeech(g);
-  g.oldChoices = g.choices;
-  g.oldLinks = g.links;
-  g.links = [];
-  g.choices = [];
+}
 
+function hideChoiceBoxIfNone() {
+  if (g.choices.length > 0) {
+    GID("new-choices-box").style.display = "block";
+  } else {
+    GID("new-choices-box").style.display = "none";
+  }
+}
+
+function changeInputObjects(objArr) {
   //method to put variables back on v1 and v2 input objects
   for (let i = 0; i < g.lastWalker.variables.length; i++) {
     let varName = g.lastWalker.variables[i].name
     let value = g.lastWalker.variables[i].value;
-
     let m = varName.match(/o(\d+)\.([\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+)/)
     let newObject = false;
     if (m && m[1]) {
@@ -922,7 +962,6 @@ function runGenerationProcess(grid, w, objArr) {
         let name = m[2]
         //let name = m[2].match(/([\w\s\d\,\!\$\.\+\-\>\<\/\"\”\“\'\(\)\;\:]+)\s\=/)[1];
         //let value = m[2].match(/\=\s([\w\s\d\,\!\$\.\+\-\>\<\/\"\”\“\'\(\)\;\:]+)/)[1]
-
         // check to see whether object in grid exists in object array;
         if (objArr && objArr[num]) {
           //if object in grid exists in array, set obj to that obj
@@ -953,11 +992,31 @@ function runGenerationProcess(grid, w, objArr) {
             objArr = [];
             objArr[num] = obj;
           }
-
         }
       }
     }
   }
+}
+
+function runGenerationProcess(grid, w, objArr) {
+  g.output = "";
+  //SHOULD the first if grid && w be fleshed out more with some of the else logic?
+  let t = "";
+  if (grid && w) {
+    t = generate(grid, w, true);
+  } else {
+    t = generate(null, null, null, objArr);
+  }
+  t = processRawGeneration(t);
+  outputText(t);
+  hideChoiceBoxIfNone()
+  addParserIfActive();
+  textToSpeech(g);
+  g.oldChoices = g.choices;
+  g.oldLinks = g.links;
+  g.links = [];
+  g.choices = [];
+  changeInputObjects(objArr);
   let res = GID("main-text-box").innerHTML;
   return res;
 }
