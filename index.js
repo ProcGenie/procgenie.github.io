@@ -1,7 +1,3 @@
-// TODO:
-//INCORPORATE WEIGHTING OF DIRECTIONAL MOVEMENT
-//COMPONENT PROBABILITY
-
 var markov = new Markov();
 nlp.extend(compromiseSentences)
 nlp.extend(compromiseAdjectives)
@@ -151,9 +147,11 @@ g.parser = {
   gridName: ""
 }
 g.timers = [];
+g.textTimers = [];
 g.callbacks = [];
 g.output = "";
 g.choices = [];
+g.links = [];
 g.speak = [];
 g.speakers = [];
 g.arrays = {}
@@ -272,6 +270,43 @@ function getChoiceFromMatch(m, coords) {
   return o
 }
 
+function getLinkFromMatch(m, coords) {
+  let o = {};
+  let rx = /x([\-\d]+)/
+  let ry = /y([\-\d]+)/
+  o.x = parseInt(coords.match(rx)[1]);
+  o.y = parseInt(coords.match(ry)[1]);
+  let parens = /\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
+  let  parensArr = m.match(parens) || [];
+  //o.text = m.replace(parens, "");
+  o.text = m;
+  o.text = o.text.replace("link: ", "")
+  o.text = o.text.replace("[", "");
+  o.text = o.text.replace("]", "")
+  o.gridName = g.currentGrid.name;
+  for (let z = 0; z < parensArr.length; z++) {
+    if (parensArr[z].includes("timer:")) {
+      let time = parensArr[z].match(/timer\:\s(\d+)/)
+      o.text = o.text.replace(/\(timer\:\s\d+\)/, "")
+      o.timer = time[1];
+    }
+    if (parensArr[z].includes("=") || parensArr[z].includes("<") || parensArr[z].includes(">")) {
+      let unp = parensArr[z].replace("(", "");
+      unp = unp.replace(")", "");
+      o.variables = normBrackets(unp);
+      o.variables = setVariableArray(o.variables)
+    } else {
+      o.directions = normBrackets(parensArr[z])
+      for (let n = 0; n < o.directions.length; n++) {
+        o.directions[n] = o.directions[n].replace(")", "");
+        o.directions[n] = o.directions[n].replace("(", "");
+      }
+    }
+  }
+  o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g, "")
+  return o
+}
+
 function process(unprocessed, coords) {
   let total = /\[[\{\}\w\s\+\.\-\=\*\<\>\!\?\d\,\:\;\(\)\$\'\"\”\“\”\“\%\/]+\]/g
   let rx = /x([\-\d]+)/
@@ -286,6 +321,7 @@ function process(unprocessed, coords) {
     c.variables = [];
     c.directions = [];
     c.choices = [];
+    c.links = [];
     c.text = components[j].trim();
     if (c.text.includes("break()")) {
       c.break = true;
@@ -310,7 +346,9 @@ function process(unprocessed, coords) {
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
       currentComponent = getComponent(possibleComponents);*/
     }
-    c.text = c.text.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
+
+
+    //c.text = c.text.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
     let matches = components[j].match(total);
     if (matches) {
       for (let n = 0; n < matches.length; n++) {
@@ -326,6 +364,8 @@ function process(unprocessed, coords) {
           c.choices.push(getChoiceFromMatch(matches[n], coords))
 
 
+        } else if (matches[n].includes("link:")) {
+          c.links.push(getLinkFromMatch(matches[n], coords))
         } else if (matches[n].includes("bg:")) {
           c.background = matches[n].replace("bg: ", "").replace("[", "").replace("]", "");
         } else if (matches[n].includes("color:")) {
@@ -686,8 +726,10 @@ GID("add-grid-button").onclick = function() {
 
 function runGenerationProcess(grid, w, objArr) {
   g.output = "";
+  //SHOULD the first if grid && w be fleshed out more with some of the else logic?
   if (grid && w) {
     let t = generate(grid, w, true);
+    console.log(t);
     if (t.includes("keep()")) {
       t = t.replace(/keep\(\)/g, "")
     } else {
@@ -700,14 +742,17 @@ function runGenerationProcess(grid, w, objArr) {
       }
     }
     t = t.replace(/\[choice\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/g, "")
+    t = t.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
     GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
   } else {
     let t = generate(null, null, null, objArr);
+    console.log(t);
     if (t.includes("keep()")) {
       t = t.replace(/keep\(\)/g, "")
     } else {
       GID("main-text-box").innerHTML = "";
     }
+
 
     for (let i = 0; i < kv.length; i++) {
       if (t.includes(`${kv[i].k}`)) {
@@ -715,11 +760,67 @@ function runGenerationProcess(grid, w, objArr) {
       }
     }
     t = t.replace(/\[choice\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/g, "")
+    for (let i = 0; i < g.links.length; i++) {
+      console.log(g.links[i])
+      console.log(t);
+      t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
+      console.log(t);
+    }
+    let textTimers = [];
+    while (t.includes("(timer:")) {
+      //// TODO: change separating text to allow commas, etc in timer text...
+      let m = t.match(/\(timer\:\s(\d+)\,\s([\w\s\.]+)\,?\s?([\w\s]+)?\)/);
+      let o = {
+        timer: m[1],
+        text: m[2]
+      }
+      if (m[3]) {
+        o.replacement = m[3]
+      } else {
+        o.replacement = "";
+      }
+      t = t.replace(/\(timer\:[\w\s\d\,]+\)/, `<span id="textTimer${textTimers.length}">${m[2]}</span>`)
+      textTimers.push(o);
+    }
+
+    t = t.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
     GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
+    let els = document.getElementsByClassName("hyperlink-text");
+    for (let n = 0; n < els.length; n++) {
+      els[n].onclick = function() {
+        let id = els[n].id.replace("hyperlink", "");
+        if (g.oldLinks[id].directions && g.oldLinks[id].directions.length > 0) {
+          let walker = g.lastWalker;
+          addChoiceToWalker(walker, g.oldLinks[id])
+          let directions = g.oldLinks[id].directions;
+          let nextDirection = directions[getRandomInt(0, directions.length - 1)];
+          let possibleNextCells = createPossibleCellsArr(walker, g.oldLinks[id], g.oldLinks[id].x, g.oldLinks[id].y)
+          let choiceGrid = g.oldLinks[id].gridName
+          if (possibleNextCells.length > 0) {
+            let nextCell = getRandomFromArr(possibleNextCells);
+            walker.x = nextCell.x;
+            walker.y = nextCell.y;
+          }
+          g.lastWalker = walker;
+          runGenerationProcess(getGridByName(g, choiceGrid), walker);
+        }
+      }
+    }
     if (t.length > 0) {
       GID("main-text-box").style.display = "block";
     } else {
       GID("main-text-box").style.display = "none";
+    }
+    for (let i = 0; i < textTimers.length; i++) {
+      let timer = parseInt(textTimers[i].timer) * 1000;
+      let a = setTimeout(function() {
+        if (textTimers[i].replacement.length > 0) {
+          GID(`textTimer${i}`).innerHTML = textTimers[i].replacement
+        } else {
+          GID(`textTimer${i}`).style.display = "none";
+        }
+      }, timer)
+      g.textTimers.push(a)
     }
   }
 
@@ -748,6 +849,14 @@ function runGenerationProcess(grid, w, objArr) {
         }
         g.timers = []; //reset choice timers
       }
+      //reset text timers
+      if (g.textTimers && g.textTimers.length > 0) {
+        for (let z = 0; z < g.textTimers.length; z++) {
+          clearTimeout(g.textTimers[z]);
+        }
+        g.textTimers = []; //reset choice timers
+      }
+
       let id = els[n].id.replace("choice", "");
       if (g.oldChoices[id].directions && g.oldChoices[id].directions.length > 0) {
         let walker = g.lastWalker;
@@ -795,6 +904,8 @@ function runGenerationProcess(grid, w, objArr) {
   }
   textToSpeech(g);
   g.oldChoices = g.choices;
+  g.oldLinks = g.links;
+  g.links = [];
   g.choices = [];
 
   //method to put variables back on v1 and v2 input objects
@@ -927,6 +1038,7 @@ GID("new-generator").onclick = function() {
   if (restart === true) {
     g.output = "";
     g.choices = [];
+    g.links = [];
     g.speak = [];
     g.speakers = [];
     g.arrays = {}
@@ -1035,6 +1147,28 @@ function move(e) {
     GID("flexcontainer").style.display = "none";
     GID("export-box").style.display = "none";
     GID("generator-area").style.display = "block";
+  }
+  let el = GID("parser");
+  if (el && el.style.display !== "none") {
+    if (c === 13) {
+      parserMove(g.lastWalker);
+      let exists = false;
+      for (let i = 0; i < g.lastWalker.variables.length; i++) {
+        if (g.lastWalker.variables[i].name === "parser") {
+          g.lastWalker.variables[i].value = GID("parser").value;
+          exists = true;
+        }
+      }
+      if (exists === false) {
+        let o = {
+          name: "parser",
+          value: GID("parser").value
+        }
+        g.lastWalker.variables.push(o);
+      }
+      runGenerationProcess(getGridByName(g, g.parser.gridName), g.lastWalker);
+      g.parser.active = false;
+    }
   }
 }
 
@@ -1333,7 +1467,7 @@ function genLoop(walker) {
       /*currentCell = getCell(walker.x, walker.y);
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
       currentComponent = getComponent(possibleComponents);*/
-    } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.parser.active === false) {
+    } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.links.length === 0 && g.parser.active === false) {
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
       walker.y = g.loop.y
@@ -1687,6 +1821,18 @@ function addComponentTo(w, comp) {
         o.text = runGrids(w, o.text);
         o.text = runFunctions(w, o.text);
         g.choices.push(o);
+      }
+    }
+  }
+  if (comp.links && comp.links.length > 0) {
+    for (let i = 0; i < comp.links.length; i++) {
+      if (choiceVariablesConflict(w, comp.links[i])) {
+        //do nothing
+      } else {
+        let o = _.cloneDeep(comp.links[i]);
+        o.text = runGrids(w, o.text);
+        o.text = runFunctions(w, o.text);
+        g.links.push(o);
       }
     }
   }

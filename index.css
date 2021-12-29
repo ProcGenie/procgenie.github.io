@@ -546,6 +546,11 @@ textarea {
 	margin-top: 20px;
 }
 
-#submit-parser: hover {
+#submit-parser:hover {
 	cursor: pointer;
+}
+
+.hyperlink-text:hover {
+	cursor: pointer;
+	color: green;
 }
