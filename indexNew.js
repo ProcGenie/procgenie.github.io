@@ -112,6 +112,51 @@ GID("create-rule-btn").onclick = function() {
   buildGrid(g.magnification);
   drawGrid();
   showHide("grammar-gen")
+  fillSidebar();
+}
+
+GID("create-themes-btn").onclick = function() {
+  hideAll();
+  showHide("theme-gen")
+  fillThemeSidebar();
+}
+
+GID("delete-theme-btn").onclick = function() {
+  if (g.themes.length > 1) {
+    for (let i = 0; i < g.themes.length; i++) {
+      if (g.currentTheme.name === g.themes[i].name) {
+        g.themes.splice(i, 1);
+        break;
+      }
+    }
+  }
+  g.currentTheme = g.themes[0]
+  fillThemeSidebar();
+}
+
+GID("save-theme-btn").onclick = function() {
+  let o = {};
+  o.bg = GID("theme-bg-pick").value;
+  o.color = GID("theme-color-pick").value;
+  o.name = GID("theme-name").value;
+  o.links = GID("theme-link-pick").value;
+  o.choicebg = GID('theme-choice-bg').value;
+  o.choiceText = GID('theme-choice-text').value
+  o.choiceHoverbg = GID("theme-choice-hover-bg").value;
+  o.choiceHoverText = GID("theme-choice-hover-text").value;
+  let exists = false;
+  for (let i = 0; i < g.themes.length; i++) {
+    if (g.themes[i].name === o.name) {
+      g.themes[i] = o;
+      g.currentTheme = g.themes[i]
+      exists = true;
+    }
+  }
+  if (exists === false) {
+    g.themes.push(o);
+    g.currentTheme = g.themes[g.themes.length - 1]
+  }
+  fillThemeSidebar();
 }
 
 hideAll();

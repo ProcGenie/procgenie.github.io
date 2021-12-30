@@ -1,3 +1,46 @@
+function postProcess(t) {
+
+  //FIX THIS - take out compromise?
+  //an for a
+  let allA = t.match(/\s([Aa])\s\w/g)
+  if (allA && allA.length > 0) {
+    for (let i = 0; i < allA.length; i++) {
+      let m = t.match(/\s([Aa])\s(\w)/)
+      if (m) {
+        let letter = m[2]
+        let article = m[1];
+        console.log(letter);
+        console.log(article);
+        if (letter === "a" || letter === "e" || letter === "o" || letter === "u" || letter === "i" || letter === "A" || letter === "E" || letter === "I" || letter === "O" || letter === "U") {
+          t = t.replace(/\s[Aa]\s\w/, ` ${m[1]}n ${m[2]}`)
+        }
+      }
+    }
+  }
+
+  //a for an
+  let allB = t.match(/\s[Aa]n\s\w/g)
+  console.log(allB);
+  if (allB && allB.length > 0) {
+    for (let i = 0; i < allB.length; i++) {
+      let m = t.match(/\s([Aa])n\s(\w)/)
+      if (m) {
+        console.log(m);
+        let article = m[1]
+        let letter = m[2]
+        console.log(article)
+        console.log(letter);
+        if (letter === "a" || letter === "e" || letter === "o" || letter === "u" || letter === "i" || letter === "A" || letter === "E" || letter === "I" || letter === "O" || letter === "U") {
+
+        } else {
+          t = t.replace(/\s[Aa]n\s\w/, ` ${m[1]} ${m[2]}`)
+        }
+      }
+    }
+  }
+  return t;
+}
+
 var markov = new Markov();
 nlp.extend(compromiseSentences)
 nlp.extend(compromiseAdjectives)
@@ -141,6 +184,19 @@ function getRandomInt(min, max) {
 }
 
 let g = {};
+g.themes = [
+  {
+    name: "default",
+    color: "#ffffff",
+    bg: "#000000",
+    links: "#7cc584",
+    choiceText: "#ffffff",
+    choicebg: "#000000",
+    choiceHoverbg: "#ffffff",
+    choiceHoverText: "#000000"
+  }
+];
+g.currentTheme = g.themes[0]
 g.parser = {
   active: false,
   directions: [],
@@ -335,6 +391,7 @@ function process(unprocessed, coords) {
       c.loop.iterations = parseInt(c.text.match(/loop\(([\w\d]+)\)/)[1])
       c.loop.maxIterations = c.loop.iterations;
       c.text = c.text.replace(/loop\(\d+\)/, "")
+      c.text = c.text.replace(/loop\(\w+\)/, "")
     } else if (c.text.includes("teleport(")) {
       let m = c.text.match(/teleport\(([\w\d\$\{\}]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\)/)
       c.teleport = {};
@@ -841,6 +898,7 @@ function addChoicesAndTimers() {
     //WORKING HERE
     let num = n;
     let t = g.choices[n].text.replace(parens, "")
+    t = postProcess(t);
     GID("new-choices-box").innerHTML += `<div class=choiceslist id=choice${num}>${replaceVariable(g.lastWalker, t)}</div>`
     if (g.choices[n].timer) {
       let timer = parseInt(g.choices[n].timer) * 1000;
@@ -944,9 +1002,9 @@ function addParserIfActive() {
     let grid = g.parser.gridName
     GID("main-text-box").innerHTML += `<input id="parser"'></input><div id="submit-parser">Submit</div>`
     g.parser.active = false;
-    let el = GID("submit-parser");
-    el.addEventListener('click', myFunc, false);
-    el.param = grid;
+    g.parserEl = GID("submit-parser");
+    g.parserEl.addEventListener('click', myFunc, false);
+    g.parserEl.param = grid;
 
   }
 }
@@ -1009,6 +1067,28 @@ function changeInputObjects(objArr) {
   }
 }
 
+function applyTheme() {
+  let text = GID("right-div");
+  console.log(g.currentTheme);
+  text.style.background = g.currentTheme.bg;
+  text.style.color = g.currentTheme.color;
+  let el = GID("new-choices-box");
+  el.style.background = g.currentTheme.choicebg;
+  el.style.color = g.currentTheme.choiceText
+  let links = document.getElementsByClassName("hyperlink-text");
+  for (let i = 0; i < links.length; i++) {
+    links[i].style.color = g.currentTheme.links;
+  }
+
+  /*
+  let els = document.getElementsByClassName("choiceslist");
+  for (let i = 0; i < els.length; i++) {
+    els[i].style.background = g.currentTheme.choicebg;
+    els[i].style.color = g.currentTheme.choiceText
+  }
+  */
+}
+
 function runGenerationProcess(grid, w, objArr) {
   g.output = "";
   //SHOULD the first if grid && w be fleshed out more with some of the else logic?
@@ -1019,12 +1099,15 @@ function runGenerationProcess(grid, w, objArr) {
     t = generate(null, null, null, objArr);
   }
   t = processRawGeneration(t);
+  applyTheme();  //APPLYING THEME TWICE ENSURES THAT THEME IS CORRECT ON FIRST GENERATION
+  t = postProcess(t);
   outputText(t);
   addClickToHyperlinks();
   setTextTimerTimeouts()
   addChoicesAndTimers();
   addChoiceClickEvents()
   hideChoiceBoxIfNone()
+  applyTheme()
   if (w) {
     console.log(w.x);
     console.log(w.y)
@@ -1037,6 +1120,7 @@ function runGenerationProcess(grid, w, objArr) {
   g.choices = [];
   changeInputObjects(objArr);
   let res = GID("main-text-box").innerHTML;
+
   return res;
 }
 
@@ -1098,7 +1182,14 @@ let oArr = [
   }
 ]
 
+function resetTheme() {
+  g.currentTheme = g.themes[0]
+}
+
 GID("generateicon").onclick = function() {
+  resetTheme();
+  console.log(g.currentTheme);
+  applyTheme();
   kv = [];
   runGenerationProcess(null, null, oArr);
 
@@ -1109,7 +1200,10 @@ GID("generateicon").onclick = function() {
     let component = cell.components[0];
     component.loop.iterations = component.loop.maxIterations;
   }
+
 }
+
+
 
 GID("new-generator").onclick = function() {
   let restart = confirm("Start a new generator? You will lose all unsaved progress.")
@@ -1131,7 +1225,14 @@ GID("new-generator").onclick = function() {
   }
 }
 
+function resetComponents() {
+
+}
+
 GID("run-grid-drop").onclick = function() {
+  resetTheme();
+  console.log(g.currentTheme);
+  applyTheme();
   kv = [];
   runGenerationProcess(null, null, oArr);
   //reset any loop components; only works on second click for some reason.
@@ -1148,6 +1249,7 @@ GID("run-grid-drop").onclick = function() {
   c.width = window.innerWidth;
   c.height = window.innerHeight;
 }
+
 
 GID("saveicon").onclick = function() {
   let n = prompt("What name should this generator be saved under?")
@@ -1226,26 +1328,11 @@ function move(e) {
     GID("export-box").style.display = "none";
     GID("generator-area").style.display = "block";
   }
-  let el = GID("parser");
-  if (el && el.style.display !== "none") {
+  //let el = GID("parser");
+  if (g.parserEl && g.parserEl.style.display !== "none") {
     if (c === 13) {
-      parserMove(g.lastWalker);
-      let exists = false;
-      for (let i = 0; i < g.lastWalker.variables.length; i++) {
-        if (g.lastWalker.variables[i].name === "parser") {
-          g.lastWalker.variables[i].value = GID("parser").value;
-          exists = true;
-        }
-      }
-      if (exists === false) {
-        let o = {
-          name: "parser",
-          value: GID("parser").value
-        }
-        g.lastWalker.variables.push(o);
-      }
-      runGenerationProcess(getGridByName(g, g.currentGrid), g.lastWalker);
-      g.parser.active = false;
+      console.log(g.parserEl.param);
+      submitParser(g.parserEl.param)
     }
   }
 }
@@ -1463,6 +1550,17 @@ function teleport(walker, currentComponent) {
   walker.y = replaceVariable(walker, currentComponent.teleport.y);
 }
 
+function changeTheme(name) {
+  let theme;
+  console.log("Changing theme")
+  console.log(name);
+  for (let i = 0; i < g.themes.length; i++) {
+    if (g.themes[i].name === name) {
+      g.currentTheme = g.themes[i]
+    }
+  }
+}
+
 function genLoop(walker) {
   let res = ""
   let generating = true;
@@ -1472,6 +1570,9 @@ function genLoop(walker) {
     let currentComponent = getComponent(possibleComponents)
     let compGen = "";
     addComponentTo(walker, currentComponent);
+
+
+
     if (currentComponent.text.includes("G(")) {
       compGen += runGrids(walker, currentComponent.text)
       compGen = runFunctions(walker, compGen);
@@ -1480,6 +1581,46 @@ function genLoop(walker) {
       compGen = runFunctions(walker, compGen);
     }
     let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
+
+    if (currentComponent.text.includes("theme(")) {
+      let themeName = currentComponent.text.match(/theme\((\w+)\)/)[1];
+      changeTheme(themeName);
+      compGen = compGen.replace(/theme\(\w+\)/, "")
+    }
+
+
+    //VISITS function allows you to specify that text will change on sequential visits to a component.
+    if (currentComponent.text.match(/visits\([\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%]+\)/)) {
+      let def = currentComponent.text.match(/default\:\s([\w\s\+\.\-\=\<\>\!\?\d\,\:\$\'\"\”\“\%]+)\;/)
+      if (def) {
+        def = def[1]
+      } else{
+        def = "";
+      }
+      if (currentComponent.visited) {
+        currentComponent.visited += 1;
+      } else {
+        currentComponent.visited = 1
+      }
+      let all = currentComponent.text.match(/visits\(([\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%]+)\)/)[1]
+      all = all.split("; ");
+      let set = false;
+      for (let i = 0; i < all.length; i++) {
+        let o ={};
+        if (all[i].match(/\d+\:\s/)) {
+          o.times = all[i].match(/(\d+)\:/)[1];
+          o.text = all[i].match(/\d+\:\s([\w\s\+\.\-\=\<\>\!\?\d\,\:\$\'\"\”\“\%]+)/)[1]
+        }
+        if (o.times && parseInt(o.times) === currentComponent.visited) {
+          compGen = compGen.replace(/visits\([\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%]+\)/, o.text)
+          set = true;
+        }
+      }
+      if (set === false) {
+        compGen = compGen.replace(/visits\([\w\s\+\.\-\=\<\>\!\?\d\,\:\;\$\'\"\”\“\%]+\)/, def)
+      }
+    }
+
 
     //LOOPING IS NOW FIXED. NEED TO RESET LOOP ITERATIONS ON COMPONENT AFTER GENERATION RUNS
     if (currentComponent.break) {
@@ -1748,8 +1889,9 @@ function runFunctions(w, t) {
     } else if (t && t.match(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/)) {
       //compromise
       let m = t.match(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/);
+      console.log(m[1])
       let res;
-      res = runCompromise(m[2], m[1]);
+      res = runCompromise(m[2], replaceVariable(w, m[1]));
       if (res) {
         t = t.replace(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/, res)
       } else {
@@ -2200,6 +2342,42 @@ function newRule() {
   drawGrid();
   alert(`You created the ${n} grid. The ${n} grid is now your current grid.`)
   fillSidebar();
+}
+
+function fillThemeSidebar() {
+  GID("left-sidebar").innerHTML = "";
+  let text = "";
+  for (let i = 0; i < g.themes.length; i++) {
+    if (g.themes[i].name === g.currentTheme.name) {
+      text += `<p class="gridlinks" id="themelink${i}" style="color: #2980b9">${g.themes[i].name}</p>`
+    } else {
+      text += `<p class="gridlinks" id=themelink${i}>${g.themes[i].name}</p>`
+    }
+
+  }
+  GID("left-sidebar").innerHTML += text;
+  GID("theme-bg-pick").value = g.currentTheme.bg;
+  GID("theme-color-pick").value = g.currentTheme.color;
+  GID("theme-name").value = g.currentTheme.name
+  GID("theme-link-pick").value = g.currentTheme.links;
+  GID("theme-choice-bg").value = g.currentTheme.choicebg;
+  GID("theme-choice-text").value = g.currentTheme.choiceText
+  GID("theme-choice-hover-bg").value = g.currentTheme.choiceHoverbg;
+  GID("theme-choice-hover-text").value = g.currentTheme.choiceHoverText
+  for (let i = 0; i < g.themes.length; i++) {
+    let num = i
+    GID(`themelink${i}`).onclick = function() {
+      g.currentTheme = g.themes[num]
+      GID("theme-bg-pick").value = g.currentTheme.bg;
+      GID("theme-color-pick").value = g.currentTheme.color;
+      GID("theme-name").value = g.currentTheme.name
+      GID("theme-link-pick").value = g.currentTheme.links;
+      GID("theme-choice-bg").value = g.currentTheme.choicebg;
+      GID("theme-choice-text").value = g.currentTheme.choiceText
+      GID("theme-choice-hover-bg").value = g.currentTheme.choiceHoverbg;
+      GID("theme-choice-hover-text").value = g.currentTheme.choiceHoverText
+    }
+  }
 }
 
 function fillSidebar() {

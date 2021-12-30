@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>ProcGenie: Hand-Crafted Procedural Text Generation</title>
+    <link rel="stylesheet" href="themes.css">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="indexNew.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +29,7 @@
         <span onclick ="ruleDropdown()" class="dropbtn seplinks">Grammars</span>
         <div id="ruleDropdown" class="dropdown-content">
           <a href="#" id="create-rule-btn">Create Rule</a>
+          <a href="#" id="create-themes-btn">Change Theme</a>
           <a href="#" id="help-btn">Help</a>
         </div>
       </div>
@@ -818,6 +820,19 @@
 
 
     <!--TRANSPLANT-->
+
+    <div class="hidable" id="theme-gen">
+      Name:<br><input type="text" id="theme-name"></input><br>
+      Background Color:<br><input type="color" id="theme-bg-pick"></input><br>
+      Text Color:<br><input type="color" id="theme-color-pick"></input><br>
+      Link Color:<br><input type="color" id="theme-link-pick"></input><br>
+      Choice Background:<br><input type="color" id="theme-choice-bg"></input><br>
+      Choice Text:<br><input type="color" id="theme-choice-text"></input><br>
+      Choice Hover Background:<br><input type="color" id="theme-choice-hover-bg"></input><br>
+      Choice Hover Text:<br><input type="color" id="theme-choice-hover-text"></input><br>
+      <div id="save-theme-btn" class="change-theme-btns">Save Theme</div>
+      <div id="delete-theme-btn" class="change-theme-btns">Delete Theme</div>
+    </div>
 
     <div class="hidable" id="grammar-gen">
       <form class="table-form slab">
