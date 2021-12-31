@@ -200,7 +200,8 @@ g.currentTheme = g.themes[0]
 g.parser = {
   active: false,
   directions: [],
-  gridName: ""
+  gridName: "",
+  variables: []
 }
 g.timers = [];
 g.textTimersTimeout = [];
@@ -861,6 +862,33 @@ function addClickToHyperlinks() {
   }
 }
 
+function addClickToParser() {
+  let el = GID("submit-parser");
+  let p;
+  GID("submit-parser").onclick = function() {
+    if (g.oldParser) {
+      p = g.oldParser;
+    } else {
+      p = g.parser;
+    }
+    if (p.directions && p.directions.length > 0) {
+      let walker = g.lastWalker;
+      addChoiceToWalker(walker, p)
+      let directions = p.directions;
+      let nextDirection = directions[getRandomInt(0, directions.length - 1)];
+      let possibleNextCells = createPossibleCellsArr(walker, p, p.x, p.y)
+      let choiceGrid = p.gridName
+      if (possibleNextCells.length > 0) {
+        let nextCell = getRandomFromArr(possibleNextCells);
+        walker.x = nextCell.x;
+        walker.y = nextCell.y;
+      }
+      g.lastWalker = walker;
+      runGenerationProcess(getGridByName(g, choiceGrid), walker);
+    }
+  }
+}
+
 function setTextTimerTimeouts() {
   for (let i = 0; i < g.textTimersArr.length; i++) {
     let timer = parseInt(g.textTimersArr[i].timer) * 1000;
@@ -1003,10 +1031,10 @@ function addParserIfActive() {
     let grid = g.parser.gridName
     GID("main-text-box").innerHTML += `<input id="parser"'></input><div id="submit-parser">Submit</div>`
     g.parser.active = false;
-    g.parserEl = GID("submit-parser");
+    /*g.parserEl = GID("submit-parser");
     g.parserEl.addEventListener('click', myFunc, false);
-    g.parserEl.param = grid;
-
+    g.parserEl.param = grid;*/
+    addClickToParser();
   }
 }
 
@@ -1117,6 +1145,7 @@ function runGenerationProcess(grid, w, objArr) {
   textToSpeech(g);
   g.oldChoices = g.choices;
   g.oldLinks = g.links;
+  g.oldParser = g.parser;
   g.links = [];
   g.choices = [];
   changeInputObjects(objArr);
@@ -1567,6 +1596,10 @@ function genLoop(walker) {
   let generating = true;
   while (generating === true) {
     let currentCell = getCell(g.currentGrid, walker.x, walker.y);
+    console.log(g.currentGrid);
+    console.log(walker.x);
+    console.log(walker.y);
+    console.log(currentCell);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
     let compGen = "";
@@ -1636,7 +1669,8 @@ function genLoop(walker) {
         directions: parseArr,
         gridName: g.currentGrid.name,
         x: currentCell.x,
-        y: currentCell.y
+        y: currentCell.y,
+        variables: []
       }
       compGen = compGen.replace(/parse\([\w\s\,]+\)/, "")
     }
