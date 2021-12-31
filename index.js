@@ -226,6 +226,7 @@ function createGrid(n) {
   grid.magnification = 5;
   grid.cellArray = [];
   grid.isMap = "no"
+  grid.stacked = false;
   return grid;
 }
 
@@ -1659,7 +1660,7 @@ function genLoop(walker) {
         compGen = compGen.replace("interrupt()", "")
       }
     }
-    res += compGen;
+    res += replaceVariable(walker, compGen);
 
     if (currentComponent.loop && isNaN(currentComponent.loop.iterations)) {
       g.loop = {};
@@ -1680,7 +1681,7 @@ function genLoop(walker) {
 
     if (currentComponent.teleport) {
       teleport(walker, currentComponent)
-    } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.links.length === 0 && g.parser.active === false) {
+    } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.links.length === 0 && g.parser.active === false && (g.currentGrid.stacked === false || g.currentGrid === getGridByName(g, g.loop.gridName))) {
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
       walker.y = g.loop.y
@@ -1737,7 +1738,9 @@ function runGrids(w, t) {
             let lastX = w.x;
             let lastY = w.y;
             let nextGrid = getGridByName(g, m[i]);
+            nextGrid.stacked = true
             res += generate(nextGrid, w);
+            nextGrid.stacked = false
             g.currentGrid = lastGrid;
             w.x = lastX;
             w.y = lastY;
@@ -1747,7 +1750,9 @@ function runGrids(w, t) {
           let lastX = w.x;
           let lastY = w.y;
           let nextGrid = getGridByName(g, m[i]);
+          nextGrid.stacked = true;
           res += generate(nextGrid, w);
+          nextGrid.stacked = false;
           g.currentGrid = lastGrid;
           w.x = lastX;
           w.y = lastY;
