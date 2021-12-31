@@ -884,6 +884,20 @@ function addClickToParser() {
         walker.y = nextCell.y;
       }
       g.lastWalker = walker;
+      let exists = false;
+      for (let i = 0; i < g.lastWalker.variables.length; i++) {
+        if (g.lastWalker.variables[i].name === "parser") {
+          g.lastWalker.variables[i].value = GID("parser").value;
+          exists = true;
+        }
+      }
+      if (exists === false) {
+        let o = {
+          name: "parser",
+          value: GID("parser").value
+        }
+        g.lastWalker.variables.push(o);
+      }
       runGenerationProcess(getGridByName(g, choiceGrid), walker);
     }
   }
@@ -1359,10 +1373,43 @@ function move(e) {
     GID("generator-area").style.display = "block";
   }
   //let el = GID("parser");
-  if (g.parserEl && g.parserEl.style.display !== "none") {
+  let el = GID("submit-parser");
+  if (typeof(el) != 'undefined' && el != null) {
     if (c === 13) {
-      console.log(g.parserEl.param);
-      submitParser(g.parserEl.param)
+      if (g.oldParser) {
+        p = g.oldParser;
+      } else {
+        p = g.parser;
+      }
+      if (p.directions && p.directions.length > 0) {
+        let walker = g.lastWalker;
+        addChoiceToWalker(walker, p)
+        let directions = p.directions;
+        let nextDirection = directions[getRandomInt(0, directions.length - 1)];
+        let possibleNextCells = createPossibleCellsArr(walker, p, p.x, p.y)
+        let choiceGrid = p.gridName
+        if (possibleNextCells.length > 0) {
+          let nextCell = getRandomFromArr(possibleNextCells);
+          walker.x = nextCell.x;
+          walker.y = nextCell.y;
+        }
+        g.lastWalker = walker;
+        let exists = false;
+        for (let i = 0; i < g.lastWalker.variables.length; i++) {
+          if (g.lastWalker.variables[i].name === "parser") {
+            g.lastWalker.variables[i].value = GID("parser").value;
+            exists = true;
+          }
+        }
+        if (exists === false) {
+          let o = {
+            name: "parser",
+            value: GID("parser").value
+          }
+          g.lastWalker.variables.push(o);
+        }
+        runGenerationProcess(getGridByName(g, choiceGrid), walker);
+      }
     }
   }
 }
