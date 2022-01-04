@@ -1760,6 +1760,10 @@ function genLoop(walker) {
       g.loop.break = false;
     }
 
+    if (g.currentGrid.stacked === undefined) {
+      g.currentGrid.stacked = false;
+    }
+
     if (currentComponent.teleport) {
       teleport(walker, currentComponent)
     } else if (possibleNextCells.length === 0 && g.loop && g.loop.break === false && (g.loop.iterations > 0 || isNaN(g.loop.iterations)) && g.choices.length === 0 && g.links.length === 0 && g.parser.active === false && (g.currentGrid.stacked === false || g.currentGrid === getGridByName(g, g.loop.gridName))) {
@@ -2009,7 +2013,7 @@ function runFunctions(w, t) {
         t = t.replace(/indent\(\d+\)/, indent)
       }
     } else if (t && t.includes("replaceKey(")) {
-      let m = t.match(/replaceKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+),\s([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+)\)/)
+      let m = t.match(/replaceKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/)
       m[1] = replaceVariable(w, m[1]);
       m[2] = replaceVariable(w, m[2]);
       let exists = false;
@@ -2028,9 +2032,9 @@ function runFunctions(w, t) {
         o.lastChange = 0;
         kv.push(o);
       }
-      t = t.replace(/replaceKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\]+)\)/, "")
+      t = t.replace(/replaceKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/, "")
     } else if (t && t.includes("addKey(")) {
-      let m = t.match(/addKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+),\s([\w\d\s\,\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\]+)\)/)
+      let m = t.match(/addKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\,\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/)
       m[1] = replaceVariable(w, m[1]);
       m[2] = replaceVariable(w, m[2]);
       let exists = false;
@@ -2048,7 +2052,7 @@ function runFunctions(w, t) {
         o.lastChange = 0;
         kv.push(o);
       }
-      t = t.replace(/addKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\]+)\)/, "")
+      t = t.replace(/addKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\(\)\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\]+)\)/, "")
     } else if (t && t.includes("C(")) {
       let m = t.match(/C\((\w+)\)/)
       if (m && m[1]) {
