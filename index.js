@@ -1686,6 +1686,7 @@ function genLoop(walker) {
       //walker.res = runFunctions(walker, walker.res)
       console.log(walker.res);
     } else {
+      walker.collecting = false
       compGen = replaceVariable(walker, compGen);
       compGen = runFunctions(walker, compGen);
       //walker.res = replaceVariable(walker, walker.res);
