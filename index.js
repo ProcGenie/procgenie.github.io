@@ -1565,6 +1565,7 @@ function setStart(w) {
 
 function getWalker(start, w, objArr) {
   let walker = {};
+  walker.res = "";
   if (w) {
     walker = w;
   } else {
@@ -1659,7 +1660,7 @@ function changeTheme(name) {
 function genLoop(walker) {
   let res = ""
   let generating = true;
-  walker.res = "";
+  //walker.res = "";
   while (generating === true) {
     let currentCell = getCell(g.currentGrid, walker.x, walker.y);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
@@ -1673,15 +1674,29 @@ function genLoop(walker) {
     }
     console.log(debug);
     addComponentTo(walker, currentComponent);
-
+    //walker.res += compGen;
     if (compGen.includes("G(")) {
       compGen = replaceVariable(walker, compGen);
+      //walker.res = replaceVariable(walker, walker.res);
+      walker.collecting = true;
       compGen = runGrids(walker, compGen)
+      walker.collecting = false;
+      //walker.res = runGrids(walker, walker.res);
       compGen = runFunctions(walker, compGen);
+      //walker.res = runFunctions(walker, walker.res)
+      console.log(walker.res);
     } else {
       compGen = replaceVariable(walker, compGen);
       compGen = runFunctions(walker, compGen);
+      //walker.res = replaceVariable(walker, walker.res);
+      //walker.res = runFunctions(walker, walker.res)
+
     }
+    if (walker.collecting === false) {
+        walker.res += compGen
+    }
+
+
     let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
 
     if (currentComponent.text.includes("theme(")) {
@@ -1744,7 +1759,6 @@ function genLoop(walker) {
     }
 
     if (currentComponent.text.includes("lock()")) {
-      console.log(currentComponent)
       currentComponent.text = compGen;
       currentComponent.text = currentComponent.text.replace("lock()", "")
       compGen = compGen.replace("lock()", "")
@@ -1764,11 +1778,12 @@ function genLoop(walker) {
     }
 
     //This works but when you call a grid the text of the grid jumps out in front.
-    walker.res += compGen
+
     if (compGen.includes("save(")) {
       let m = compGen.match(/save\(([\w\d]+)\)/)[1];
       compGen = compGen.replace(/save\([\w\d]+\)/, "")
       walker.res = walker.res.replace(/save\([\w\d]+\)/, "")
+      console.log(walker.res);
       compGen = "";
       console.log(m);
       let o = {};
@@ -1780,6 +1795,8 @@ function genLoop(walker) {
       g.links = [];
       g.savedObjects.push(o);
       console.log(g.savedObjects);
+      walker.res = "";
+      res = "";
     } else if (compGen.includes("load(")) {
       let m = compGen.match(/load\(([\w\d]+)\)/)[1];
       console.log(m);
@@ -1789,6 +1806,7 @@ function genLoop(walker) {
         if (g.savedObjects[i].name === m) {
           exists = true;
           addComponentTo(walker, g.savedObjects[i])
+          console.log(g.savedObjects[i].text)
           compGen = compGen.replace(/load\([\w\d]+\)/, g.savedObjects[i].text)
         }
       }
@@ -1799,6 +1817,7 @@ function genLoop(walker) {
     }
 
     res += replaceVariable(walker, compGen);
+    console.log(res);
 
 
     if (currentComponent.loop && isNaN(currentComponent.loop.iterations)) {
