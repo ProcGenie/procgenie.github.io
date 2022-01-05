@@ -218,6 +218,8 @@ g.day = 1;
 g.year = 2021
 g.locations = [];
 g.gridTypes = ["default"];
+g.savedObjects = [];
+g.res = []
 
 function createGrid(n) {
   let grid = {};
@@ -226,7 +228,6 @@ function createGrid(n) {
   grid.currentY = 0;
   grid.magnification = 5;
   grid.cellArray = [];
-  grid.isMap = "no"
   grid.stacked = false;
   return grid;
 }
@@ -329,6 +330,7 @@ function getChoiceFromMatch(m, coords) {
 }
 
 function getLinkFromMatch(m, coords) {
+  console.log(m);
   let o = {};
   let rx = /x([\-\d]+)/
   let ry = /y([\-\d]+)/
@@ -540,6 +542,7 @@ function saveCell(g, coords) {
 
       if (g.currentGrid.cellArray[i].coords === coords) {
         g.currentGrid.cellArray[i].unprocessed = v;
+        //g.currentGrid.cellArray[i].unprocessed = g.currentGrid.cellArray[i].unprocessed.replace(/"/g, `\\\"`)
         let cArr = process(g.currentGrid.cellArray[i].unprocessed, coords);
         g.currentGrid.cellArray[i].components = cArr;
         exists = true;
@@ -554,6 +557,7 @@ function saveCell(g, coords) {
       o.x = x;
       o.y = y;
       o.unprocessed = v;
+      //o.unprocessed = o.unprocessed.replace(/"/g, `\\\"`)
       let cArr = process(o.unprocessed, o.coords);
       o.components = cArr
       g.currentGrid.cellArray.push(o);
@@ -566,14 +570,15 @@ function saveCell(g, coords) {
     let y = parseInt(coords.match(ry)[1]);
     let deleteIndex = false
     for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
-      if (g.currentGrid.cellArray[i].coords === coords) {
+      if (g.currentGrid.cellArray[i].x === x && g.currentGrid.cellArray[i].y === y) {
         deleteIndex = i
       }
     }
-    if (deleteIndex) {
+    if (typeof deleteIndex === 'number') {
       g.currentGrid.cellArray.splice(deleteIndex, 1);
     }
   }
+  //g.currentGrid.cellArray[g.currentGrid.cellArray.length - 1].unprocessed = g.currentGrid.cellArray[g.currentGrid.cellArray.length - 1].unprocessed.replace(/"/g, '\\\"')
 }
 
 
@@ -645,7 +650,7 @@ function drawGrid(fontSize) {
 }
 
 GID("plusicon").onclick = function() {
-  if (g.currentGrid.magnification >= 1) {
+  if (g.currentGrid.magnification >= 2) {
     g.currentGrid.magnification -= 1;
     if (g.currentGrid.magnification % 2 === 0) {
       g.currentGrid.magnification -= 1;
@@ -810,7 +815,7 @@ function addHyperlinks(t) {
   for (let i = 0; i < g.links.length; i++) {
     console.log(g.links[i])
     console.log(t);
-    t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
+    t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
     console.log(t);
   }
   return t;
@@ -1145,6 +1150,7 @@ function runGenerationProcess(grid, w, objArr) {
   applyTheme();  //APPLYING THEME TWICE ENSURES THAT THEME IS CORRECT ON FIRST GENERATION
   t = postProcess(t);
   outputText(t);
+  g.res.push(t);
   addClickToHyperlinks();
   setTextTimerTimeouts()
   addChoicesAndTimers();
@@ -1276,6 +1282,8 @@ function resetComponents() {
 GID("run-grid-drop").onclick = function() {
   resetTheme();
   console.log(g.currentTheme);
+  g.savedObjects = [];
+  g.currentGrid.stacked = false;
   applyTheme();
   kv = [];
   runGenerationProcess(null, null, oArr);
@@ -1607,10 +1615,20 @@ function getComponent(possible) {
       }
       let highProb = countProb;
       if (rand >= lowProb && rand <= highProb) {
+        g.lastProbability = {
+          low: lowProb,
+          selected: rand,
+          high: highProb
+        }
         return possible[i];
       }
     }
   } else {
+    g.lastProbability = {
+      low: "none",
+      selected: "none",
+      high: "none"
+    }
     return possible[0]
   }
 }
@@ -1641,24 +1659,27 @@ function changeTheme(name) {
 function genLoop(walker) {
   let res = ""
   let generating = true;
+  walker.res = "";
   while (generating === true) {
     let currentCell = getCell(g.currentGrid, walker.x, walker.y);
-    console.log(g.currentGrid);
-    console.log(walker.x);
-    console.log(walker.y);
-    console.log(currentCell);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
     let compGen = "";
+    compGen = currentComponent.text;
+    let debug = "";
+    debug += `DEBUG: The walker steps to X:${currentCell.x} Y: ${currentCell.y} on the ${g.currentGrid.name} grid and selects the component with the text: ${currentComponent.text}.`;
+    if (g.lastProbability) {
+      debug += `The component was selected based on a probability factor roll of ${g.lastProbability.selected} in a range of ${g.lastProbability.low} and ${g.lastProbability.high}`
+    }
+    console.log(debug);
     addComponentTo(walker, currentComponent);
 
-
-
-    if (currentComponent.text.includes("G(")) {
-      compGen += runGrids(walker, currentComponent.text)
+    if (compGen.includes("G(")) {
+      compGen = replaceVariable(walker, compGen);
+      compGen = runGrids(walker, compGen)
       compGen = runFunctions(walker, compGen);
     } else {
-      compGen += replaceVariable(walker, currentComponent.text);
+      compGen = replaceVariable(walker, compGen);
       compGen = runFunctions(walker, compGen);
     }
     let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
@@ -1741,7 +1762,44 @@ function genLoop(walker) {
         compGen = compGen.replace("interrupt()", "")
       }
     }
+
+    //This works but when you call a grid the text of the grid jumps out in front.
+    walker.res += compGen
+    if (compGen.includes("save(")) {
+      let m = compGen.match(/save\(([\w\d]+)\)/)[1];
+      compGen = compGen.replace(/save\([\w\d]+\)/, "")
+      walker.res = walker.res.replace(/save\([\w\d]+\)/, "")
+      compGen = "";
+      console.log(m);
+      let o = {};
+      o.name = m;
+      o.text = walker.res;
+      o.choices = g.choices;
+      g.choices = [];
+      o.links = g.links;
+      g.links = [];
+      g.savedObjects.push(o);
+      console.log(g.savedObjects);
+    } else if (compGen.includes("load(")) {
+      let m = compGen.match(/load\(([\w\d]+)\)/)[1];
+      console.log(m);
+      let exists = false;
+      console.log(g.savedObjects);
+      for (let i = 0; i < g.savedObjects.length; i++) {
+        if (g.savedObjects[i].name === m) {
+          exists = true;
+          addComponentTo(walker, g.savedObjects[i])
+          compGen = compGen.replace(/load\([\w\d]+\)/, g.savedObjects[i].text)
+        }
+      }
+      if (exists === false) {
+        console.log(`You tried to call load() with ${m} as a paremeter, but ${m} has not been defined.`)
+        compGen = compGen.replace(/load\([\w\d]+\)/, "")
+      }
+    }
+
     res += replaceVariable(walker, compGen);
+
 
     if (currentComponent.loop && isNaN(currentComponent.loop.iterations)) {
       g.loop = {};
@@ -1812,7 +1870,7 @@ function runGrids(w, t) {
   while (stillT === true) {
     t = `${t}`;
     if (t && t.includes("G(")) {
-      let m = t.match(/G\(([\w\s\d,\!\$\.]+)\)/);
+      let m = t.match(/G\(([\w\s\d,\!\$\.\<\>]+)\)/);
       let res = ""
       for (let i = 1; i < m.length; i++) {
         let iteratorCount = m[i].match(/\,\s(\d+)/);
@@ -1864,7 +1922,7 @@ function runFunctions(w, t) {
   let ctx = c.getContext("2d");
   while (stillT === true) {
     t = `${t}`
-    replaceVariable(w, t);
+    t = replaceVariable(w, t);
     if (t && t.includes(".push(")) {
       let m = t.match(/(\w+)\.push\((\w+)\)/)
       let arrName = m[1];
@@ -2091,6 +2149,7 @@ function addComponentTo(w, comp) {
         if (variablesHaveSameName(wv, cv)) {
           exists = true;
           if (isComparisonOperator(cv.operation) === false) {
+            wv.value = replaceVariable(w, wv.value);
             wv.value = runGrids(w, wv.value);
             cv.value = runGrids(w, cv.value);
             wv.value = runFunctions(w, wv.value);
@@ -2122,6 +2181,7 @@ function addComponentTo(w, comp) {
       } else {
         //add choice to walker
         let o = _.cloneDeep(comp.choices[i]);
+        o.text = replaceVariable(w, o.text);
         o.text = runGrids(w, o.text);
         o.text = runFunctions(w, o.text);
         g.choices.push(o);
@@ -2134,6 +2194,7 @@ function addComponentTo(w, comp) {
         //do nothing
       } else {
         let o = _.cloneDeep(comp.links[i]);
+        o.text = replaceVariable(w, o.text)
         o.text = runGrids(w, o.text);
         o.text = runFunctions(w, o.text);
         g.links.push(o);
@@ -2403,7 +2464,7 @@ GID("export-grid").onclick = function() {
   GID("export-box").style.display = "block";
   GID("generator-area").style.display = "none";
   let t = JSON.stringify(g.currentGrid);
-  GID("export-box").innerHTML = t;
+  GID("export-box").innerHTML = `let ${g.currentGrid.name} = ${t}`;
 }
 
 GID("new-rule-btn").onclick = function() {
@@ -2427,7 +2488,6 @@ function newRule() {
   g.grids.push(createGrid(`${n}`))
   g.currentGrid = g.grids[g.grids.length - 1]
   g.currentGrid.type = GID("gridType").value;
-  g.currentGrid.isMap = GID("isMap").value;
   g.gridIndex = g.grids.length - 1;
   drawGrid();
   alert(`You created the ${n} grid. The ${n} grid is now your current grid.`)
@@ -2500,7 +2560,6 @@ function fillSidebar() {
             g.currentGrid = g.grids[n]
             GID("gridName").value = g.currentGrid.name;
             GID("gridType").value = g.currentGrid.type;
-            GID("isMap").value = g.currentGrid.isMap;
             hideAll();
             drawGrid();
             showHide("grammar-gen")
@@ -2524,7 +2583,6 @@ GID("delete-rule-btn").onclick = function() {
   g.currentGrid = g.grids[g.gridIndex];
   GID("gridName").value = g.currentGrid.name;
   GID("gridType").value = g.currentGrid.type;
-  GID("isMap").value = g.currentGrid.isMap;
   drawGrid();
   alert(`You have deleted the ${deleted} grid and are now on the ${g.currentGrid.name} grid.`)
 }

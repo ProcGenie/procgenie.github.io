@@ -40,7 +40,7 @@ table {
 }
 
 textarea {
-	background: rgba(40, 42, 54, 0.99);
+	background: rgba(40, 42, 54, 1);
 	color: #bdc3c7;
 	font-size: 1.5em;
 }
@@ -130,8 +130,7 @@ textarea {
 .toolbar {
   font-size: 1.2em;
   display: inline-block;
-  position: fixed;
-  bottom: 0;
+	margin-top: 10px;
 }
 
 /* Tooltip text */
@@ -226,7 +225,7 @@ textarea {
 }
 
 .inner-cell:focus {
-	transform: scale(3);
+	transform: scale(2);
 	font-size: 0.5em
 }
 
@@ -470,7 +469,7 @@ textarea {
 
 #left-sidebar {
 	float: left;
-	width: 15vw;
+	width: 10vw;
 	height: 100vh;
 	overflow: scroll;
 	padding-left: 5px;

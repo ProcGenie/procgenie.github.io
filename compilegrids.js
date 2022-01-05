@@ -1,33 +1,37 @@
-let prefab = [];
-prefab.push(consonants);
-prefab.push(vowels);
-prefab.push(clusters);
-prefab.push(lastnames);
-prefab.push(names);
-prefab.push(titleNumbers);
-prefab.push(maleNames);
-prefab.push(femaleNames);
-prefab.push(adjectiveList)
-prefab.push(color);
-prefab.push(farmAnimals)
-prefab.push(seat);
-prefab.push(fruit);
-prefab.push(liquor);
-prefab.push(condiment);
-prefab.push(cheese)
-prefab.push(seasoning);
-prefab.push(fish);
 function loadPrefab() {
-  //NOT WORKING - TRYING TO LOAD CATEGORIES IN SIDEBAR ON LOAD DEFAULTS
-  for (let i = 0; i < prefab.length; i++) {
-    g.grids.push(JSON.parse(prefab[i]))
-    let t = g.grids[g.grids.length - 1].type
+  g.grids.push(lastname);
+  g.grids.push(adjectives);
+  g.grids.push(color)
+  g.grids.push(femaleNames);
+  g.grids.push(condiments);
+  g.grids.push(cheese);
+  g.grids.push(fish);
+  g.grids.push(fruit);
+  g.grids.push(liquor);
+  g.grids.push(seasoning);
+  g.grids.push(seat);
+  g.grids.push(lastname)
+  g.grids.push(maleName);
+  g.grids.push(consonant);
+  g.grids.push(vowel);
+  g.grids.push(titlenumber);
+  g.grids.push(cluster);
+  g.grids.push(name)
+  for (let i = 0; i < g.grids.length; i++) {
+    let t = g.grids[i].type
     console.log(t);
     if (g.gridTypes.indexOf(t) === -1) {
       g.gridTypes.push(t);
     }
   }
   g.gridTypes = g.gridTypes.sort();
+  }
+
+  GID("load-prefabs").onclick = function() {
+  loadPrefab();
+  alert("Prefabs loaded");
+  console.log(g.gridTypes);
+  fillSidebar();
 }
 
 GID("load-prefabs").onclick = function() {
@@ -37,16 +41,25 @@ GID("load-prefabs").onclick = function() {
 }
 
 /*
-for (let n = 0; n < g.gridTypes.length; n++) {
-  let gridTypeExists = false;
+
+g.grids.push(cheese);
+g.grids.push(farm);
+g.grids.push(lastname);
+for (let i = 0; i < g.grids.length; i++) {
+  let t = g.grids[i].type
   console.log(t);
-  console.log(g.gridTypes[n])
-  if (t === g.gridTypes[n]) {
-    gridTypeExists = true;
-    console.log("existed");
-  }
-  if (gridTypeExists === false) {
+  if (g.gridTypes.indexOf(t) === -1) {
     g.gridTypes.push(t);
-    console.log("did not exist");
   }
-}*/
+}
+g.gridTypes = g.gridTypes.sort();
+}
+
+GID("load-prefabs").onclick = function() {
+loadPrefab();
+alert("Prefabs loaded");
+console.log(g.gridTypes);
+fillSidebar();
+}
+
+*/
