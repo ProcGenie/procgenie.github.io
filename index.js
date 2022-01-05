@@ -1686,7 +1686,6 @@ function genLoop(walker) {
       //walker.res = runFunctions(walker, walker.res)
       console.log(walker.res);
     } else {
-      walker.collecting = false
       compGen = replaceVariable(walker, compGen);
       compGen = runFunctions(walker, compGen);
       //walker.res = replaceVariable(walker, walker.res);
@@ -2406,12 +2405,15 @@ function generate(grid, w, continuing, objArr) {
     g.currentGrid = grid;
   }
   let start;
+  let walker;
   if (w) {
-    start = setStart(w)
+    walker = w;
+    start = setStart(walker)
   } else {
     start = setStart()
+    walker = getWalker(start, null, objArr)
+    walker.collecting = false;
   }
-  let walker = w || getWalker(start, null, objArr)
   if (continuing) {
 
   } else {
