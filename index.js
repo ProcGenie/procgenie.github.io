@@ -299,7 +299,7 @@ function getChoiceFromMatch(m, coords) {
   let ry = /y([\-\d]+)/
   o.x = parseInt(coords.match(rx)[1]);
   o.y = parseInt(coords.match(ry)[1]);
-  let parens = /\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
+  let parens = /G?\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
   o.text = m;
@@ -314,16 +314,21 @@ function getChoiceFromMatch(m, coords) {
       o.timer = time[1];
     }
     if (parensArr[z].includes("=") || parensArr[z].includes("<") || parensArr[z].includes(">")) {
+      console.log(parensArr[z])
       let unp = parensArr[z].replace("(", "");
       unp = unp.replace(")", "");
       o.variables = normBrackets(unp);
       o.variables = setVariableArray(o.variables)
+      o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/, "")
     } else {
       o.directions = normBrackets(parensArr[z])
       for (let n = 0; n < o.directions.length; n++) {
         o.directions[n] = o.directions[n].replace(")", "");
         o.directions[n] = o.directions[n].replace("(", "");
+        o.text = o.text.replace(`${o.directions[n]}`, "")
       }
+      o.text = o.text.replace(/\([\s\,]+\)/, "")
+      o.text = o.text.replace(/\(\)/, "")
     }
   }
   return o
@@ -336,15 +341,18 @@ function getLinkFromMatch(m, coords) {
   let ry = /y([\-\d]+)/
   o.x = parseInt(coords.match(rx)[1]);
   o.y = parseInt(coords.match(ry)[1]);
-  let parens = /\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
+  let parens = /G?\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
   o.text = m;
   o.text = o.text.replace("link: ", "")
   o.text = o.text.replace("[", "");
   o.text = o.text.replace("]", "")
+  console.log(o.text);
   o.gridName = g.currentGrid.name;
   for (let z = 0; z < parensArr.length; z++) {
+    console.log(parensArr[z]);
+    console.log(o.text);
     if (parensArr[z].includes("timer:")) {
       let time = parensArr[z].match(/timer\:\s(\d+)/)
       o.text = o.text.replace(/\(timer\:\s\d+\)/, "")
@@ -355,15 +363,27 @@ function getLinkFromMatch(m, coords) {
       unp = unp.replace(")", "");
       o.variables = normBrackets(unp);
       o.variables = setVariableArray(o.variables)
+      o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/, "")
+    } else if (parensArr[z].includes("G(")) {
+      console.log("GRID RUN")
+      //do nothing if run grid.
     } else {
+      console.log(o.text);
+      console.log(parensArr[z])
       o.directions = normBrackets(parensArr[z])
+      console.log(o.directions);
       for (let n = 0; n < o.directions.length; n++) {
         o.directions[n] = o.directions[n].replace(")", "");
         o.directions[n] = o.directions[n].replace("(", "");
+        o.text = o.text.replace(`${o.directions[n]}`, "")
       }
+      o.text = o.text.replace(/\([\s\,]+\)/, "")
+      o.text = o.text.replace(/\(\)/, "")
+      console.log(o.text);
     }
   }
-  o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g, "")
+  //o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/, "")
+  console.log(o.text);
   return o
 }
 
@@ -815,7 +835,7 @@ function addHyperlinks(t) {
   for (let i = 0; i < g.links.length; i++) {
     console.log(g.links[i])
     console.log(t);
-    t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
+    t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?\[\]]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
     console.log(t);
   }
   return t;
@@ -923,11 +943,14 @@ function setTextTimerTimeouts() {
 }
 
 function outputText(t) {
+  t = replaceAnythingInBrackets(t);
   GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
 }
 
 function replaceAnythingInBrackets(t) {
+  console.log(t);
   t = t.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
+  console.log(t);
   return t;
 }
 
@@ -942,10 +965,11 @@ function hideOutputIfEmpty(t) {
 function addChoicesAndTimers() {
   GID("new-choices-box").innerHTML = "";
   for (let n = 0; n < g.choices.length; n++) {
-    let parens = /\([\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\']+\)/g;
+    let parens = /\([\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\[\]]+\)/g;
     //WORKING HERE
     let num = n;
     let t = g.choices[n].text.replace(parens, "")
+    t = replaceAnythingInBrackets(t);
     t = postProcess(t);
     GID("new-choices-box").innerHTML += `<div class=choiceslist id=choice${num}>${replaceVariable(g.lastWalker, t)}</div>`
     if (g.choices[n].timer) {
@@ -1666,7 +1690,6 @@ function genLoop(walker) {
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
     let compGen = "";
-    compGen = currentComponent.text;
     let debug = "";
     debug += `DEBUG: The walker steps to X:${currentCell.x} Y: ${currentCell.y} on the ${g.currentGrid.name} grid and selects the component with the text: ${currentComponent.text}.`;
     if (g.lastProbability) {
@@ -1675,18 +1698,17 @@ function genLoop(walker) {
     console.log(debug);
     addComponentTo(walker, currentComponent);
     //walker.res += compGen;
-    if (compGen.includes("G(")) {
-      compGen = replaceVariable(walker, compGen);
-      //walker.res = replaceVariable(walker, walker.res);
+    if (currentComponent.text.includes("G(")) {
       walker.collecting = true;
-      compGen = runGrids(walker, compGen)
+      compGen += runGrids(walker, currentComponent.text);
       walker.collecting = false;
+      //walker.res = replaceVariable(walker, walker.res);
       //walker.res = runGrids(walker, walker.res);
       compGen = runFunctions(walker, compGen);
       //walker.res = runFunctions(walker, walker.res)
       console.log(walker.res);
     } else {
-      compGen = replaceVariable(walker, compGen);
+      compGen += replaceVariable(walker, currentComponent.text);
       compGen = runFunctions(walker, compGen);
       //walker.res = replaceVariable(walker, walker.res);
       //walker.res = runFunctions(walker, walker.res)
@@ -1885,6 +1907,7 @@ function addChoiceToWalker(w, c) {
 }
 
 function runGrids(w, t) {
+  console.log(t);
   let stillT = true;
   while (stillT === true) {
     t = `${t}`;
@@ -1919,12 +1942,13 @@ function runGrids(w, t) {
           w.x = lastX;
           w.y = lastY;
         }
-        t = t.replace(/G\(([\w\s\d,\!\$\.]+)\)/, res)
+        t = t.replace(/G\(([\w\s\d,\!\$\.\<\>]+)\)/, res)
       }
     } else {
       stillT = false;
     }
   }
+  console.log(t);
   return t;
 }
 
