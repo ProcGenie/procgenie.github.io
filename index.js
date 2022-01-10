@@ -322,13 +322,12 @@ function getChoiceFromMatch(m, coords) {
       o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/, "")
     } else {
       o.directions = normBrackets(parensArr[z])
+      let joined = o.directions.join();
       for (let n = 0; n < o.directions.length; n++) {
         o.directions[n] = o.directions[n].replace(")", "");
         o.directions[n] = o.directions[n].replace("(", "");
-        o.text = o.text.replace(`${o.directions[n]}`, "")
       }
-      o.text = o.text.replace(/\([\s\,]+\)/, "")
-      o.text = o.text.replace(/\(\)/, "")
+      o.text = o.text.replace(`${joined}`, "")
     }
   }
   return o
@@ -368,18 +367,15 @@ function getLinkFromMatch(m, coords) {
       console.log("GRID RUN")
       //do nothing if run grid.
     } else {
-      console.log(o.text);
-      console.log(parensArr[z])
       o.directions = normBrackets(parensArr[z])
       console.log(o.directions);
+      let joined = o.directions.join();
+      console.log(joined)
       for (let n = 0; n < o.directions.length; n++) {
         o.directions[n] = o.directions[n].replace(")", "");
         o.directions[n] = o.directions[n].replace("(", "");
-        o.text = o.text.replace(`${o.directions[n]}`, "")
       }
-      o.text = o.text.replace(/\([\s\,]+\)/, "")
-      o.text = o.text.replace(/\(\)/, "")
-      console.log(o.text);
+      o.text = o.text.replace(`${joined}`, "")
     }
   }
   //o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/, "")
