@@ -322,7 +322,7 @@ function getChoiceFromMatch(m, coords) {
       o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/, "")
     } else {
       o.directions = normBrackets(parensArr[z])
-      let joined = o.directions.join();
+      let joined = o.directions.join(", ");
       for (let n = 0; n < o.directions.length; n++) {
         o.directions[n] = o.directions[n].replace(")", "");
         o.directions[n] = o.directions[n].replace("(", "");
@@ -369,7 +369,7 @@ function getLinkFromMatch(m, coords) {
     } else {
       o.directions = normBrackets(parensArr[z])
       console.log(o.directions);
-      let joined = o.directions.join();
+      let joined = o.directions.join(", ");
       console.log(joined)
       for (let n = 0; n < o.directions.length; n++) {
         o.directions[n] = o.directions[n].replace(")", "");
