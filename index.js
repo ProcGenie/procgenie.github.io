@@ -828,10 +828,13 @@ function deleteUnprocessedChoices(t) {
 }
 
 function addHyperlinks(t) {
+  //when you run a grid in a link, it adds a bunch of bracketed meta information, which needs to be deleted, as below
+  t = t.replace(/\[(?!link\:\s)[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?]+\]/g, "")
   for (let i = 0; i < g.links.length; i++) {
     console.log(g.links[i])
     console.log(t);
-    t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?\[\]]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
+    console.log(t);
+    t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
     console.log(t);
   }
   return t;
@@ -1143,6 +1146,10 @@ function applyTheme() {
   let el = GID("new-choices-box");
   el.style.background = g.currentTheme.choicebg;
   el.style.color = g.currentTheme.choiceText
+  let choices = document.getElementsByClassName("choiceslist");
+  for (let i = 0; i < choices.length; i++) {
+    choices[i].style.border = g.currentTheme.border
+  }
   let links = document.getElementsByClassName("hyperlink-text");
   for (let i = 0; i < links.length; i++) {
     links[i].style.color = g.currentTheme.links;
@@ -2556,6 +2563,7 @@ function fillThemeSidebar() {
   GID("theme-choice-text").value = g.currentTheme.choiceText
   GID("theme-choice-hover-bg").value = g.currentTheme.choiceHoverbg;
   GID("theme-choice-hover-text").value = g.currentTheme.choiceHoverText
+  GID("theme-choice-border").value = g.currentTheme.border;
   for (let i = 0; i < g.themes.length; i++) {
     let num = i
     GID(`themelink${i}`).onclick = function() {
@@ -2568,6 +2576,7 @@ function fillThemeSidebar() {
       GID("theme-choice-text").value = g.currentTheme.choiceText
       GID("theme-choice-hover-bg").value = g.currentTheme.choiceHoverbg;
       GID("theme-choice-hover-text").value = g.currentTheme.choiceHoverText
+      GID("theme-choice-border").value = g.currentTheme.border;
     }
   }
 }
