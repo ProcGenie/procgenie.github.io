@@ -320,6 +320,9 @@ function getChoiceFromMatch(m, coords) {
       o.variables = normBrackets(unp);
       o.variables = setVariableArray(o.variables)
       o.text = o.text.replace(/\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/, "")
+    } else if (parensArr[z].includes("G(")) {
+      console.log("GRID RUN")
+      //do nothing if run grid.
     } else {
       o.directions = normBrackets(parensArr[z])
       let joined = o.directions.join(", ");
