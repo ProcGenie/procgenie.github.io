@@ -63,6 +63,12 @@ function loadPrefab() {
   g.grids.push(howAreYou);
   g.grids.push(goodbye);
   g.grids.push(bah);
+  g.grids.push(interactive);
+  g.grids.push(moral);
+  g.grids.push(identity);
+  g.grids.push(achievement)
+  g.grids.push(negativeTraits);
+  g.grids.push(showCalendar);
   for (let i = 0; i < g.grids.length; i++) {
     let t = g.grids[i].type
     console.log(t);

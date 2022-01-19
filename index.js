@@ -655,6 +655,14 @@ function drawGrid(fontSize) {
     }
     els[i].onclick = function() {
       let coords = els[i].id;
+      let rx = /x([\-\d]+)/
+      let ry = /y([\-\d]+)/
+      let x = parseInt(coords.match(rx)[1]);
+      let y = parseInt(coords.match(ry)[1]);
+      g.currentGrid.currentX = x;
+      g.currentGrid.currentY = y;
+      drawGrid();
+      GID(coords).focus();
       GID("gridinfo").innerHTML = `Grid: ${g.currentGrid.name}, ${coords}`
     }
     els[i].onblur = function() {
@@ -944,8 +952,36 @@ function setTextTimerTimeouts() {
   }
 }
 
+function addCapitalization(t) {
+  while (t.includes("C(")) {
+    let m = t.match(/C\(([\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\$\'\"\”\“\%\/]+)\)/)
+    if (m && m[1]) {
+      console.log(m);
+      let upper = m
+      console.log(m[1].slice(1))
+      t = t.replace(/C\([\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\$\'\"\”\“\%\/]+\)/, m[1].charAt(0).toUpperCase() + m[1].slice(1))
+    }
+  }
+  return t;
+}
+
+function removeCapitalization(t) {
+  while (t.includes("c(")) {
+    let m = t.match(/c\(([\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\$\'\"\”\“\%\/]+)\)/)
+    if (m && m[1]) {
+      console.log(m);
+      let upper = m
+      console.log(m[1].slice(1))
+      t = t.replace(/c\([\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\$\'\"\”\“\%\/]+\)/, m[1].charAt(0).toLowerCase() + m[1].slice(1))
+    }
+  }
+  return t;
+}
+
 function outputText(t) {
   t = replaceAnythingInBrackets(t);
+  t = addCapitalization(t);
+  t = removeCapitalization(t);
   GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
 }
 
@@ -2160,12 +2196,6 @@ function runFunctions(w, t) {
         kv.push(o);
       }
       t = t.replace(/addKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\(\)\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\]+)\)/, "")
-    } else if (t && t.includes("C(")) {
-      let m = t.match(/C\((\w+)\)/)
-      if (m && m[1]) {
-        let upper = m
-        t = t.replace(/C\((\w+)\)/, m[1].charAt(0).toUpperCase() + m[1].slice(1))
-      }
     } else if (t && t.match(/\<speak\((\w+)\)\>/)) {
       let m = t.match(/\<speak\((\w+)\)\>([\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+)\<\/speak>/);
       let f = t.match(/\<speak\((\w+)\)\>[\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+\<\/speak\>/);
