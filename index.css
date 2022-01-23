@@ -403,12 +403,10 @@ textarea {
 }
 
 .container img {
-  height: 98vh;
-  border: 1vh solid black;
 }
 
 #outputText {
-	background: black;
+	background: white;
 }
 
 .intro-text {
@@ -428,7 +426,7 @@ textarea {
   margin-top: 2vh;
   margin-bottom: 4vh;
   padding: 3vw;
-	font-size: 3em;
+	font-size: 2em;
 }
 
 #main-text-img {
@@ -440,23 +438,28 @@ textarea {
 	margin-left: 10vw;
 	margin-right: 10vw;
   text-align: center;
-	background: black;
+	background: white;
 }
 
 .choiceslist {
-	border: 1px solid white;
+	border: 1px solid black;
 	border-radius: 5%;
   padding-top: 10px;
   padding-bottom: 10px;
-	font-size: 3em;
 	margin-top: 2vh;
 	margin-bottom: 2vh;
+	font-size: 2em;
+}
+
+.choiceslist:hover {
+	background: black;
+	color: white;
 }
 
 .choice:hover {
   cursor: pointer;
-	background: white;
-	color: black;
+	background: black;
+	color: white;
 }
 
 .intro-text a {
@@ -521,8 +524,8 @@ textarea {
 }
 
 #parser {
-	background: black;
-	color: white;
+	background: white;
+	color: black;
 	width: 100%;
 	font-size: 1em;
 	font-family: serif;
@@ -530,8 +533,8 @@ textarea {
 }
 
 #submit-parser {
-	background: black;
-	color: white;
+	background: white;
+	color: black;
 	width: 100%;
 	font-size: 1em;
 	font-family: serif;

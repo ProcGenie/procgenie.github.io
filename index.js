@@ -187,13 +187,13 @@ let g = {};
 g.themes = [
   {
     name: "default",
-    color: "#ffffff",
-    bg: "#000000",
+    color: "black",
+    bg: "white",
     links: "#7cc584",
-    choiceText: "#ffffff",
-    choicebg: "#000000",
-    choiceHoverbg: "#ffffff",
-    choiceHoverText: "#000000"
+    choiceText: "black",
+    choicebg: "white",
+    choiceHoverbg: "black",
+    choiceHoverText: "white"
   }
 ];
 g.currentTheme = g.themes[0]
