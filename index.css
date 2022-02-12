@@ -224,11 +224,6 @@ textarea {
 	font-size: 9px;
 }
 
-.inner-cell:focus {
-	transform: scale(2);
-	font-size: 0.5em
-}
-
 .grid-list {
 	text-align: center;
 	font-size: 2em
@@ -396,14 +391,6 @@ textarea {
 	z-index: 1;
 }
 
-.container {
-  display: flex;
-	height: 100vh;
-	background: black;
-}
-
-.container img {
-}
 
 #outputText {
 	background: white;

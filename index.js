@@ -677,7 +677,7 @@ function drawGrid(fontSize) {
 }
 
 GID("plusicon").onclick = function() {
-  if (g.currentGrid.magnification >= 2) {
+  if (g.currentGrid.magnification >= 1) {
     g.currentGrid.magnification -= 1;
     if (g.currentGrid.magnification % 2 === 0) {
       g.currentGrid.magnification -= 1;
@@ -713,7 +713,7 @@ GID("grid-select-box").style.display = "none";
 
 GID("writeicon").onclick = function() {
   GID("generator-area").style.display = "none";
-  GID("flexcontainer").style.display = "flex";
+  GID("flexcontainer").style.display = "block";
   //showHide("cell-box")
   let c = document.getElementById("outputCanvas");
   c.width = window.innerWidth;
@@ -1361,7 +1361,7 @@ GID("run-grid-drop").onclick = function() {
     component.loop.iterations = component.loop.maxIterations;
   }
   GID("generator-area").style.display = "none";
-  GID("flexcontainer").style.display = "flex";
+  GID("flexcontainer").style.display = "block";
   //showHide("cell-box")
   let c = document.getElementById("outputCanvas");
   c.width = window.innerWidth;
