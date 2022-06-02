@@ -1057,6 +1057,16 @@ function navigateToChoiceDestination(els, n) {
   }
 }
 
+function getVariableByName(w, n) {
+  let varArr = w.variables;
+  console.log(varArr)
+  for (let i = 0; i < varArr.length; i++) {
+    if (varArr[i].name === n) {
+      return varArr[i]
+    }
+  }
+}
+
 function addChoiceClickEvents() {
   let els = document.getElementsByClassName("choiceslist");
   for (let n = 0; n < els.length; n++) {
@@ -1964,6 +1974,7 @@ function runGrids(w, t) {
             let lastGrid = g.currentGrid;
             let lastX = w.x;
             let lastY = w.y;
+            m[i] = replaceVariable(w, m[i]);
             let nextGrid = getGridByName(g, m[i]);
             nextGrid.stacked = true
             res += generate(nextGrid, w);
@@ -1976,6 +1987,7 @@ function runGrids(w, t) {
           let lastGrid = g.currentGrid;
           let lastX = w.x;
           let lastY = w.y;
+          m[i] = replaceVariable(w, m[i]);
           let nextGrid = getGridByName(g, m[i]);
           nextGrid.stacked = true;
           res += generate(nextGrid, w);

@@ -550,3 +550,12 @@ textarea {
 #theme-gen {
 	font-size: 1.4em;
 }
+
+#submit-parser {
+	border: 1px solid black;
+	padding: 5px;
+}
+
+#submit-parser:hover {
+	cursor: pointer
+}
