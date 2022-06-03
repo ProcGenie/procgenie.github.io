@@ -232,6 +232,52 @@ function createGrid(n) {
   return grid;
 }
 
+function parseTags(component) {
+  let addTags = component.text.match(/\+\(([\w\s]+)\)/)
+  let removeTags = component.text.match(/\-\(([\w\s]+)\)/)
+  let conditionalTags = component.text.match(/\?\(([\w\s]+)\)/)
+  let notTags = component.text.match(/\!\(([\w\s]+)\)/)
+  if (addTags) {
+    if (typeof addTags === 'string') {
+      component.addTags = [addTags]
+    } else {
+      component.addTags = addTags[1].split(" ");
+    }
+  } else {
+    component.addTags = [];
+  }
+  if (removeTags) {
+    if (typeof removeTags === 'string') {
+      component.removeTags = [removeTags]
+    } else {
+      component.removeTags = removeTags[1].split(" ");
+    }
+  } else {
+    component.removeTags = [];
+  }
+  if (conditionalTags) {
+    if (typeof conditionalTags === 'string') {
+      component.conditionalTags = [conditionalTags]
+    } else {
+      component.conditionalTags = conditionalTags[1].split(" ");
+    }
+  } else {
+    component.conditionalTags = []
+  }
+  if (notTags) {
+    if (typeof notTags === 'string') {
+      component.notTags = [notTags]
+    } else {
+      component.notTags = notTags[1].split(" ");
+    }
+  } else {
+    component.notTags = []
+  }
+  component.text = component.text.replace(/\+\([\w\s]+\)/, "")
+  component.text = component.text.replace(/\-\([\w\s]+\)/, "")
+  component.text = component.text.replace(/\?\([\w\s]+\)/, "")
+}
+
 let cellArray = [];
 
 function GID(el) {
@@ -402,6 +448,8 @@ function process(unprocessed, coords) {
     c.choices = [];
     c.links = [];
     c.text = components[j].trim();
+    c.tags = []
+    parseTags(c)
     if (c.text.includes("break()")) {
       c.break = true;
       c.text = c.text.replace("break()", "")
@@ -1649,6 +1697,7 @@ function getWalker(start, w, objArr) {
     walker.x = parseInt(start.x);
     walker.y = parseInt(start.y);
     walker.variables = [];
+    walker.tags = [];
     for (let i = 0; i < objArr.length; i++) {
       let obj = objArr[i];
       if (obj !== undefined) {
@@ -2224,6 +2273,15 @@ function runFunctions(w, t) {
 }
 
 function addComponentTo(w, comp) {
+  for (let i = 0; i < comp.addTags.length; i++) {
+    w.tags.push(comp.addTags[i])
+  }
+  for (let i = 0; i < comp.removeTags.length; i++) {
+    let index = w.tags.indexOf(comp.removeTags[i]);
+    if (index > -1) {
+      w.tags.splice(index, 1)
+    }
+  }
   if (comp.variables) {
     for (let i = 0; i < comp.variables.length; i++) {
       let exists = false;
@@ -2310,12 +2368,29 @@ function getRandomFromArr(arr) {
 function createPossibleComponentsArr(w, c) {
   let arr = [];
   for (let i = 0; i < c.length; i++) {
-    if (variablesConflict(w, c[i]) === false) {
+    if (variablesConflict(w, c[i]) === false && tagsConflict(w, c[i]) === false) {
       arr.push(c[i]);
     } else {
     }
   }
   return arr;
+}
+
+function tagsConflict(w, c) {
+  let conflicts = false;
+  for (let i = 0; i < c.conditionalTags.length; i++) {
+    let index = w.tags.indexOf(c.conditionalTags[i])
+    if (index === -1) {
+      conflicts = true;
+    }
+  }
+  for (let i = 0; i < c.notTags.length; i++) {
+    let index = w.tags.indexOf(c.notTags[i]);
+    if (index !== -1) {
+      conflicts = true
+    }
+  }
+  return conflicts
 }
 
 function isComparisonOperator(operator) {
