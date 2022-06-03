@@ -276,6 +276,7 @@ function parseTags(component) {
   component.text = component.text.replace(/\+\([\w\s]+\)/, "")
   component.text = component.text.replace(/\-\([\w\s]+\)/, "")
   component.text = component.text.replace(/\?\([\w\s]+\)/, "")
+  component.text = component.text.replace(/\!\([\w\s]+\)/, "")
 }
 
 let cellArray = [];
