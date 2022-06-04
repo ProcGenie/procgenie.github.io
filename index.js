@@ -234,11 +234,31 @@ function createGrid(n) {
 }
 
 function parseTags(component) {
-  let ref = component.text.match(/refs\(([\w\s]+)\)/)
-  let addTags = component.text.match(/\+\(([\w\s]+)\)/)
-  let removeTags = component.text.match(/\-\(([\w\s]+)\)/)
-  let conditionalTags = component.text.match(/\?\(([\w\s]+)\)/)
-  let notTags = component.text.match(/\!\(([\w\s]+)\)/)
+  let allRefs = component.text.match(/allRefs\(([\<\>\w\s]+)\)/)
+  let notRefs = component.text.match(/notRefs\(([\<\>\w\s]+)\)/)
+  let ref = component.text.match(/refs\(([\<\>\w\s]+)\)/)
+  let addTags = component.text.match(/\+\(([\<\>\w\s]+)\)/)
+  let removeTags = component.text.match(/\-\(([\<\>\w\s]+)\)/)
+  let conditionalTags = component.text.match(/\?\(([\<\>\w\s]+)\)/)
+  let notTags = component.text.match(/\!\(([\<\>\w\s]+)\)/)
+  if (notRefs) {
+    if (typeof notRefs === 'string') {
+      component.notRefs = [notRefs]
+    } else {
+      component.notRefs = notRefs[1].split(" ")
+    }
+  } else {
+    component.notRefs = [];
+  }
+  if (allRefs) {
+    if (typeof allRefs === 'string') {
+      component.allRefs = [allRefs]
+    } else {
+      component.allRefs = allRefs[1].split(" ")
+    }
+  } else {
+    component.allRefs = [];
+  }
   if (ref) {
     if (typeof ref === 'string') {
       component.refs = [ref]
@@ -284,11 +304,13 @@ function parseTags(component) {
   } else {
     component.notTags = []
   }
-  component.text = component.text.replace(/refs\(([\w\s]+)\)/, "")
-  component.text = component.text.replace(/\+\([\w\s]+\)/, "")
-  component.text = component.text.replace(/\-\([\w\s]+\)/, "")
-  component.text = component.text.replace(/\?\([\w\s]+\)/, "")
-  component.text = component.text.replace(/\!\([\w\s]+\)/, "")
+  component.text = component.text.replace(/refs\(([\<\>\w\s]+)\)/, "")
+  component.text = component.text.replace(/\+\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/\-\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/\?\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/\!\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/allRefs\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/notRefs\([\<\>\w\s]+\)/, "")
 }
 
 let cellArray = [];
@@ -469,6 +491,8 @@ function process(unprocessed, coords) {
     c.text = components[j].trim();
     c.tags = []
     c.refs = []
+    c.allRefs = []
+    c.notRefs = [];
     parseTags(c)
     if (c.text.includes("break()")) {
       c.break = true;
@@ -1847,6 +1871,8 @@ function genLoop(walker) {
     console.log(debug);
     addComponentTo(walker, currentComponent);
     //walker.res += compGen;
+
+
     if (currentComponent.text.includes("G(")) {
       walker.collecting = true;
       compGen += runGrids(walker, currentComponent.text);
@@ -1985,6 +2011,29 @@ function genLoop(walker) {
       if (exists === false) {
         console.log(`You tried to call load() with ${m} as a paremeter, but ${m} has not been defined.`)
         compGen = compGen.replace(/load\([\w\d]+\)/, "")
+      }
+    }
+
+    if (compGen.includes("listRefs()")) {
+      console.log("Made it")
+      console.log(walker.refs)
+      if (walker.refs.length === 0) {
+
+      } else if (walker.refs.length === 1) {
+        compGen = compGen.replace("listRefs()", walker.refs[0])
+      } else if (walker.refs.length === 2) {
+        compGen = compGen.replace("listRefs()", `${walker.refs[0]} and ${walker.refs[1]}`)
+      } else if (walker.refs.length > 2) {
+        let nt = ""
+        let count = walker.refs.length;
+        for (let i = 0; i < count; i++) {
+          if (i === count - 1) {
+            nt += ` and ${walker.refs[i]}`
+          } else {
+            nt += `${walker.refs[i]}, `
+          }
+        }
+        compGen = compGen.replace("listRefs()", `${nt}`)
       }
     }
 
@@ -2332,21 +2381,45 @@ function runFunctions(w, t) {
 }
 
 function addComponentTo(w, comp) {
+  if (comp.allRefs.length > 0) {
+    w.refs = [];
+    for (let i = 0; i < comp.allRefs.length; i++) {
+      for (let p in w.tags) {
+        let index = w.tags[`${p}`].indexOf(comp.allRefs[i]);
+        if (index > -1) {
+          w.refs.push(p)
+        }
+      }
+    }
+  }
+  if (comp.notRefs.length > 0) {
+    w.refs = [];
+    for (let i = 0; i < comp.notRefs.length; i++) {
+      for (let p in w.tags) {
+        let index = w.tags[`${p}`].indexOf(comp.notRefs[i]);
+        if (index === -1) {
+          w.refs.push(p)
+        }
+      }
+    }
+  }
   if (comp.refs.length > 0) {
     w.refs = comp.refs
   }
   for (let j = 0; j < w.refs.length; j++) {
     for (let i = 0; i < comp.addTags.length; i++) {
+      let tag = replaceVariable(w, comp.addTags[i])
       if (w.tags[`${w.refs[j]}`]) {
-        w.tags[`${w.refs[j]}`].push(comp.addTags[i])
+        w.tags[`${w.refs[j]}`].push(tag)
       } else {
         w.tags[`${w.refs[j]}`] = [];
-        w.tags[`${w.refs[j]}`].push(comp.addTags[i])
+        w.tags[`${w.refs[j]}`].push(tag)
       }
     }
     for (let i = 0; i < comp.removeTags.length; i++) {
+      let tag = replaceVariable(w, comp.removeTags[i])
       if (w.tags[`${w.refs[j]}`]) {
-        let index = w.tags[`${w.refs[j]}`].indexOf(comp.removeTags[i]);
+        let index = w.tags[`${w.refs[j]}`].indexOf(tag);
         if (index > -1) {
           w.tags[`${w.refs[j]}`].splice(index, 1)
         }
@@ -2455,13 +2528,15 @@ function tagsConflict(w, c) {
   let conflicts = false;
   for (let j = 0; j < w.refs.length; j++) {
     for (let i = 0; i < c.conditionalTags.length; i++) {
-      let index = w.tags[`${w.refs[j]}`].indexOf(c.conditionalTags[i])
+      let tag = replaceVariable(w, c.conditionalTags[i])
+      let index = w.tags[`${w.refs[j]}`].indexOf(tag)
       if (index === -1) {
         conflicts = true;
       }
     }
     for (let i = 0; i < c.notTags.length; i++) {
-      let index = w.tags[`${w.refs[j]}`].indexOf(c.notTags[i]);
+      let tag = replaceVariable(w, c.notTags[i])
+      let index = w.tags[`${w.refs[j]}`].indexOf(tag);
       if (index !== -1) {
         conflicts = true
       }
