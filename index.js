@@ -2015,8 +2015,6 @@ function genLoop(walker) {
     }
 
     if (compGen.includes("listRefs()")) {
-      console.log("Made it")
-      console.log(walker.refs)
       if (walker.refs.length === 0) {
 
       } else if (walker.refs.length === 1) {
