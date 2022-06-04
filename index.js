@@ -226,6 +226,7 @@ function createGrid(n) {
   grid.name = n || "default";
   grid.currentX = 0;
   grid.currentY = 0;
+  grid.currentZ = 0;
   grid.magnification = 5;
   grid.cellArray = [];
   grid.stacked = false;
@@ -344,8 +345,10 @@ function getChoiceFromMatch(m, coords) {
   let o = {};
   let rx = /x([\-\d]+)/
   let ry = /y([\-\d]+)/
+  let rz = /z([\-\d]+)/
   o.x = parseInt(coords.match(rx)[1]);
   o.y = parseInt(coords.match(ry)[1]);
+  o.z = parseInt(coords.match(rz)[1]);
   let parens = /G?\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
@@ -388,8 +391,10 @@ function getLinkFromMatch(m, coords) {
   let o = {};
   let rx = /x([\-\d]+)/
   let ry = /y([\-\d]+)/
+  let rz = /z([\-\d]+)/
   o.x = parseInt(coords.match(rx)[1]);
   o.y = parseInt(coords.match(ry)[1]);
+  o.z = parseInt(coords.match(rz)[1]);
   let parens = /G?\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
@@ -437,8 +442,10 @@ function process(unprocessed, coords) {
   let total = /\[[\{\}\w\s\+\.\-\=\*\<\>\!\?\d\,\:\;\(\)\$\'\"\”\“\”\“\%\/]+\]/g
   let rx = /x([\-\d]+)/
   let ry = /y([\-\d]+)/
+  let rz = /z([\-\d]+)/
   let x = parseInt(coords.match(rx)[1]);
   let y = parseInt(coords.match(ry)[1]);
+  let z = parseInt(coords.match(rz)[1]);
   let digits = /\[(\d+)\]/
   let components = unprocessed.split("|")
   let cArr = [];
@@ -459,17 +466,19 @@ function process(unprocessed, coords) {
       c.loop = {};
       c.loop.x = x;
       c.loop.y = y;
+      c.loop.z = z;
       c.loop.gridName = g.currentGrid.name;
       c.loop.iterations = parseInt(c.text.match(/loop\(([\w\d]+)\)/)[1])
       c.loop.maxIterations = c.loop.iterations;
       c.text = c.text.replace(/loop\(\d+\)/, "")
       c.text = c.text.replace(/loop\(\w+\)/, "")
     } else if (c.text.includes("teleport(")) {
-      let m = c.text.match(/teleport\(([\w\d\$\{\}]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\)/)
+      let m = c.text.match(/teleport\(([\w\d\$\{\}]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\)/)
       c.teleport = {};
       c.teleport.gridName = m[1];
       c.teleport.x = m[2];
       c.teleport.y = m[3]
+      c.teleport.z = m[4]
       c.text = c.text.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
       /*currentCell = getCell(walker.x, walker.y);
       possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
@@ -517,6 +526,7 @@ function process(unprocessed, coords) {
 function saveCell(g, coords) {
   let rx = /x([\-\d]+)/
   let ry = /y([\-\d]+)/
+  let rz = /z([\-\d]+)/
   let v = GID(`${coords}`).value
   let teleport;
   if (v.match(/(\w+)\s\=\s\[\]/)) {
@@ -531,6 +541,7 @@ function saveCell(g, coords) {
     if (m && m[1]) {
       let x = parseInt(coords.match(rx)[1]);
       let y = parseInt(coords.match(ry)[1]);
+      let z = parseInt(coords.match(rz)[1]);
       let arr = m[1].split(/\s/);
       for (let i = 0; i < arr.length; i++) {
         let cell = {};
@@ -545,9 +556,10 @@ function saveCell(g, coords) {
           cell.unprocessed = `${arr[i]} [E]`;
           o.text = `${arr[i]} `;
         }
-        cell.coords = `x${x}y${y}`;
+        cell.coords = `x${x}y${y}z${z}`;
         cell.x = x;
         cell.y = y;
+        cell.z = z;
 
         let cArr = [];
 
@@ -574,11 +586,13 @@ function saveCell(g, coords) {
     if (m && m[1]) {
       let x = parseInt(coords.match(rx)[1]);
       let y = parseInt(coords.match(ry)[1]);
+      let z = parseInt(coords.match(rz)[1]);
       let arr = m[1].split(/\,?\s/);
       let cell = {};
-      cell.coords = `x${x}y${y}`;
+      cell.coords = `x${x}y${y}z${z}`;
       cell.x = x;
       cell.y = y;
+      cell.z = z;
       let cArr = []
       cell.unprocessed = "";
       for (let i = 0; i < arr.length; i++) {
@@ -622,8 +636,10 @@ function saveCell(g, coords) {
       o.coords = coords
       let x = parseInt(o.coords.match(rx)[1]);
       let y = parseInt(o.coords.match(ry)[1]);
+      let z = parseInt(o.coords.match(rz)[1]);
       o.x = x;
       o.y = y;
+      o.z = z
       o.unprocessed = v;
       //o.unprocessed = o.unprocessed.replace(/"/g, `\\\"`)
       let cArr = process(o.unprocessed, o.coords);
@@ -634,11 +650,13 @@ function saveCell(g, coords) {
     //delete cell if it is later empty
     let rx = /x([\-\d]+)/
     let ry = /y([\-\d]+)/
+    let rz = /z([\-\d]+)/
     let x = parseInt(coords.match(rx)[1]);
     let y = parseInt(coords.match(ry)[1]);
+    let z = parseInt(coords.match(rz)[1]);
     let deleteIndex = false
     for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
-      if (g.currentGrid.cellArray[i].x === x && g.currentGrid.cellArray[i].y === y) {
+      if (g.currentGrid.cellArray[i].x === x && g.currentGrid.cellArray[i].y === y && g.currentGrid.cellArray[i].z === z) {
         deleteIndex = i
       }
     }
@@ -655,13 +673,13 @@ function buildGrid(size) {
   let t = "<table class=big-table>"
   if (size === -1) {
     t += "<tr>"
-    t += `<td class="event-map-cell"><textarea class="inner-cell" id="x${g.currentGrid.currentX}y${g.currentGrid.currentY}"></textarea></td>`
+    t += `<td class="event-map-cell"><textarea class="inner-cell" id="x${g.currentGrid.currentX}y${g.currentGrid.currentY}z${g.currentGrid.currentZ}"></textarea></td>`
     t += "</tr>"
   } else {
     for (let i = g.currentGrid.currentY + size; i > g.currentGrid.currentY - size - 1; i--) {
       t += "<tr>"
       for (let j = g.currentGrid.currentX - size; j < g.currentGrid.currentX + size + 1; j++) {
-        let cellCoords = `x${j}y${i}`
+        let cellCoords = `x${j}y${i}z${g.currentGrid.currentZ}`
         t += `<td class="event-map-cell">
           <td><textarea class="inner-cell" id="${cellCoords}"></textarea></td>
         </td>`
@@ -706,10 +724,13 @@ function drawGrid(fontSize) {
       let coords = els[i].id;
       let rx = /x([\-\d]+)/
       let ry = /y([\-\d]+)/
+      let rz = /z([\-\d]+)/
       let x = parseInt(coords.match(rx)[1]);
       let y = parseInt(coords.match(ry)[1]);
+      let z = parseInt(coords.match(rz)[1]);
       g.currentGrid.currentX = x;
       g.currentGrid.currentY = y;
+      g.currentGrid.currentZ = z
       drawGrid();
       GID(coords).focus();
       GID("gridinfo").innerHTML = `Grid: ${g.currentGrid.name}, ${coords}`
@@ -931,12 +952,13 @@ function addClickToHyperlinks() {
           addChoiceToWalker(walker, g.oldLinks[id])
           let directions = g.oldLinks[id].directions;
           let nextDirection = directions[getRandomInt(0, directions.length - 1)];
-          let possibleNextCells = createPossibleCellsArr(walker, g.oldLinks[id], g.oldLinks[id].x, g.oldLinks[id].y)
+          let possibleNextCells = createPossibleCellsArr(walker, g.oldLinks[id], g.oldLinks[id].x, g.oldLinks[id].y, g.oldLinks[id].z)
           let choiceGrid = g.oldLinks[id].gridName
           if (possibleNextCells.length > 0) {
             let nextCell = getRandomFromArr(possibleNextCells);
             walker.x = nextCell.x;
             walker.y = nextCell.y;
+            walker.z = nextCell.z
           }
           g.lastWalker = walker;
           runGenerationProcess(getGridByName(g, choiceGrid), walker);
@@ -960,12 +982,13 @@ function addClickToParser() {
       addChoiceToWalker(walker, p)
       let directions = p.directions;
       let nextDirection = directions[getRandomInt(0, directions.length - 1)];
-      let possibleNextCells = createPossibleCellsArr(walker, p, p.x, p.y)
+      let possibleNextCells = createPossibleCellsArr(walker, p, p.x, p.y, p.z)
       let choiceGrid = p.gridName
       if (possibleNextCells.length > 0) {
         let nextCell = getRandomFromArr(possibleNextCells);
         walker.x = nextCell.x;
         walker.y = nextCell.y;
+        walker.z = nextCell.z;
       }
       g.lastWalker = walker;
       let exists = false;
@@ -1094,12 +1117,13 @@ function navigateToChoiceDestination(els, n) {
     addChoiceToWalker(walker, g.oldChoices[id])
     let directions = g.oldChoices[id].directions;
     let nextDirection = directions[getRandomInt(0, directions.length - 1)];
-    let possibleNextCells = createPossibleCellsArr(walker, g.oldChoices[id], g.oldChoices[id].x, g.oldChoices[id].y)
+    let possibleNextCells = createPossibleCellsArr(walker, g.oldChoices[id], g.oldChoices[id].x, g.oldChoices[id].y, g.oldChoices[id].z)
     let choiceGrid = g.oldChoices[id].gridName
     if (possibleNextCells.length > 0) {
       let nextCell = getRandomFromArr(possibleNextCells);
       walker.x = nextCell.x;
       walker.y = nextCell.y;
+      walker.z = nextCell.z
     }
     g.lastWalker = walker;
     runGenerationProcess(getGridByName(g, choiceGrid), walker);
@@ -1156,9 +1180,6 @@ function submitParser(grid) {
     }
     g.lastWalker.variables.push(o);
   }
-  console.log(g.parser.gridName);
-  console.log(g.lastWalker.x);
-  console.log(g.lastWalker.y);
   runGenerationProcess(getGridByName(g, grid), g.lastWalker);
 }
 
@@ -1282,10 +1303,6 @@ function runGenerationProcess(grid, w, objArr) {
   addChoiceClickEvents()
   hideChoiceBoxIfNone()
   applyTheme()
-  if (w) {
-    console.log(w.x);
-    console.log(w.y)
-  }
   addParserIfActive();
   textToSpeech(g);
   g.oldChoices = g.choices;
@@ -1321,6 +1338,10 @@ function parserMove(walker) {
   } else if (randDir === "SE") {
     walker.y -= 1;
     walker.x += 1;
+  } else if (randDir === "U") {
+    walker.z += 1
+  } else if (randDir === "D") {
+    walker.z -= 1
   }
 }
 
@@ -1371,7 +1392,7 @@ GID("generateicon").onclick = function() {
   //reset any loop components; only works on second click for some reason.
   if (g.loop) {
     let lg = getGridByName(g, g.loop.gridName);
-    let cell = getCell(lg, g.loop.x, g.loop.y)
+    let cell = getCell(lg, g.loop.x, g.loop.y, g.loop.z)
     let component = cell.components[0];
     component.loop.iterations = component.loop.maxIterations;
   }
@@ -1415,7 +1436,7 @@ GID("run-grid-drop").onclick = function() {
   //reset any loop components; only works on second click for some reason.
   if (g.loop) {
     let lg = getGridByName(g, g.loop.gridName);
-    let cell = getCell(lg, g.loop.x, g.loop.y)
+    let cell = getCell(lg, g.loop.x, g.loop.y, g.loop.z)
     let component = cell.components[0];
     component.loop.iterations = component.loop.maxIterations;
   }
@@ -1429,8 +1450,15 @@ GID("run-grid-drop").onclick = function() {
 
 
 GID("saveicon").onclick = function() {
-  let n = prompt("What name should this generator be saved under?")
-  localStorage.setItem(n, JSON.stringify(g))
+  g.currentGrid.currentZ -= 1;
+  drawGrid();
+  GID("gridinfo").innerHTML = `Grid: ${g.currentGrid.name}, x:${g.currentGrid.currentX}y:${g.currentGrid.currentY}z:${g.currentGrid.currentZ}`
+}
+
+GID("loadicon").onclick = function() {
+  g.currentGrid.currentZ += 1
+  drawGrid();
+  GID("gridinfo").innerHTML = `Grid: ${g.currentGrid.name}, x:${g.currentGrid.currentX}y:${g.currentGrid.currentY}z:${g.currentGrid.currentZ}`
 }
 
 GID("save-generator").onclick = function() {
@@ -1445,12 +1473,7 @@ GID("load-generator").onclick = function() {
   fillSidebar();
 }
 
-GID("loadicon").onclick = function() {
-  let n = prompt("What generator would you like to load?")
-  g = JSON.parse(localStorage.getItem(n))
-  drawGrid();
-  fillSidebar();
-}
+
 
 document.onkeydown = move
 
@@ -1519,12 +1542,13 @@ function move(e) {
         addChoiceToWalker(walker, p)
         let directions = p.directions;
         let nextDirection = directions[getRandomInt(0, directions.length - 1)];
-        let possibleNextCells = createPossibleCellsArr(walker, p, p.x, p.y)
+        let possibleNextCells = createPossibleCellsArr(walker, p, p.x, p.y, p.z)
         let choiceGrid = p.gridName
         if (possibleNextCells.length > 0) {
           let nextCell = getRandomFromArr(possibleNextCells);
           walker.x = nextCell.x;
           walker.y = nextCell.y;
+          walker.z = nextCell.z
         }
         g.lastWalker = walker;
         let exists = false;
@@ -1549,20 +1573,22 @@ function move(e) {
 
 GID("flexcontainer").style.display = "none";
 
-function getCell(sg, x, y) {
+function getCell(sg, x, y, z) {
   for (let i = 0; i < sg.cellArray.length; i++) {
-    if (parseInt(sg.cellArray[i].x) === parseInt(x) && parseInt(sg.cellArray[i].y) === parseInt(y)) {
+    if (parseInt(sg.cellArray[i].x) === parseInt(x) && parseInt(sg.cellArray[i].y) === parseInt(y) && parseInt(sg.cellArray[i].z) === parseInt(z)) {
       return sg.cellArray[i];
     }
   }
 }
-function getCellArr(component, x, y) {
+function getCellArr(component, x, y, z) {
   // TODO: incorporate weighting
+  //// TODO: NOT USED DELETE
   if (component.directions && component.directions.length > 0) {
     let dArr = [];
     for (let i = 0; i < component.directions.length; i++) {
       let targetX = parseInt(x);
       let targetY = parseInt(y);
+      let targetZ = parseInt(z);
       let validDirection = true;
       let d = component.directions[i];
 
@@ -1586,6 +1612,10 @@ function getCellArr(component, x, y) {
       } else if (d === "SW") {
         targetY -= 1;
         targetX -= 1;
+      } else if (d === "U") {
+        targetZ += 1;
+      } else if (d === "D") {
+        targetZ -= 1;
       } else {
         validDirection = false;
       }
@@ -1697,6 +1727,7 @@ function getWalker(start, w, objArr) {
     walker.text = "";
     walker.x = parseInt(start.x);
     walker.y = parseInt(start.y);
+    walker.z = parseInt(start.z);
     walker.variables = [];
     walker.tags = [];
     for (let i = 0; i < objArr.length; i++) {
@@ -1764,12 +1795,15 @@ function teleport(walker, currentComponent) {
   let gridName = replaceVariable(walker, currentComponent.teleport.gridName);
   let x = replaceVariable(walker, walker.x);
   let y = replaceVariable(walker, walker.y);
+  let z = replaceVariable(walker, walker.z)
   gridName = gridName.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
   x = `${x}`.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
   y = `${y}`.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
+  z = `${z}`.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
   g.currentGrid = getGridByName(g, gridName);
   walker.x = replaceVariable(walker, currentComponent.teleport.x);
   walker.y = replaceVariable(walker, currentComponent.teleport.y);
+  walker.z = replaceVariable(walker, currentComponent.teleport.z);
 }
 
 function changeTheme(name) {
@@ -1788,12 +1822,12 @@ function genLoop(walker) {
   let generating = true;
   //walker.res = "";
   while (generating === true) {
-    let currentCell = getCell(g.currentGrid, walker.x, walker.y);
+    let currentCell = getCell(g.currentGrid, walker.x, walker.y, walker.z);
     let possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
     let currentComponent = getComponent(possibleComponents)
     let compGen = "";
     let debug = "";
-    debug += `DEBUG: The walker steps to X:${currentCell.x} Y: ${currentCell.y} on the ${g.currentGrid.name} grid and selects the component with the text: ${currentComponent.text}.`;
+    debug += `DEBUG: The walker steps to X:${currentCell.x} Y: ${currentCell.y} Z: ${currentCell.z} on the ${g.currentGrid.name} grid and selects the component with the text: ${currentComponent.text}.`;
     if (g.lastProbability) {
       debug += `The component was selected based on a probability factor roll of ${g.lastProbability.selected} in a range of ${g.lastProbability.low} and ${g.lastProbability.high}`
     }
@@ -1821,7 +1855,7 @@ function genLoop(walker) {
     }
 
 
-    let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y)
+    let possibleNextCells = createPossibleCellsArr(walker, currentComponent, walker.x, walker.y, walker.z)
 
     if (currentComponent.text.includes("theme(")) {
       let themeName = currentComponent.text.match(/theme\((\w+)\)/)[1];
@@ -1877,6 +1911,7 @@ function genLoop(walker) {
         gridName: g.currentGrid.name,
         x: currentCell.x,
         y: currentCell.y,
+        z: currentCell.z,
         variables: []
       }
       compGen = compGen.replace(/parse\([\w\s\,]+\)/, "")
@@ -1896,7 +1931,7 @@ function genLoop(walker) {
       if (g.callbacks.length > 0) {
         compGen = compGen.replace("interrupt()", g.callbacks.shift())
       } else {
-        console.log(`You called interrupt() in Grid ${g.currentGrid.name} at x: ${walker.x} y: ${walker.y}, but there was no callback to call.`)
+        console.log(`You called interrupt() in Grid ${g.currentGrid.name} at x: ${walker.x} y: ${walker.y} z: ${walker.z}, but there was no callback to call.`)
         compGen = compGen.replace("interrupt()", "")
       }
     }
@@ -1949,6 +1984,7 @@ function genLoop(walker) {
       g.loop.gridName = currentComponent.loop.gridName;
       g.loop.x = currentComponent.loop.x;
       g.loop.y = currentComponent.loop.y;
+      g.loop.z = currentComponent.loop.z
       g.loop.iterations = currentComponent.loop.iterations;
       g.loop.break = false;
     } else if (currentComponent.loop) {
@@ -1957,6 +1993,7 @@ function genLoop(walker) {
       g.loop.gridName = currentComponent.loop.gridName;
       g.loop.x = currentComponent.loop.x;
       g.loop.y = currentComponent.loop.y;
+      g.loop.z = currentComponent.loop.z
       g.loop.iterations = currentComponent.loop.iterations;
       g.loop.break = false;
     }
@@ -1971,10 +2008,12 @@ function genLoop(walker) {
       g.currentGrid = getGridByName(g, g.loop.gridName);
       walker.x = g.loop.x;
       walker.y = g.loop.y
+      walker.z = g.loop.z
     } else if (possibleNextCells.length > 0) {
       let nextCell = getRandomFromArr(possibleNextCells);
       walker.x = nextCell.x;
       walker.y = nextCell.y;
+      walker.z = nextCell.z
     } else {
       generating = false;
     }
@@ -2024,6 +2063,7 @@ function runGrids(w, t) {
             let lastGrid = g.currentGrid;
             let lastX = w.x;
             let lastY = w.y;
+            let lastZ = w.z
             m[i] = replaceVariable(w, m[i]);
             let nextGrid = getGridByName(g, m[i]);
             nextGrid.stacked = true
@@ -2032,11 +2072,13 @@ function runGrids(w, t) {
             g.currentGrid = lastGrid;
             w.x = lastX;
             w.y = lastY;
+            w.z = lastZ
           }
         } else {
           let lastGrid = g.currentGrid;
           let lastX = w.x;
           let lastY = w.y;
+          let lastZ = w.z
           m[i] = replaceVariable(w, m[i]);
           let nextGrid = getGridByName(g, m[i]);
           nextGrid.stacked = true;
@@ -2045,6 +2087,7 @@ function runGrids(w, t) {
           g.currentGrid = lastGrid;
           w.x = lastX;
           w.y = lastY;
+          w.z = lastZ
         }
         t = t.replace(/G\(([\w\s\d,\!\$\.\<\>]+)\)/, res)
       }
@@ -2202,11 +2245,13 @@ function runFunctions(w, t) {
     } else if (t && t.includes("grid()")) {
       t = t.replace("grid()", `${g.currentGrid.name}`)
     } else if (t && t.includes("coords()")) {
-      t = t.replace("coords()", `x:${w.x}y:${w.y}`);
+      t = t.replace("coords()", `x:${w.x}y:${w.y}z:${w.z}`);
     } else if (t && t.includes("x()")) {
       t = t.replace("x()", `${w.x}`)
     } else if (t && t.includes("y()")) {
       t = t.replace("y()", `${w.y}`)
+    }else if (t && t.includes("z()")) {
+      t = t.replace("z()", `${w.z}`)
     } else if (t && t.includes("indent(")) {
       let m = t.match(/indent\((\d+)\)/)
       if (m && m[1]){
@@ -2479,7 +2524,7 @@ function choiceVariablesConflict(w, c) {
   return false;
 }
 
-function createPossibleCellsArr(w, component, x, y) {
+function createPossibleCellsArr(w, component, x, y, z) {
   let gridHolder = g.currentGrid.name;
   if (component.gridName) {
     //deals with choices not being called until later
@@ -2492,6 +2537,7 @@ function createPossibleCellsArr(w, component, x, y) {
     for (let i = 0; i < component.directions.length; i++) {
       let targetX = parseInt(x);
       let targetY = parseInt(y);
+      let targetZ = parseInt(z);
       let validDirection = true;
       let d = component.directions[i];
       d = replaceVariable(w, component.directions[i])
@@ -2516,11 +2562,15 @@ function createPossibleCellsArr(w, component, x, y) {
       } else if (d === "SW") {
         targetY -= 1;
         targetX -= 1;
+      } else if (d === "U") {
+        targetZ += 1;
+      } else if (d === "D") {
+        targetZ -= 1;
       } else {
         validDirection = false;
       }
       if (validDirection === true) {
-        let dir = getCell(g.currentGrid, targetX, targetY);
+        let dir = getCell(g.currentGrid, targetX, targetY, targetZ);
 
         //check cell from direction to see if at least one component does not conflict
         let conflicts = true;
@@ -2567,6 +2617,7 @@ function generate(grid, w, continuing, objArr) {
   } else {
     walker.x = start.x;
     walker.y = start.y;
+    walker.z = start.z
   }
   res += genLoop(walker);
 
