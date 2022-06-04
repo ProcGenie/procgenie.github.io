@@ -234,10 +234,20 @@ function createGrid(n) {
 }
 
 function parseTags(component) {
+  let ref = component.text.match(/refs\(([\w\s]+)\)/)
   let addTags = component.text.match(/\+\(([\w\s]+)\)/)
   let removeTags = component.text.match(/\-\(([\w\s]+)\)/)
   let conditionalTags = component.text.match(/\?\(([\w\s]+)\)/)
   let notTags = component.text.match(/\!\(([\w\s]+)\)/)
+  if (ref) {
+    if (typeof ref === 'string') {
+      component.refs = [ref]
+    } else {
+      component.refs = ref[1].split(" ")
+    }
+  } else {
+    component.refs = [];
+  }
   if (addTags) {
     if (typeof addTags === 'string') {
       component.addTags = [addTags]
@@ -274,6 +284,7 @@ function parseTags(component) {
   } else {
     component.notTags = []
   }
+  component.text = component.text.replace(/refs\(([\w\s]+)\)/, "")
   component.text = component.text.replace(/\+\([\w\s]+\)/, "")
   component.text = component.text.replace(/\-\([\w\s]+\)/, "")
   component.text = component.text.replace(/\?\([\w\s]+\)/, "")
@@ -457,6 +468,7 @@ function process(unprocessed, coords) {
     c.links = [];
     c.text = components[j].trim();
     c.tags = []
+    c.refs = []
     parseTags(c)
     if (c.text.includes("break()")) {
       c.break = true;
@@ -1730,6 +1742,7 @@ function getWalker(start, w, objArr) {
     walker.z = parseInt(start.z);
     walker.variables = [];
     walker.tags = [];
+    walker.refs = ["default"]
     for (let i = 0; i < objArr.length; i++) {
       let obj = objArr[i];
       if (obj !== undefined) {
@@ -2319,15 +2332,31 @@ function runFunctions(w, t) {
 }
 
 function addComponentTo(w, comp) {
-  for (let i = 0; i < comp.addTags.length; i++) {
-    w.tags.push(comp.addTags[i])
+  if (comp.refs.length > 0) {
+    w.refs = comp.refs
   }
-  for (let i = 0; i < comp.removeTags.length; i++) {
-    let index = w.tags.indexOf(comp.removeTags[i]);
-    if (index > -1) {
-      w.tags.splice(index, 1)
+  for (let j = 0; j < w.refs.length; j++) {
+    for (let i = 0; i < comp.addTags.length; i++) {
+      if (w.tags[`${w.refs[j]}`]) {
+        w.tags[`${w.refs[j]}`].push(comp.addTags[i])
+      } else {
+        w.tags[`${w.refs[j]}`] = [];
+        w.tags[`${w.refs[j]}`].push(comp.addTags[i])
+      }
+    }
+    for (let i = 0; i < comp.removeTags.length; i++) {
+      if (w.tags[`${w.refs[j]}`]) {
+        let index = w.tags[`${w.refs[j]}`].indexOf(comp.removeTags[i]);
+        if (index > -1) {
+          w.tags[`${w.refs[j]}`].splice(index, 1)
+        }
+      } else {
+        w.tags[`${w.refs[j]}`] = [];
+      }
     }
   }
+
+
   if (comp.variables) {
     for (let i = 0; i < comp.variables.length; i++) {
       let exists = false;
@@ -2424,16 +2453,18 @@ function createPossibleComponentsArr(w, c) {
 
 function tagsConflict(w, c) {
   let conflicts = false;
-  for (let i = 0; i < c.conditionalTags.length; i++) {
-    let index = w.tags.indexOf(c.conditionalTags[i])
-    if (index === -1) {
-      conflicts = true;
+  for (let j = 0; j < w.refs.length; j++) {
+    for (let i = 0; i < c.conditionalTags.length; i++) {
+      let index = w.tags[`${w.refs[j]}`].indexOf(c.conditionalTags[i])
+      if (index === -1) {
+        conflicts = true;
+      }
     }
-  }
-  for (let i = 0; i < c.notTags.length; i++) {
-    let index = w.tags.indexOf(c.notTags[i]);
-    if (index !== -1) {
-      conflicts = true
+    for (let i = 0; i < c.notTags.length; i++) {
+      let index = w.tags[`${w.refs[j]}`].indexOf(c.notTags[i]);
+      if (index !== -1) {
+        conflicts = true
+      }
     }
   }
   return conflicts
