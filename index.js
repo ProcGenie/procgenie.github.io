@@ -234,6 +234,8 @@ function createGrid(n) {
 }
 
 function parseTags(component) {
+  let anyRef = component.text.match(/anyRef\(([\<\>\w\s]+)\)/)
+  let randRef = component.text.match(/randRef\(([\<\>\w\s]+)\)/)
   let allRefs = component.text.match(/allRefs\(([\<\>\w\s]+)\)/)
   let notRefs = component.text.match(/notRefs\(([\<\>\w\s]+)\)/)
   let ref = component.text.match(/refs\(([\<\>\w\s]+)\)/)
@@ -241,6 +243,26 @@ function parseTags(component) {
   let removeTags = component.text.match(/\-\(([\<\>\w\s]+)\)/)
   let conditionalTags = component.text.match(/\?\(([\<\>\w\s]+)\)/)
   let notTags = component.text.match(/\!\(([\<\>\w\s]+)\)/)
+
+  if (anyRef) {
+    if (typeof anyRef === 'string') {
+      component.anyRef = [anyRef]
+    } else {
+      component.anyRef = anyRef[1].split(" ")
+    }
+  } else {
+    component.anyRef = [];
+  }
+
+  if (randRef) {
+    if (typeof randRef === 'string') {
+      component.randRef = [randRef]
+    } else {
+      component.randRef = randRef[1].split(" ");
+    }
+  } else {
+    component.randRef = [];
+  }
   if (notRefs) {
     if (typeof notRefs === 'string') {
       component.notRefs = [notRefs]
@@ -311,6 +333,8 @@ function parseTags(component) {
   component.text = component.text.replace(/\!\([\<\>\w\s]+\)/, "")
   component.text = component.text.replace(/allRefs\([\<\>\w\s]+\)/, "")
   component.text = component.text.replace(/notRefs\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/randRef\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/anyRef\([\<\>\w\s]+\)/, "")
 }
 
 let cellArray = [];
@@ -493,6 +517,8 @@ function process(unprocessed, coords) {
     c.refs = []
     c.allRefs = []
     c.notRefs = [];
+    c.randRef = []
+    c.anyRef = [];
     parseTags(c)
     if (c.text.includes("break()")) {
       c.break = true;
@@ -2379,25 +2405,73 @@ function runFunctions(w, t) {
 }
 
 function addComponentTo(w, comp) {
+  //w.tags is the refs - each ref has array of tags
+
+  if (comp.anyRef.length > 0) {
+    let anyRefArr = [];
+    w.refs = [];
+    for (let p in w.tags) {
+      let hasAnyTag = false;
+      for (let i = 0; i < comp.anyRef.length; i++) {
+        let index = w.tags[`${p}`].indexOf(comp.anyRef[i]);
+        if (index > -1) {
+          hasAnyTag = true;
+        }
+      }
+      if (hasAnyTag) {
+        anyRefArr.push(p)
+      }
+    }
+    w.refs = anyRefArr //DOES THIS WORK
+  }
+
+  if (comp.randRef.length > 0) {
+    let randRefArr = [];
+    w.refs = [];
+    for (let p in w.tags) {
+      let hasAllTags = true;
+      for (let i = 0; i < comp.randRef.length; i++) {
+        let index = w.tags[`${p}`].indexOf(comp.randRef[i]);
+        if (index === - 1) {
+          hasAllTags = false;
+        }
+      }
+      if (hasAllTags === true) {
+        randRefArr.push(p);
+      }
+    }
+    let rand = randRefArr[getRandomInt(0, randRefArr.length - 1)]
+    w.refs.push(rand);
+  }
+
+  //allRefs matches refs with all tags listed
   if (comp.allRefs.length > 0) {
     w.refs = [];
-    for (let i = 0; i < comp.allRefs.length; i++) {
-      for (let p in w.tags) {
+    for (let p in w.tags) {
+      let allMatched = true;
+      for (let i = 0; i < comp.allRefs.length; i++) {
         let index = w.tags[`${p}`].indexOf(comp.allRefs[i]);
-        if (index > -1) {
-          w.refs.push(p)
+        if (index === -1) {
+          allMatched = false;
         }
+      }
+      if (allMatched === true) {
+        w.refs.push(p);
       }
     }
   }
   if (comp.notRefs.length > 0) {
     w.refs = [];
-    for (let i = 0; i < comp.notRefs.length; i++) {
-      for (let p in w.tags) {
+    for (let p in w.tags) {
+      let matchedNot = false;
+      for (let i = 0; i < comp.notRefs.length; i++) {
         let index = w.tags[`${p}`].indexOf(comp.notRefs[i]);
-        if (index === -1) {
-          w.refs.push(p)
+        if (index > -1) {
+          matchedNot = true
         }
+      }
+      if (matchedNot === false) {
+        w.refs.push(p);
       }
     }
   }
