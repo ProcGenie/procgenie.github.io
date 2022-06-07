@@ -234,15 +234,18 @@ function createGrid(n) {
 }
 
 function parseTags(component) {
-  let anyRef = component.text.match(/anyRef\(([\<\>\w\s]+)\)/)
-  let randRef = component.text.match(/randRef\(([\<\>\w\s]+)\)/)
-  let allRefs = component.text.match(/allRefs\(([\<\>\w\s]+)\)/)
-  let notRefs = component.text.match(/notRefs\(([\<\>\w\s]+)\)/)
+  let anyRef = component.text.match(/anyRef\(([\<\>\w\s]+)\)/) //return refs with any matched tag
+  let randRef = component.text.match(/randRef\(([\<\>\w\s]+)\)/) // return a random ref with all matched tags
+  let allRefs = component.text.match(/allRefs\(([\<\>\w\s]+)\)/) //return refs with all tags
+  let notRefs = component.text.match(/notRefs\(([\<\>\w\s]+)\)/) // return refs that do not match tags
+  let getRefsByName = component.text.match(/getRefsByName\(([\<\>\w\s]+)\)/)
   let ref = component.text.match(/refs\(([\<\>\w\s]+)\)/)
   let addTags = component.text.match(/\+\(([\<\>\w\s]+)\)/)
   let removeTags = component.text.match(/\-\(([\<\>\w\s]+)\)/)
   let conditionalTags = component.text.match(/\?\(([\<\>\w\s]+)\)/)
   let notTags = component.text.match(/\!\(([\<\>\w\s]+)\)/)
+
+
 
   if (anyRef) {
     if (typeof anyRef === 'string') {
@@ -290,6 +293,14 @@ function parseTags(component) {
   } else {
     component.refs = [];
   }
+  if (getRefsByName) {
+    if (typeof getRefsByName === ' string') {
+      component.refs = [getRefsByName]
+    } else {
+      component.refs = getRefsByName[1].split(" ")
+    }
+
+  }
   if (addTags) {
     if (typeof addTags === 'string') {
       component.addTags = [addTags]
@@ -335,6 +346,7 @@ function parseTags(component) {
   component.text = component.text.replace(/notRefs\([\<\>\w\s]+\)/, "")
   component.text = component.text.replace(/randRef\([\<\>\w\s]+\)/, "")
   component.text = component.text.replace(/anyRef\([\<\>\w\s]+\)/, "")
+  component.text = component.text.replace(/getRefsByName\([\<\>\w\s]+\)/, "")
 }
 
 let cellArray = [];
