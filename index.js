@@ -41,6 +41,8 @@ function postProcess(t) {
   return t;
 }
 
+//MAJOR NEED TO REFACTOR AND CLEAN UP TECHNICAL DEBT
+
 var markov = new Markov();
 nlp.extend(compromiseSentences)
 nlp.extend(compromiseAdjectives)
@@ -155,7 +157,16 @@ function replaceVariable(e, localization) {
         let matches = l.match(regex);
         if (matches) {
           let noDollars = matches[0].replace(/\<\</, "").replace(/\>\>/, "");
+          let ref = noDollars.match(/([\w\d]+)\./)[1]
+          let varName = noDollars.match(/\.([\w\d]+)/)[1]
           let exists = false;
+          for (let n = 0; n < e.tags[`${ref}`].variables.length; n++) {
+            if (varName === e.tags[`${ref}`].variables[n].name) {
+              l = l.replace(matches[0], e.tags[`${ref}`].variables[n].value)
+              exists = true
+            }
+          }
+          /*
           for (let n = 0; n <  e.variables.length; n++) {
             if (noDollars && e.variables[n].name === noDollars) {
 
@@ -163,6 +174,7 @@ function replaceVariable(e, localization) {
               exists = true;
             }
           }
+          */
           if (exists === false) {
             l = l.replace(matches[0], "")
             console.log(`ERROR: The variable ${matches[0]} did not exist for interpolation.`)
@@ -401,7 +413,13 @@ function parseVariableFromText(t) {
   let matches = t.match(/\s?([\w\d\,\!\(\)\$\{\}\.\<\>]+)\s(includes|[\*\/\+\=\-\!\<\>]+)\s([\s\w\d\,\!\(\)\$\{\}\.\<\>]+)/);
   if (matches && matches.length > 0) {
     let o = {};
-    o.name = matches[1];
+    if (matches[1].includes(".")) {
+      o.ref = [matches[1].match(/([\w\d\,\!\(\)\$\{\}\\<\>]+)\./)[1]]
+      o.name = matches[1].match(/\.([\w\d\,\!\(\)\$\{\}\\<\>]+)/)[1]
+    } else {
+      o.name = matches[1];
+      o.ref = "refs"
+    }
     o.operation = matches[2];
     o.value = matches[3]; //edit here to parseint if messes up
     return o;
@@ -425,6 +443,7 @@ function getChoiceFromMatch(m, coords) {
   o.text = o.text.replace("choice: ", "")
   o.text = o.text.replace("[", "");
   o.text = o.text.replace("]", "")
+  o.variables = [];
   o.gridName = g.currentGrid.name;
   for (let z = 0; z < parensArr.length; z++) {
     if (parensArr[z].includes("timer:")) {
@@ -471,6 +490,7 @@ function getLinkFromMatch(m, coords) {
   o.text = o.text.replace("link: ", "")
   o.text = o.text.replace("[", "");
   o.text = o.text.replace("]", "")
+  o.variables = []
   console.log(o.text);
   o.gridName = g.currentGrid.name;
   for (let z = 0; z < parensArr.length; z++) {
@@ -1066,18 +1086,26 @@ function addClickToParser() {
       }
       g.lastWalker = walker;
       let exists = false;
-      for (let i = 0; i < g.lastWalker.variables.length; i++) {
-        if (g.lastWalker.variables[i].name === "parser") {
-          g.lastWalker.variables[i].value = GID("parser").value;
-          exists = true;
+      if (g.lastWalker.tags["parser"]) {
+        exists = true;
+        let o = {
+          name: "parser",
+          value: GID("parser").value
         }
+        g.lastWalker.tags[`parser`].variables = [o]
       }
       if (exists === false) {
         let o = {
           name: "parser",
           value: GID("parser").value
         }
-        g.lastWalker.variables.push(o);
+        if (g.lastWalker.tags[`parser`]) {
+          g.lastWalker.tags[`parser`].variables = [o]
+        } else {
+          g.lastWalker.tags[`parser`] = [];
+          g.lastWalker.tags[`parser`].variables = [o]
+        }
+        g.lastWalker.variableCount += 1;
       }
       runGenerationProcess(getGridByName(g, choiceGrid), walker);
     }
@@ -1241,18 +1269,26 @@ function submitParser(grid) {
   console.log(grid);
   parserMove(g.lastWalker);
   let exists = false;
-  for (let i = 0; i < g.lastWalker.variables.length; i++) {
-    if (g.lastWalker.variables[i].name === "parser") {
-      g.lastWalker.variables[i].value = GID("parser").value;
-      exists = true;
+  if (g.lastWalker.tags["parser"]) {
+    exists = true;
+    let o = {
+      name: "parser",
+      value: GID("parser").value
     }
+    g.lastWalker.tags[`parser`].variables = [o]
   }
   if (exists === false) {
     let o = {
       name: "parser",
       value: GID("parser").value
     }
-    g.lastWalker.variables.push(o);
+    if (g.lastWalker.tags[`parser`]) {
+      g.lastWalker.tags[`parser`].variables = [o]
+    } else {
+      g.lastWalker.tags[`parser`] = [];
+      g.lastWalker.tags[`parser`].variables = [o]
+    }
+    g.lastWalker.variableCount += 1;
   }
   runGenerationProcess(getGridByName(g, grid), g.lastWalker);
 }
@@ -1638,6 +1674,7 @@ function move(e) {
             value: GID("parser").value
           }
           g.lastWalker.variables.push(o);
+          g.lastWalker.variableCount += 1;
         }
         runGenerationProcess(getGridByName(g, choiceGrid), walker);
       }
@@ -1803,6 +1840,7 @@ function getWalker(start, w, objArr) {
     walker.y = parseInt(start.y);
     walker.z = parseInt(start.z);
     walker.variables = [];
+    walker.variableCount = 0;
     walker.tags = [];
     walker.refs = ["default"]
     for (let i = 0; i < objArr.length; i++) {
@@ -2120,7 +2158,95 @@ function genLoop(walker) {
   return res;
 }
 
+/*
+
+
+for (let n = 0; n < w.refs.length; n++) {
+  let p = w.refs[n];
+  let o = w.tags[`${p}`]
+  if (o && o.variables) {
+    for (let i = 0; i < o.variables.length; i++) {
+      if (variablesHaveSameName(o.variables[i], compVar)) {
+        exists = true;
+        if (compare(o.variables[i].value, compVar.operation, compVar.value) === false) {
+          return true;
+        }
+      }
+    }
+    if (exists === false) {
+      if (compVar.operation === "=") {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    return false;
+  }
+  return false;
+}
+
+*/
+
 function addChoiceToWalker(w, c) {
+  for (let p in w.tags) {
+     for (let i = 0; i < c.variables.length; i++) {
+       let cv = _.cloneDeep(c.variables[i]);
+       console.log(cv.ref);
+       console.log(p);
+       console.log(w.refs);
+       if (cv.ref.indexOf(p) > -1 || (cv.ref === "refs" && w.refs.indexOf(p) > -1)) {
+         console.log("matched")
+         let exists = false
+         for (let n = 0; n < w.tags[`${p}`].variables.length; n++) {
+           let wv = w.tags[`${p}`].variables[n];
+           wv = replaceVariable(w, wv);
+           cv.name = replaceVariable(w, cv.name);
+           cv.value = replaceVariable(w, cv.value);
+           wv.name = runGrids(w, wv.name);
+           cv.name = runGrids(w, cv.name)
+           wv.name = runFunctions(w, wv.name);
+           cv.name = runFunctions(w, cv.name)
+           if (variablesHaveSameName(wv, cv)) {
+             exists = true;
+             if (isComparisonOperator(cv.operation) === false) {
+               wv.value = replaceVariable(w, wv.value);
+               wv.value = runGrids(w, wv.value);
+               cv.value = runGrids(w, cv.value);
+               wv.value = runFunctions(w, wv.value);
+               console.log(wv.value);
+               console.log(cv.value);
+               //cv.value = runFunctions(w, cv.value);
+               let newValue = doMath(wv.value, cv.operation, cv.value, w)
+                w.tags[`${p}`].variables[n].value = replaceVariable(w, newValue);
+             }
+           }
+         }
+         if (exists === false) {
+           let o = {};
+           o.name = cv.name;
+           o.name = replaceVariable(w, o.name)
+           o.name = runGrids(w, o.name)
+           o.name = runFunctions(w, o.name)
+           o.value = doMath(0, cv.operation, runFunctions(w, cv.value), w)
+           o.value = replaceVariable(w, o.value)
+           o.value = runGrids(w, o.value)
+           o.value = runFunctions(w, o.value)
+           if (cv.ref.indexOf(p) > -1 || (cv.ref === "refs" && w.refs.indexOf(p) > -1)) {
+             console.log("MATCH2")
+             if (w.tags[`${p}`].variables) {
+               w.tags[`${p}`].variables.push(o)
+               w.variableCount += 1
+             } else {
+               w.tags[`${p}`].variables = []
+               w.tags[`${p}`].variables.push(o)
+               w.variableCount += 1;
+             }
+           }
+         }
+       }
+     }
+  }
+  /*
   if (c.variables) {
     for (let i = 0; i < c.variables.length; i++) {
       let trueValue = replaceVariable(w, c.variables[i].value)
@@ -2142,7 +2268,7 @@ function addChoiceToWalker(w, c) {
         w.variables.push(o);
       }
     }
-  }
+  }*/
 }
 
 function runGrids(w, t) {
@@ -2491,12 +2617,20 @@ function addComponentTo(w, comp) {
     w.refs = comp.refs
   }
   for (let j = 0; j < w.refs.length; j++) {
+    //added below to fix bug where variables not available without prior tags. Need to clean up remainder of function
+    if (w.tags[`${w.refs[j]}`]) {
+
+    } else {
+      w.tags[`${w.refs[j]}`] = [];
+      w.tags[`${w.refs[j]}`].variables = [];
+    }
     for (let i = 0; i < comp.addTags.length; i++) {
       let tag = replaceVariable(w, comp.addTags[i])
       if (w.tags[`${w.refs[j]}`]) {
         w.tags[`${w.refs[j]}`].push(tag)
       } else {
         w.tags[`${w.refs[j]}`] = [];
+        w.tags[`${w.refs[j]}`].variables = [];
         w.tags[`${w.refs[j]}`].push(tag)
       }
     }
@@ -2515,50 +2649,73 @@ function addComponentTo(w, comp) {
 
 
   if (comp.variables) {
-    for (let i = 0; i < comp.variables.length; i++) {
-      let exists = false;
-      for (let j = 0; j < w.variables.length; j++) {
-        let wv = w.variables[j];
-        wv = replaceVariable(w, wv);
-        let cv = _.cloneDeep(comp.variables[i]);
-        cv.name = replaceVariable(w, cv.name);
-        cv.value = replaceVariable(w, cv.value);
-        wv.name = runGrids(w, wv.name);
-        cv.name = runGrids(w, cv.name)
-        wv.name = runFunctions(w, wv.name);
-        cv.name = runFunctions(w, cv.name)
-        if (variablesHaveSameName(wv, cv)) {
-          exists = true;
-          if (isComparisonOperator(cv.operation) === false) {
-            wv.value = replaceVariable(w, wv.value);
-            wv.value = runGrids(w, wv.value);
-            cv.value = runGrids(w, cv.value);
-            wv.value = runFunctions(w, wv.value);
-            //cv.value = runFunctions(w, cv.value);
-            let newValue = doMath(wv.value, cv.operation, cv.value, w)
-            w.variables[j].value = replaceVariable(w, newValue);
-          }
-        }
-      }
-      if (exists === false) {
-        //address fact that some variables are strings.
-        let o = {};
-        o.name = comp.variables[i].name;
-        o.name = replaceVariable(w, o.name)
-        o.name = runGrids(w, o.name)
-        o.name = runFunctions(w, o.name)
-        o.value = doMath(0, comp.variables[i].operation, runFunctions(w, comp.variables[i].value), w)
-        o.value = replaceVariable(w, o.value)
-        o.value = runGrids(w, o.value)
-        o.value = runFunctions(w, o.value)
-        w.variables.push(o);
-      }
+
+    for (let p in w.tags) {
+       for (let i = 0; i < comp.variables.length; i++) {
+         let cv = _.cloneDeep(comp.variables[i]);
+         console.log(cv.ref);
+         console.log(p);
+         console.log(w.refs);
+         if (cv.ref.indexOf(p) > -1 || (cv.ref === "refs" && w.refs.indexOf(p) > -1)) {
+           console.log("matched")
+           let exists = false
+           for (let n = 0; n < w.tags[`${p}`].variables.length; n++) {
+             let wv = w.tags[`${p}`].variables[n];
+             wv = replaceVariable(w, wv);
+             cv.name = replaceVariable(w, cv.name);
+             cv.value = replaceVariable(w, cv.value);
+             wv.name = runGrids(w, wv.name);
+             cv.name = runGrids(w, cv.name)
+             wv.name = runFunctions(w, wv.name);
+             cv.name = runFunctions(w, cv.name)
+             if (variablesHaveSameName(wv, cv)) {
+               exists = true;
+               if (isComparisonOperator(cv.operation) === false) {
+                 wv.value = replaceVariable(w, wv.value);
+                 wv.value = runGrids(w, wv.value);
+                 cv.value = runGrids(w, cv.value);
+                 wv.value = runFunctions(w, wv.value);
+                 console.log(wv.value);
+                 console.log(cv.value);
+                 //cv.value = runFunctions(w, cv.value);
+                 let newValue = doMath(wv.value, cv.operation, cv.value, w)
+                  w.tags[`${p}`].variables[n].value = replaceVariable(w, newValue);
+               }
+             }
+           }
+           if (exists === false) {
+             let o = {};
+             o.name = comp.variables[i].name;
+             o.name = replaceVariable(w, o.name)
+             o.name = runGrids(w, o.name)
+             o.name = runFunctions(w, o.name)
+             o.value = doMath(0, comp.variables[i].operation, runFunctions(w, comp.variables[i].value), w)
+             o.value = replaceVariable(w, o.value)
+             o.value = runGrids(w, o.value)
+             o.value = runFunctions(w, o.value)
+             if (cv.ref.indexOf(p) > -1 || (cv.ref === "refs" && w.refs.indexOf(p) > -1)) {
+               console.log("MATCH2")
+               if (w.tags[`${p}`].variables) {
+                 w.tags[`${p}`].variables.push(o)
+                 w.variableCount += 1
+               } else {
+                 w.tags[`${p}`].variables = []
+                 w.tags[`${p}`].variables.push(o)
+                 w.variableCount += 1;
+               }
+             }
+           }
+         }
+       }
     }
   }
+
   if (comp.choices && comp.choices.length > 0) {
     for (let i = 0; i < comp.choices.length; i++) {
       if (choiceVariablesConflict(w, comp.choices[i])) {
         //do nothing
+      } else if (choiceTagsConflict(w, comp.choices[i])) {
+
       } else {
         //add choice to walker
         let o = _.cloneDeep(comp.choices[i]);
@@ -2591,6 +2748,10 @@ function addComponentTo(w, comp) {
   if (comp.img && comp.img.length > 0) {
     GID("left-img").src = `${comp.img}`;
   }
+}
+
+function choiceTagsConflict(walker, choice) {
+  return false;
 }
 
 function getRandomFromArr(arr) {
@@ -2638,7 +2799,7 @@ function isComparisonOperator(operator) {
 }
 
 function walkerIsEmptyButComponentCompares(w, c) {
-  if (w.variables.length === 0 && isComparisonOperator(c.operation)) {
+  if (w.variableCount === 0 && isComparisonOperator(c.operation)) {
     return true;
   } else {
     return false;
@@ -2654,18 +2815,53 @@ function variablesHaveSameName(v1, v2) {
 }
 
 function variableComparisonsFail(w, compVar) {
-  for (let i = 0; i < w.variables.length; i++) {
-    if (variablesHaveSameName(w.variables[i], compVar)) {
-      if (compare(w.variables[i].value, compVar.operation, compVar.value) === false) {
-        return true;
+  let result = false;
+  for (let n = 0; n < w.refs.length; n++) {
+    let p = w.refs[n]
+    console.log(p);
+    let o = w.tags[`${p}`];
+    console.log(w.tags[`${p}`])
+    console.log(o)
+    if (o && o.variables) {
+      for (let i = 0; i < o.variables.length; i++) {
+        if (variablesHaveSameName(o.variables[i], compVar)) {
+          if (compare(o.variables[i].value, compVar.operation, compVar.value) === false) {
+            result = true;
+          }
+        }
       }
     }
   }
-  return false;
+  return result;
 }
 
 function choiceVariableComparisonsFail(w, compVar) {
   let exists = false;
+  let result;
+  for (let n = 0; n < w.refs.length; n++) {
+    let p = w.refs[n];
+    let o = w.tags[`${p}`]
+    if (o && o.variables) {
+      for (let i = 0; i < o.variables.length; i++) {
+        if (variablesHaveSameName(o.variables[i], compVar)) {
+          exists = true;
+          if (compare(o.variables[i].value, compVar.operation, compVar.value) === false) {
+            return true;
+          }
+        }
+      }
+      if (exists === false) {
+        if (compVar.operation === "=") {
+          return false;
+        } else {
+          return true;
+        }
+      }
+      return false;
+    }
+    return false;
+  }
+  /*
   for (let i = 0; i < w.variables.length; i++) {
     if (variablesHaveSameName(w.variables[i], compVar)) {
       exists = true;
@@ -2682,6 +2878,7 @@ function choiceVariableComparisonsFail(w, compVar) {
     }
   }
   return false;
+  */
 }
 
 function variablesConflict(w, c) {
