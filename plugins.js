@@ -3,7 +3,7 @@ nlp.extend(compromiseSentences)
 nlp.extend(compromiseAdjectives)
 nlp.extend(compromiseNumbers)
 
-let noiseArr = [];
+var noiseArr = [];
 for (let i = 0; i < 10; i++) {
   let simp = new SimplexNoise();
   simp.uid = i;
