@@ -1,5 +1,6 @@
 function loadPrefab() {
-  g.grids.push(lastname);
+  g.grids.push(test)
+  /*g.grids.push(lastname);
   g.grids.push(adjectives);
   g.grids.push(color)
   g.grids.push(femaleNames);
@@ -69,6 +70,7 @@ function loadPrefab() {
   g.grids.push(achievement)
   g.grids.push(negativeTraits);
   g.grids.push(showCalendar);
+  */
   for (let i = 0; i < g.grids.length; i++) {
     let t = g.grids[i].type
     console.log(t);
