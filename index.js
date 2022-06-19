@@ -1,3 +1,7 @@
+/****************UTILITY SETUP****************/
+
+
+
 function postProcess(t) {
 
   //FIX THIS - take out compromise?
@@ -43,42 +47,7 @@ function postProcess(t) {
 
 //MAJOR NEED TO REFACTOR AND CLEAN UP TECHNICAL DEBT
 
-var markov = new Markov();
-nlp.extend(compromiseSentences)
-nlp.extend(compromiseAdjectives)
-nlp.extend(compromiseNumbers)
 
-let noiseArr = [];
-for (let i = 0; i < 10; i++) {
-  let simp = new SimplexNoise();
-  simp.uid = i;
-  noiseArr.push(simp);
-}
-
-function noise(uid, nx, ny) {
-  let s;
-  for (let i = 0; i < noiseArr.length; i++) {
-    if (noiseArr[i].uid === i) {
-      s = noiseArr[i]
-    }
-  }
-  return s.noise2D(nx, ny) / 2 + 0.5;
-}
-
-function noiseAt(uid, nx, ny, at) {
-  let s;
-  for (let i = 0; i < noiseArr.length; i++) {
-    if (noiseArr[i].uid === i) {
-      s = noiseArr[i]
-    }
-  }
-  let res = `${s.noise2D(nx, ny) / 2 + 0.5}`.split("");
-  if (res && res[at]) {
-    return res[at]
-  } else {
-    return 0;
-  }
-}
 
 let globalFontSize = 9;
 
@@ -1226,56 +1195,6 @@ function hideChoiceBoxIfNone() {
   }
 }
 
-function changeInputObjects(objArr) {
-  //method to put variables back on v1 and v2 input objects
-  for (let i = 0; i < g.lastWalker.variables.length; i++) {
-    let varName = g.lastWalker.variables[i].name
-    let value = g.lastWalker.variables[i].value;
-    let m = varName.match(/o(\d+)\.([\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:]+)/)
-    let newObject = false;
-    if (m && m[1]) {
-      if (m[2]) {
-        let obj = {};
-        let num = m[1]
-        let name = m[2]
-        //let name = m[2].match(/([\w\s\d\,\!\$\.\+\-\>\<\/\"\”\“\'\(\)\;\:]+)\s\=/)[1];
-        //let value = m[2].match(/\=\s([\w\s\d\,\!\$\.\+\-\>\<\/\"\”\“\'\(\)\;\:]+)/)[1]
-        // check to see whether object in grid exists in object array;
-        if (objArr && objArr[num]) {
-          //if object in grid exists in array, set obj to that obj
-          obj = objArr[num]
-          //check to see whether variable exists on object;
-          let exists = false;
-          let ownProps = Object.getOwnPropertyNames(obj)
-          for (let j = 0; j < ownProps.length; j++) {
-            if (ownProps === name) {
-              obj[`${ownProps[j]}`] = value;
-              exists = true;
-            }
-          }
-          //if not, push that variable
-          if (exists === false) {
-            obj[`${name}`] = value;
-          }
-          //set element in object array to object (necessary with pass by reference?)
-          objArr[num] = obj
-        } else {
-          //if object in grid does not exist in object array; add object and variable and push object to objectarray
-          obj = {};
-          obj[`${name}`] = value;
-          newObject = true;
-          if (objArr) {
-            objArr[num] = obj;
-          } else {
-            objArr = [];
-            objArr[num] = obj;
-          }
-        }
-      }
-    }
-  }
-}
-
 function applyTheme() {
   let text = GID("right-div");
   console.log(g.currentTheme);
@@ -1302,14 +1221,14 @@ function applyTheme() {
   */
 }
 
-function runGenerationProcess(grid, w, objArr) {
+function runGenerationProcess(grid, w) {
   g.output = "";
   //SHOULD the first if grid && w be fleshed out more with some of the else logic?
   let t = "";
   if (grid && w) {
     t = generate(grid, w, true);
   } else {
-    t = generate(null, null, null, objArr);
+    t = generate(null, null, null);
   }
   t = processRawGeneration(t);
   applyTheme();  //APPLYING THEME TWICE ENSURES THAT THEME IS CORRECT ON FIRST GENERATION
@@ -1329,7 +1248,6 @@ function runGenerationProcess(grid, w, objArr) {
   g.oldParser = g.parser;
   g.links = [];
   g.choices = [];
-  changeInputObjects(objArr);
   let res = GID("main-text-box").innerHTML;
 
   return res;
@@ -1364,39 +1282,6 @@ function parserMove(walker) {
   }
 }
 
-function textToSpeech(g) {
-  let synth = window.speechSynthesis;
-  for (let n = 0; n < g.speak.length; n++) {
-    let o = g.speak[n];
-    let text = `${g.speak[n].text}`
-    let voice;
-    for (let i = 0; i < g.speakers.length; i++) {
-      if (g.speakers[i].name === o.voice) {
-        voice = g.speakers[i]
-      }
-    }
-    let utterance = new SpeechSynthesisUtterance(text);
-    if (voice) {
-      utterance.voice = voice.voice
-      utterance.rate = voice.rate;
-      utterance.pitch = voice.pitch;
-    }
-    synth.speak(utterance);
-  }
-  g.speak = [];
-}
-
-let oArr = [
-  {
-    name: "Boof",
-    age: 32
-  },
-  {
-    name: "Bic",
-    age: 40
-  }
-]
-
 function resetTheme() {
   g.currentTheme = g.themes[0]
 }
@@ -1406,7 +1291,7 @@ GID("generateicon").onclick = function() {
   console.log(g.currentTheme);
   applyTheme();
   kv = [];
-  runGenerationProcess(null, null, oArr);
+  runGenerationProcess(null, null);
 
   //reset any loop components; only works on second click for some reason.
   if (g.loop) {
@@ -1451,7 +1336,7 @@ GID("run-grid-drop").onclick = function() {
   g.currentGrid.stacked = false;
   applyTheme();
   kv = [];
-  runGenerationProcess(null, null, oArr);
+  runGenerationProcess(null, null);
   //reset any loop components; only works on second click for some reason.
   if (g.loop) {
     let lg = getGridByName(g, g.loop.gridName);
@@ -1738,7 +1623,7 @@ function setStart(w) {
   return start;
 }
 
-function getWalker(start, w, objArr) {
+function getWalker(start, w) {
   let walker = {};
   walker.res = "";
   if (w) {
@@ -1752,20 +1637,6 @@ function getWalker(start, w, objArr) {
     walker.variableCount = 0;
     walker.tags = [];
     walker.refs = ["default"]
-    for (let i = 0; i < objArr.length; i++) {
-      let obj = objArr[i];
-      if (obj !== undefined) {
-        let ownProps = Object.getOwnPropertyNames(obj);
-        for (let j = 0; j < ownProps.length; j++) {
-          walker.variables.push(
-            {
-              name: `o${i}.${ownProps[j]}`,
-              value: `${obj[`${ownProps[j]}`]}`
-            }
-          )
-        }
-      }
-    }
   }
   //map input object variables to walker
 
@@ -2891,7 +2762,7 @@ function createPossibleCellsArr(w, component, x, y, z) {
 }
 
 
-function generate(grid, w, continuing, objArr) {
+function generate(grid, w, continuing) {
   let res = "";
   let lastGrid;
   if (grid) {
@@ -2905,7 +2776,7 @@ function generate(grid, w, continuing, objArr) {
     start = setStart(walker)
   } else {
     start = setStart()
-    walker = getWalker(start, null, objArr)
+    walker = getWalker(start, null)
     walker.collecting = false;
   }
   if (continuing) {
