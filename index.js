@@ -1,7 +1,3 @@
-/****************UTILITY SETUP****************/
-
-
-
 function postProcess(t) {
 
   //FIX THIS - take out compromise?
