@@ -189,10 +189,6 @@ g.links = [];
 g.speak = [];
 g.speakers = [];
 g.arrays = {}
-g.monthText = "January";
-g.month = 1;
-g.day = 1;
-g.year = 2021
 g.locations = [];
 g.gridTypes = ["default"];
 g.savedObjects = [];
@@ -1310,10 +1306,6 @@ GID("new-generator").onclick = function() {
     g.speak = [];
     g.speakers = [];
     g.arrays = {}
-    g.monthText = "January";
-    g.month = 1;
-    g.day = 1;
-    g.year = 2021
     g.locations = [];
     g.gridTypes = ["default"];
     startup();
@@ -2127,12 +2119,6 @@ function runFunctions(w, t) {
       }
       g.arrays[arrName].push(o)
       t = t.replace(/(\w+)\.push\((\w+)\)/)
-    } else if (t && t.includes("date()")) {
-      t = t.replace("date()", `${g.monthText} ${g.day}, ${g.year}`)
-    } else if (t && t.includes("addDay(")) {
-      let m = t.match(/addDay\((\d+)\)/)
-      addDay(parseInt(m[1]))
-      t = t.replace(/addDay\(\d+\)/, "");
     } else if (t && t.match(/ctx\.\w+\s\=\s[A-Za-z\s\d\,\"\'\(\)]+\;/)) {
       //canvas settings (like fillStyle)  - must end in semicolon
       let p = t.match(/ctx\.(\w+)\s\=\s[A-Za-z\s\d\,\"\'\(\)]+\;/)[1];
@@ -2789,58 +2775,6 @@ function generate(grid, w, continuing) {
     g.currentGrid = lastGrid
   }
   return res
-}
-
-function addDay(num) {
-  for (let i = 0; i < num; i++) {
-    g.day += 1;
-    if (g.day > 28 && g.monthText === "February") {
-      g.day -= 28;
-      g.month += 1;
-      normalizeMonth()
-    } else if (g.day > 30 && (g.monthText === "September" || g.monthText === "April" || g.monthText === "June" || g.monthText === "November")) {
-      g.day -= 30;
-      g.month += 1;
-      normalizeMonth()
-    } else if (g.day > 31) {
-      g.day -= 31
-      if (g.month === 12) {
-        g.month = 1
-        g.year += 1;
-      } else {
-        g.month += 1;
-      }
-      normalizeMonth()
-    }
-  }
-}
-
-function normalizeMonth() {
-  if (g.month === 1) {
-    g.monthText = "January"
-  } else if (g.month === 2) {
-    g.monthText = "February"
-  } else if (g.month === 3) {
-    g.monthText = "March"
-  } else if (g.month === 4) {
-    g.monthText = "April"
-  } else if (g.month === 5) {
-    g.monthText = "May"
-  } else if (g.month === 6) {
-    g.monthText = "June"
-  } else if (g.month === 7) {
-    g.monthText = "July"
-  } else if (g.month === 8) {
-    g.monthText = "August"
-  } else if (g.month === 9) {
-    g.monthText = "September"
-  } else if (g.month === 10) {
-    g.monthText = "October"
-  } else if (g.month === 11) {
-    g.monthText = "November"
-  } else if (g.month === 12) {
-    g.monthText = "December"
-  }
 }
 
 
