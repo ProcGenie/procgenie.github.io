@@ -160,9 +160,11 @@ GID("save-theme-btn").onclick = function() {
 }
 
 hideAll();
-GID("help").style.display = "block"
 
 GID("help-btn").onclick = function() {
   hideAll();
   GID("help").style.display = "block"
 }
+
+showHide("grammar-gen")
+drawGrid();

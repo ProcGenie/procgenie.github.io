@@ -1,144 +1,134 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <title>ProcGenie: Hand-Crafted Procedural Text Generation</title>
-    <link rel="stylesheet" href="themes.css">
-    <link rel="stylesheet" href="index.css">
-    <link rel="stylesheet" href="indexNew.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>ProcGenie</title>
+    <link rel="stylesheet" href="main.css" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   </head>
   <body>
+    <!-- header start -->
+    <div class="container">
+      <header>
 
-<!--BEGIN GENERATOR----------------------------->
-<div id="generator-area">
+        <nav>
+          <a href="#" class="hide-desktop">
+            <img
+              src="images/ham.svg"
+              alt="toggle menu"
+              class="menu"
+              id="menu"
+            />
+          </a>
 
-    <nav class="slab" id="navbar">
-      <div class="dropdown">
-        <span onclick ="fileDropdown()" class="dropbtn seplinks">File</span>
-        <div id="fileDropdown" class="dropdown-content">
-          <a href="#" id="new-generator">New</a>
-          <a href="#" id="save-generator">Local Save</a>
-          <a href="#" id="load-generator">Local Load</a>
-          <a href="#" id="export-grid">Export Grid</a>
-        </div>
-      </div>
-      <div class="dropdown">
-        <span onclick ="ruleDropdown()" class="dropbtn seplinks">Grammars</span>
-        <div id="ruleDropdown" class="dropdown-content">
-          <a href="#" id="create-rule-btn">Create Rule</a>
-          <a href="#" id="create-themes-btn">Change Theme</a>
-          <a href="#" id="help-btn">Help</a>
-        </div>
-      </div>
-      <div class="dropdown">
-        <span onclick ="gridDropdown()" class="dropbtn seplinks">Grids</span>
-        <div id="gridDropdown" class="dropdown-content">
-          <a href="#" id="load-prefabs">Load Prefab Grids</a>
-        </div>
-      </div>
-      <div class="dropdown">
-        <span id="run-grid-drop">Run</span>
-      </div>
-    </nav>
-    <div id="left-sidebar">
+          <ul class="show-desktop hide-mobile" id="nav">
+            <li class="exit-btn hide-desktop" id="exit">
+              <img src="images/exit.svg" alt="" />
+            </li>
+            <li><a href="index.html">home</a></li>
+            <li><a href="project.html">project</a></li>
+            <li><a href="guide.html">user's guide</a></li>
+            <li><a href="https://twitter.com/ProcGenie">contact</a></li>
+          </ul>
+        </nav>
+      </header>
+      <!--header end-->
 
+      <!-- banner section start -->
+      <section>
+        <img src="images/graph.jpg" alt="" class="server" />
+        <h1>ProcGenie</h1>
+        <p class="subhead">An Open Source Tool for Hand Authored Procedural Text Generation<br>Using Replacement Grammars </p>
+
+      </section>
     </div>
+    <!-- banner section ends-->
 
-    <div class="hidable intro-text" id="help">
-      <h2>ProcGenie is a hand-crafted procedural text generation tool for designing and running complex replacement grammars.</h2><br><p>ProcGenie is a work in progress - follow along on <a href="https://twitter.com/ProcGenie">Twitter</a> for updates and tutorials.</p>
+    <!-- features section start -->
+    <div class="blue-container">
+      <div class="container">
+        <ul>
+          <li>
+            <img src="images/pencil.png" alt="pencil" />
+            <p>
+              Open source visual authoring tool for handcrafted, coherent, and interactive procedural text generation
+            </p>
+          </li>
+          <li>
+            <img src="images/chart.png" alt="grammar" />
+
+            <p>
+               Browser based user interface for defining replacement grammars on graphs
+            </p>
+          </li>
+          <li>
+            <img src="images/icon-1.svg" alt="graph" />
+            <p>
+              Constraint-based, stateful, and probabilistic approach to procedural text generation
+            </p>
+          </li>
+        </ul>
+      </div>
     </div>
+    <!-- features section ends -->
 
-    <!--TRANSPLANT-->
+    <div class="gray-container">
+      <div class="container">
+        <ul>
+          <li>
 
-    <div class="hidable" id="theme-gen">
-      Name:<br><input type="text" id="theme-name"></input><br>
-      Background Color:<br><input type="color" id="theme-bg-pick"></input><br>
-      Text Color:<br><input type="color" id="theme-color-pick"></input><br>
-      Link Color:<br><input type="color" id="theme-link-pick"></input><br>
-      Choice Background:<br><input type="color" id="theme-choice-bg"></input><br>
-      Choice Text:<br><input type="color" id="theme-choice-text"></input><br>
-      Choice Hover Background:<br><input type="color" id="theme-choice-hover-bg"></input><br>
-      Choice Hover Text:<br><input type="color" id="theme-choice-hover-text"></input><br>
-      Choice Border:<br><input type="text" id="theme-choice-border"></input><br>
-      <div id="save-theme-btn" class="change-theme-btns">Save Theme</div>
-      <div id="delete-theme-btn" class="change-theme-btns">Delete Theme</div>
-    </div>
-
-    <div class="hidable" id="grammar-gen">
-      <form class="table-form slab">
-        <div class="tableRow">
-          <p>Grid Name:</p>
-          <p><input type="text" name="gridName" id="gridName"></p>
-        </div>
-        <div class="tableRow">
-          <p>Grid Type:</p>
-          <p><input type="text" name="gridType" id="gridType"></p>
-        </div>
-      </form>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="delete-rule-btn">Delete</button>
-      <div id="grid">
-
-      </div>
-
-      <div class="toolbar">
-        <div class="tooltip"><img class="small-icon tooltip" id="plusicon" src="plussign.png"></img><span class="tooltiptext">Zoom In</span></div>
-        <div class="tooltip"><img class="small-icon" id="minusicon" src="minussign.png"></img><span class="tooltiptext">Zoom Out</span></div>
-        <div class="tooltip"><img class="small-icon" id="writeicon" src="write.png"></img><span class="tooltiptext">Results</span></div>
-        <div class="tooltip"><img class="small-icon" id="generateicon" src="generate.png"></img><span class="tooltiptext">Generate</span></div>
-        <div class="tooltip"><img class="small-icon" id="saveicon" src="save.png"></img><span class="tooltiptext">Save</span></div>
-        <div class="tooltip"><img class="small-icon" id="loadicon" src="load.png"></img><span class="tooltiptext">Load</span></div>
-      </div>
-
-
-      <div id="cell-box">
-        <div id="outputText"></div>
-        <canvas id="outputCanvas"></canvas>
-      </div>
-      <div class="dark-theme" id="grid-select-box">
-        <p id="add-grid-button">Add Grid</p>
-      </div>
-      <div id="gridinfo"></div>
-    </div>
-</div>
-    <!--END GENERATOR----------------------------->
-
-    <!--BEGIN PRODUCER-->
-    <div class="container" id="flexcontainer">
-
-      <div id="right-div">
-        <div class="main-text" id="main-text-box">
-
-        </div>
-        <div id="new-choices-box">
-
-        </div>
+            <img src="images/interactive.png" alt="interactive icon" style="width: 80px; height: 80px" />
+            <p>
+              Procedurally generate interactive stories or steer generation with dynamically created choices, hyperlinks, and parser actions
+            </p>
+          </li>
+          <li>
+            <img src="images/postprocess.png" alt="interactive icon" style="width: 80px; height: 80px" />
+            <blockquote>
+              Process text mid- and post-generation using a suite of text processing and parsing functions
+            </blockquote>
+          </li>
+        </ul>
       </div>
     </div>
 
-    <div id="export-box">
-
+    <div class="container">
+      <h2>Start Generating Today!</h2>
+      <a href="project.html" class="cta">Get Started</a>
     </div>
 
-    <!--END PRODUCER-->
-    <script src="simplex-noise.js"></script>
-    <script src="compromise.js"></script>
-    <script src="compromise-sentences.js"></script>
-    <script src="compromise-adjectives.js"></script>
-    <script src="compromise-numbers.js"></script>
-    <script src="lodash.js"></script>
-    <script src="markov.js"></script>
-    <script src="utilities.js"></script>
-    <script src="plugins.js"></script>
-    <script src="texttospeech.js"></script>
+    <!-- footer starts -->
+    <footer>
+      <div class="footer-container">
+        <div class="container">
+          <ul class="footer-links">
+            <li>
+              <a href="https://github.com/ProcGenie/procgenie.github.io">Contribute on Github</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="filler"></div>
+    </footer>
+    <!-- footer ends -->
 
-    <script src="runcomp.js"></script>
-    <script src="index.js"></script>
-    <script src="indexNew.js"></script>
-    <script src="prefabs/test.js"></script>
-    <script src="compilegrids.js"></script>
+    <script>
+      var menu = document.getElementById("menu");
+      var nav = document.getElementById("nav");
+      var exit = document.getElementById("exit");
+
+      menu.addEventListener('click', function(e) {
+        nav.classList.toggle('hide-mobile');
+        e.preventDefault();
+      })
+
+      exit.addEventListener('click', function(e) {
+        nav.classList.add('hide-mobile');
+        e.preventDefault();
+      })
+    </script>
+
   </body>
 </html>

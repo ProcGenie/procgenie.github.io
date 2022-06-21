@@ -836,15 +836,6 @@ function showHide(el) {
 GID("cell-box").style.display = "none";
 GID("grid-select-box").style.display = "none";
 
-GID("writeicon").onclick = function() {
-  GID("generator-area").style.display = "none";
-  GID("flexcontainer").style.display = "block";
-  //showHide("cell-box")
-  let c = document.getElementById("outputCanvas");
-  c.width = window.innerWidth;
-  c.height = window.innerHeight;
-}
-
 GID("cell-box").onclick = function() {
   //showHide("cell-box");
 }
@@ -1276,23 +1267,6 @@ function parserMove(walker) {
 
 function resetTheme() {
   g.currentTheme = g.themes[0]
-}
-
-GID("generateicon").onclick = function() {
-  resetTheme();
-  console.log(g.currentTheme);
-  applyTheme();
-  kv = [];
-  runGenerationProcess(null, null);
-
-  //reset any loop components; only works on second click for some reason.
-  if (g.loop) {
-    let lg = getGridByName(g, g.loop.gridName);
-    let cell = getCell(lg, g.loop.x, g.loop.y, g.loop.z)
-    let component = cell.components[0];
-    component.loop.iterations = component.loop.maxIterations;
-  }
-
 }
 
 

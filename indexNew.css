@@ -155,7 +155,7 @@ div .tableRow p:first-child {
 }
 
 .grammar-gen {
-  display: none;
+  display: block
 }
 
 .clickable {
