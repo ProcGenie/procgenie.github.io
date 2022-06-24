@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@ProcGenie" />
+    <meta name="twitter:title" content="ProcGenie User's Guide" />
+    <meta name="twitter:description" content="A User's Guide to Tool for Procedural Text Generation with Replacement Grammars" />
+    <meta name="twitter:image" content="https://procgenie.github.io/card/landingimg.jpg" />
+    <title>ProcGenie Quick Reference</title>
+    <link rel="stylesheet" href="guide.css"></link>
+  </head>
+  <body>
+
+    <div class="container">
+      <header>
+
+        <nav>
+          <a href="#" class="hide-desktop">
+            <img
+              src="images/ham.svg"
+              alt="toggle menu"
+              class="menu"
+              id="menu"
+            />
+          </a>
+
+          <ul class="show-desktop hide-mobile" id="nav">
+            <li class="exit-btn hide-desktop" id="exit">
+              <img src="images/exit.svg" alt="" />
+            </li>
+            <li><a href="index.html">home</a></li>
+            <li><a href="project.html">project</a></li>
+            <li><a href="guide.html">user's guide</a></li>
+            <li><a href="reference.html">quick reference</a></li>
+            <li><a href="https://twitter.com/procgenie">contact</a></li>
+          </ul>
+        </nav>
+      </header>
+      <div class="written-entry">
+
+        <p>The two tables below serve as quick reference tables for the concepts and syntax of ProcGenie. For an in-depth discussion of ProcGenie's features, click the "user's guide" link at the top of this page.</p>
+
+        <h2>Concepts Cheat Sheet</h2>
+
+        <table>
+          <tr>
+            <td><code>Rewrite System</code></td>
+            <td>An algorithm applying rewrite rules</td>
+          </tr>
+          <tr>
+            <td><code>Grammar</code></td>
+            <td>A rewrite system used to define a language</td>
+          </tr>
+          <tr>
+            <td><code>Language</code></td>
+            <td>The universe of potential generative results of a grammar</td>
+          </tr>
+          <tr>
+            <td><code>Start Symbol</code></td>
+            <td>A start symbol describes the starting element of a grammar</td>
+          </tr>
+          <tr>
+            <td><code>Nonterminal</code></td>
+            <td>A symbol that can be expanded by production rules to a string</td>
+          </tr>
+          <tr>
+            <td><code>Terminal</code></td>
+            <td>A terminal string with no more expansion allowed</td>
+          </tr>
+          <tr>
+            <td><code>Production Rules</code></td>
+            <td>Rules specifying the expansion of nonterminals to other nonterminals or terminals</td>
+          </tr>
+          <tr>
+            <td><code>Graph</code></td>
+            <td>A graph is a named nonterminal</td>
+          </tr>
+          <tr>
+            <td><code>Cell</code></td>
+            <td>Each cell on the graph is an anonymous nonterminal</td>
+          </tr>
+          <tr>
+            <td><code>Component</code></td>
+            <td>Each cell is made up of components. A component is an anonymous nonterminal or terminal</td>
+          </tr>
+          <tr>
+            <td><code>Directional Rules</code></td>
+            <td>Directional Rules are production rules specifying which way the generator can move on the graph</td>
+          </tr>
+          <tr>
+            <td><code>Walker</code></td>
+            <td>The "Walker" is a conceptul framework we use to describe the current coordinates and state of the generator on the graph during a generation run</td>
+          </tr>
+
+        </table>
+
+        <h2>Essential Syntax Cheat Sheet</h2>
+
+        <table>
+          <tr>
+            <td><code>Escape</code></td>
+            <td>After clicking the "Run" button, press the escape key to leave your generated text and return to your graph editor.</td>
+          </tr>
+          <tr>
+            <td><code>[START]</code></td>
+            <td>Defines a start symbol or entry point on a graph</td>
+          </tr>
+          <tr>
+            <td><code>[E]</code></td>
+            <td>Production rule specifying that next cell can be x + 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[W]</code></td>
+            <td>Production rule specifying that next cell can be x - 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[N]</code></td>
+            <td>Production rule specifying that next cell can be y + 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[S]</code></td>
+            <td>Production rule specifying that next cell can be y - 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[NE]</code></td>
+            <td>Production rule specifying that next cell can be x + 1 and y + 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[NW]</code></td>
+            <td>Production rule specifying that next cell can be x - 1 and y + 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[SW]</code></td>
+            <td>Production rule specifying that next cell can be x - 1 and y - 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[SE]</code></td>
+            <td>Production rule specifying that next cell can be x + 1 and y - 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[U]</code></td>
+            <td>Production rule specifying that next cell can be z + 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[D]</code></td>
+            <td>Production rule specifying that next cell can be z - 1 on graph</td>
+          </tr>
+          <tr>
+            <td><code>[E, SE, W]</code></td>
+            <td>Define multiple production rules by separating by commas</td>
+          </tr>
+          <tr>
+            <td><code>|</code></td>
+            <td>Separate components with a pipe (or)</td>
+          </tr>
+          <tr>
+            <td><code>[10]</code></td>
+            <td>Define probability factors on each component by placing the factor within brackets. If no probability factor is defined, the components are processed as an if/else statement</td>
+          </tr>
+          <tr>
+            <td><code>G(graphName)</code></td>
+            <td>Call another graph by name as a named nonterminal</td>
+          </tr>
+          <tr>
+            <td><code>G(graphName, number)</code></td>
+            <td>Repeatedly call another graph by name as a named nonterminal specified number of times</td>
+          </tr>
+          <tr>
+            <td><code>teleport(graphName, x, y, z)</code></td>
+            <td>Immediately moves to the specified graph and coordinates</td>
+          </tr>
+          <tr>
+            <td><code>refs(r1 r2 r3)</code></td>
+            <td>Set reference objects to one or more reference objects named in parentheses and separated by spaces</td>
+          </tr>
+          <tr>
+            <td><code>getRefsByName(r1 r2 r3)</code></td>
+            <td>Sets reference objects to listed reference objects</td>
+          </tr>
+          <tr>
+            <td><code>listRefs()</code></td>
+            <td>Provides a list of reference objects; where appropriate, separates list with commas and the word "and"</td>
+          </tr>
+          <tr>
+            <td><code>allRefs(tag1 tag2 tag3)</code></td>
+            <td>Sets reference objects to all reference objects that have the listed tags</td>
+          </tr>
+          <tr>
+            <td><code>notRefs(tag1 tag2 tag3)</code></td>
+            <td>Sets reference objects to all reference objects that do not have the listed tags</td>
+          </tr>
+          <tr>
+            <td><code>anyRef(tag1 tag2 tag3)</code></td>
+            <td>Sets reference objects to any reference objects that have any of the listed tags</td>
+          </tr>
+          <tr>
+            <td><code>randRef(tag1 tag2 tag3)</code></td>
+            <td>Sets reference object to a random reference object that has the listed tags</td>
+          </tr>
+          <tr>
+            <td><code>+(tagName)</code></td>
+            <td>Adds a tag or tags to current reference objects</td>
+          </tr>
+          <tr>
+            <td><code>-(tagName)</code></td>
+            <td>Removes a tag or tags from current reference objects</td>
+          </tr>
+          <tr>
+            <td><code>?(tagName)</code></td>
+            <td>Constraint checking whether a tag or tags exist on current reference objects</td>
+          </tr>
+          <tr>
+            <td><code>[varName = varValue]</code></td>
+            <td>Sets a variable to a value</td>
+          </tr>
+          <tr>
+            <td><code>[varName += varValue]</code></td>
+            <td>Adds a value to an existing variable. If the existing variable is a number, performs math. If the existing variable is a string, concatenates.</td>
+          </tr>
+          <tr>
+            <td><code>[varName -= varValue]</code></td>
+            <td>Subtracts a value from an existing variable</td>
+          </tr>
+          <tr>
+            <td><code>[varName includes varValue]</code></td>
+            <td>Checks whether the value of an existing variable includes a string</td>
+          </tr>
+          <tr>
+            <td><code>[varName === varValue]</code></td>
+            <td>Checks whether an existing variable is equal to a value</td>
+          </tr>
+          <tr>
+            <td><code>[choice: text (variables) (directions)]</code></td>
+            <td>Defines a choice that encodes context and generates from that context.</td>
+          </tr>
+          <tr>
+            <td><code>[link: (variables) (directions)]</code></td>
+            <td>Defines a link that encodes context and generates from that context.</td>
+          </tr>
+          <tr>
+            <td><code>parse(direction)</code></td>
+            <td>Adds a parser to current generation run. Pressing submit after text entry begins a new generation run from the cell in which the parser is defined and heading in the direction specified in parentheses</td>
+          </tr>
+        </table>
+
+      </div>
+
+
+      <script>
+        var menu = document.getElementById("menu");
+        var nav = document.getElementById("nav");
+        var exit = document.getElementById("exit");
+
+        menu.addEventListener('click', function(e) {
+          nav.classList.toggle('hide-mobile');
+          e.preventDefault();
+        })
+
+        exit.addEventListener('click', function(e) {
+          nav.classList.add('hide-mobile');
+          e.preventDefault();
+        })
+      </script>
+
+      <script>
+        var menu = document.getElementById("menu");
+        var nav = document.getElementById("nav");
+        var exit = document.getElementById("exit");
+
+        menu.addEventListener('click', function(e) {
+          nav.classList.toggle('hide-mobile');
+          e.preventDefault();
+        })
+
+        exit.addEventListener('click', function(e) {
+          nav.classList.add('hide-mobile');
+          e.preventDefault();
+        })
+      </script>
+
+    </div>
