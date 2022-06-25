@@ -1181,8 +1181,8 @@ function applyTheme() {
   text.style.background = g.currentTheme.bg;
   text.style.color = g.currentTheme.color;
   let el = GID("new-choices-box");
-  o.choiceHoverbg = GID("theme-choice-hover-bg").value;
-  o.choiceHoverText = GID("theme-choice-hover-text").value;
+  el.style.background = g.currentTheme.choicebg;
+  el.style.color = g.currentTheme.choiceText
   let choices = document.getElementsByClassName("choiceslist");
   for (let i = 0; i < choices.length; i++) {
     choices[i].style.border = `1px solid ${g.currentTheme.border}`
