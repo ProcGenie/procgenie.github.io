@@ -144,6 +144,7 @@ GID("save-theme-btn").onclick = function() {
   o.choiceText = GID('theme-choice-text').value
   o.choiceHoverbg = GID("theme-choice-hover-bg").value;
   o.choiceHoverText = GID("theme-choice-hover-text").value;
+  o.border = GID("theme-choice-border").value
   let exists = false;
   for (let i = 0; i < g.themes.length; i++) {
     if (g.themes[i].name === o.name) {

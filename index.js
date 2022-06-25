@@ -166,7 +166,8 @@ g.themes = [
     choiceText: "black",
     choicebg: "white",
     choiceHoverbg: "black",
-    choiceHoverText: "white"
+    choiceHoverText: "white",
+    border: "black"
   }
 ];
 g.currentTheme = g.themes[0]
@@ -1180,11 +1181,11 @@ function applyTheme() {
   text.style.background = g.currentTheme.bg;
   text.style.color = g.currentTheme.color;
   let el = GID("new-choices-box");
-  el.style.background = g.currentTheme.choicebg;
-  el.style.color = g.currentTheme.choiceText
+  o.choiceHoverbg = GID("theme-choice-hover-bg").value;
+  o.choiceHoverText = GID("theme-choice-hover-text").value;
   let choices = document.getElementsByClassName("choiceslist");
   for (let i = 0; i < choices.length; i++) {
-    choices[i].style.border = g.currentTheme.border
+    choices[i].style.border = `1px solid ${g.currentTheme.border}`
   }
   let links = document.getElementsByClassName("hyperlink-text");
   for (let i = 0; i < links.length; i++) {
@@ -1228,6 +1229,7 @@ function runGenerationProcess(grid, w) {
   g.links = [];
   g.choices = [];
   let res = GID("main-text-box").innerHTML;
+  applyTheme()
 
   return res;
 }
