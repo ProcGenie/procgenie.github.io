@@ -121,33 +121,29 @@ function replaceVariable(e, localization) {
         count += 1;
         let matches = l.match(regex);
         if (matches) {
-          let noDollars = matches[0].replace(/\<\</, "").replace(/\>\>/, "");
-          let ref = noDollars.match(/([\w\d]+)\./)[1]
-          let varName = noDollars.match(/\.([\w\d]+)/)[1]
-          let exists = false;
-          for (let n = 0; n < e.tags[`${ref}`].variables.length; n++) {
-            if (varName === e.tags[`${ref}`].variables[n].name) {
-              l = l.replace(matches[0], e.tags[`${ref}`].variables[n].value)
-              exists = true
+          if (matches[0].includes("parser")) {
+            l = l.replace(matches[0], e.tags[`parser`].variables[0].value)
+            exists = true
+          } else {
+            let noDollars = matches[0].replace(/\<\</, "").replace(/\>\>/, "");
+            let ref = noDollars.match(/([\w\d]+)\./)[1]
+            let varName = noDollars.match(/\.([\w\d]+)/)[1]
+            let exists = false;
+            for (let n = 0; n < e.tags[`${ref}`].variables.length; n++) {
+              if (varName === e.tags[`${ref}`].variables[n].name) {
+                l = l.replace(matches[0], e.tags[`${ref}`].variables[n].value)
+                exists = true
+              }
+            }
+            if (exists === false) {
+              l = l.replace(matches[0], "")
+              console.log(`ERROR: The variable ${matches[0]} did not exist for interpolation.`)
+            }
+            if (count === 1000) {
+              console.log(`ERROR: It appears that you have an improperly nested variable in ${localization}`);
+              return l;
             }
           }
-          /*
-          for (let n = 0; n <  e.variables.length; n++) {
-            if (noDollars && e.variables[n].name === noDollars) {
-
-              l = l.replace(matches[0], e.variables[n].value)
-              exists = true;
-            }
-          }
-          */
-          if (exists === false) {
-            l = l.replace(matches[0], "")
-            console.log(`ERROR: The variable ${matches[0]} did not exist for interpolation.`)
-          }
-        }
-        if (count === 1000) {
-          console.log(`ERROR: It appears that you have an improperly nested variable in ${localization}`);
-          return l;
         }
       }
     }
