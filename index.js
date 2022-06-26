@@ -1769,6 +1769,7 @@ function genLoop(walker) {
         z: currentCell.z,
         variables: []
       }
+      walker.refs.push("parser")
       compGen = compGen.replace(/parse\([\w\s\,]+\)/, "")
     }
 
