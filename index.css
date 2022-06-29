@@ -45,6 +45,13 @@ textarea {
 	font-size: 1.5em;
 }
 
+.tile {
+  position: absolute;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+}
+
 .dark-theme {
 	background: rgba(40, 42, 54, 0.99);
 	color: #bdc3c7;

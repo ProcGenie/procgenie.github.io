@@ -1,3 +1,8 @@
+function tile(x, y, name) {
+  let t = `<img src="${name}.png" class="tile" style="left: ${x * 32}px; top: ${y * 32}px">`
+  return t
+}
+
 function postProcess(t) {
 
   //FIX THIS - take out compromise?
@@ -2130,7 +2135,22 @@ function runFunctions(w, t) {
   while (stillT === true) {
     t = `${t}`
     t = replaceVariable(w, t);
-    if (t && t.includes(".push(")) {
+    if (t && t.includes("pt(")) {
+      let m = t.match(/pt\(([\w\"\/\d]+)\)/);
+      let tileName = m[1];
+      let tileText = tile(w.x, w.y, m[1]);
+      t = t.replace(/pt\([\w\"\/\d]+\)/, tileText)
+    } else if (t && t.includes("tile(")) {
+      console.log("TILE")
+      let m = t.match(/tile\((\d+)\,\s(\d+)\,\s([\w\"\/\d]+)\)/)
+      let x = m[1];
+      let y = m[2];
+      let name = m[3];
+      console.log(m)
+      let tileText = tile(m[1], m[2], m[3]);
+      t = t.replace(/tile\((\d+)\,\s(\d+)\,\s([\w\"\\/\d]+)\)/, tileText)
+      console.log(t)
+    } else if (t && t.includes(".push(")) {
       let m = t.match(/(\w+)\.push\((\w+)\)/)
       let arrName = m[1];
       let varName = m[2];
