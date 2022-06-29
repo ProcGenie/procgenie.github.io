@@ -178,6 +178,7 @@ g.parser = {
   variables: []
 }
 g.timers = [];
+g.defaultTimers = [];
 g.textTimersTimeout = [];
 g.callbacks = [];
 g.output = "";
@@ -452,8 +453,10 @@ function getLinkFromMatch(m, coords) {
   console.log(o.text);
   o.gridName = g.currentGrid.name;
   for (let z = 0; z < parensArr.length; z++) {
-    console.log(parensArr[z]);
-    console.log(o.text);
+    if (parensArr[z].includes("DEFAULT")) {
+      o.default = true
+      o.defaultTimer = parensArr[z].match(/(\d+)/)[1]
+    } 
     if (parensArr[z].includes("timer:")) {
       let time = parensArr[z].match(/timer\:\s(\d+)/)
       o.text = o.text.replace(/\(timer\:\s\d+\)/, "")
@@ -864,11 +867,7 @@ function addHyperlinks(t) {
   //when you run a grid in a link, it adds a bunch of bracketed meta information, which needs to be deleted, as below
   t = t.replace(/\[(?!link\:\s)[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?]+\]/g, "")
   for (let i = 0; i < g.links.length; i++) {
-    console.log(g.links[i])
-    console.log(t);
-    console.log(t);
     t = t.replace(/\[link\:\s[\w\s\d\,\!\$\.\=\+\-\>\<\/\"\”\“\'\(\)\;\:\?]+\]/, `<span class="hyperlink-text" id="hyperlink${i}">${g.links[i].text}</span>`)
-    console.log(t);
   }
   return t;
 }
@@ -893,12 +892,42 @@ function createTimerArrayAndHTML(t) {
 }
 
 function addClickToHyperlinks() {
+  let clicked = false;
   let els = document.getElementsByClassName("hyperlink-text");
   if (els && els.length > 0) {
     for (let n = 0; n < els.length; n++) {
+      let id = els[n].id.replace("hyperlink", "");
+      let currentLink = g.links[id]
+      console.log(currentLink)
+      if (currentLink.default) {
+        let timer = currentLink.defaultTimer * 1000;
+        let a = setTimeout(function() {
+          console.log("Timer running")
+          let currentLink = g.oldLinks[id];
+          clearDefaultTimers()
+          //THIS IS NOT DRY - REPETITIVE OF BELOW AND NEEdS TO BE FIXED
+          if (g.oldLinks[id].directions && g.oldLinks[id].directions.length > 0) {
+            let walker = g.lastWalker;
+            addChoiceToWalker(walker, g.oldLinks[id])
+            let directions = g.oldLinks[id].directions;
+            let nextDirection = directions[getRandomInt(0, directions.length - 1)];
+            let possibleNextCells = createPossibleCellsArr(walker, g.oldLinks[id], g.oldLinks[id].x, g.oldLinks[id].y, g.oldLinks[id].z)
+            let choiceGrid = g.oldLinks[id].gridName
+            if (possibleNextCells.length > 0) {
+              let nextCell = getRandomFromArr(possibleNextCells);
+              walker.x = nextCell.x;
+              walker.y = nextCell.y;
+              walker.z = nextCell.z
+            }
+            g.lastWalker = walker;
+            runGenerationProcess(getGridByName(g, choiceGrid), walker);
+          }
+        }, timer)
+        g.defaultTimers.push(a);
+      }
       els[n].onclick = function() {
+
         console.log("clicked!")
-        let id = els[n].id.replace("hyperlink", "");
         if (g.oldLinks[id].directions && g.oldLinks[id].directions.length > 0) {
           let walker = g.lastWalker;
           addChoiceToWalker(walker, g.oldLinks[id])
@@ -1058,6 +1087,15 @@ function clearChoiceTimers() {
       clearTimeout(g.timers[z]);
     }
     g.timers = []; //reset choice timers
+  }
+}
+
+function clearDefaultTimers() {
+  if (g.defaultTimers && g.defaultTimers.length > 0) {
+    for (let z = 0; z < g.defaultTimers.length; z++) {
+      clearTimeout(g.defaultTimers[z]);
+    }
+    g.defaultTimers = []; //reset choice timers
   }
 }
 
