@@ -405,6 +405,10 @@ function getChoiceFromMatch(m, coords) {
   o.variables = [];
   o.gridName = g.currentGrid.name;
   for (let z = 0; z < parensArr.length; z++) {
+    if (parensArr[z].includes("DEFAULT")) {
+      o.default = true
+      o.defaultTimer = parensArr[z].match(/(\d+)/)[1]
+    }
     if (parensArr[z].includes("timer:")) {
       let time = parensArr[z].match(/timer\:\s(\d+)/)
       o.text = o.text.replace(/\(timer\:\s\d+\)/, "")
@@ -456,7 +460,7 @@ function getLinkFromMatch(m, coords) {
     if (parensArr[z].includes("DEFAULT")) {
       o.default = true
       o.defaultTimer = parensArr[z].match(/(\d+)/)[1]
-    } 
+    }
     if (parensArr[z].includes("timer:")) {
       let time = parensArr[z].match(/timer\:\s(\d+)/)
       o.text = o.text.replace(/\(timer\:\s\d+\)/, "")
@@ -1144,7 +1148,17 @@ function addChoiceClickEvents() {
     els[n].onclick = function() {
       clearChoiceTimers();
       clearTextTimers();
+      clearDefaultTimers()
       navigateToChoiceDestination(els, n);
+    }
+    let id = n
+    let currentChoice = g.choices[id]
+    if (currentChoice.default) {
+      let timer = currentChoice.defaultTimer * 1000;
+      let a = setTimeout(function() {
+        navigateToChoiceDestination(els, id)
+        clearDefaultTimers()
+      }, timer)
     }
   }
 }
