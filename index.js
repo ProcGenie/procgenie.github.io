@@ -211,6 +211,25 @@ function createGrid(n) {
   return grid;
 }
 
+function parseInlineTags(component) {
+  let il = /\?[\w\d]+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/g
+  let inlineTags = [...component.text.matchAll(il)];
+  let inlineTagsArr = [];
+  for (let i = 0; i < inlineTags.length; i++) {
+    inlineTagsArr.push(inlineTags[i][0])
+  }
+  let parsedTags = [];
+  for (let i = 0; i < inlineTagsArr.length; i++) {
+    let o = {};
+    o.tag = inlineTagsArr[i].match(/\?(\w+)/)[1];
+    o.text = inlineTagsArr[i].match(/\?\w+\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\)/)[1];
+    parsedTags.push(o)
+  }
+  console.log(inlineTagsArr)
+  //component.text = component.text.replace(/\?[\w\d]+\([\w\s]+\)/, "");
+  component.inlineTags = parsedTags
+}
+
 function parseTags(component) {
   let anyRef = component.text.match(/anyRef\(([\<\>\w\s]+)\)/) //return refs with any matched tag
   let randRef = component.text.match(/randRef\(([\<\>\w\s]+)\)/) // return a random ref with all matched tags
@@ -524,6 +543,7 @@ function process(unprocessed, coords) {
     c.randRef = []
     c.anyRef = [];
     parseTags(c)
+    parseInlineTags(c);
     if (c.text.includes("break()")) {
       c.break = true;
       c.text = c.text.replace("break()", "")
@@ -1767,6 +1787,26 @@ function genLoop(walker) {
     }
     if (walker.collecting === false) {
         walker.res += compGen
+    }
+
+    //This replaces inline tags if the tags exist on each reference object
+    if (currentComponent.inlineTags.length > 0) {
+      console.log("got inline")
+      for (let i = 0; i < currentComponent.inlineTags.length; i++) {
+        let conflicts = false;
+        let tag = currentComponent.inlineTags[i].tag
+        for (let j = 0; j < walker.refs.length; j++) {
+          let index = walker.tags[`${walker.refs[j]}`].indexOf(tag);
+          if (index === -1) {
+            conflicts = true;
+          }
+        }
+        if (conflicts === false) {
+          compGen = compGen.replace(/\?\w+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, currentComponent.inlineTags[i].text)
+        } else {
+          compGen = compGen.replace(/\?\w+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, "")
+        }
+      }
     }
 
 
