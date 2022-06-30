@@ -167,7 +167,7 @@ g.themes = [
     name: "default",
     color: "black",
     bg: "white",
-    links: "#7cc584",
+    links: "#218c74",
     choiceText: "black",
     choicebg: "white",
     choiceHoverbg: "black",
@@ -196,6 +196,8 @@ g.locations = [];
 g.gridTypes = ["default"];
 g.savedObjects = [];
 g.res = []
+
+
 
 function createGrid(n) {
   let grid = {};
@@ -1654,6 +1656,7 @@ function getWalker(start, w) {
     walker.variableCount = 0;
     walker.tags = [];
     walker.refs = ["default"]
+    walker.lastRefs = [];
   }
   //map input object variables to walker
 
@@ -2135,7 +2138,211 @@ function runFunctions(w, t) {
   while (stillT === true) {
     t = `${t}`
     t = replaceVariable(w, t);
-    if (t && t.includes("pt(")) {
+    if (t && t.includes("hersHis")) {
+      let he = false;
+      let she = false;
+      let they = false;
+      let count = 0;
+      for (let j = 0; j < w.refs.length; j++) {
+        let personIndex = w.tags[`${w.refs[j]}`].indexOf("person");
+        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+        if (maleIndex > -1) {
+          he = true;
+          count += 1
+        } else if (femaleIndex > -1) {
+          she = true;
+          count += 1
+        } else if (nonbinaryIndex > -1) {
+          they = true;
+          count += 1
+        } else if (personIndex > -1) {
+          count += 1
+        }
+      }
+      if (count > 1) {
+        t = t.replace("hersHis", "theirs");
+      } else if (they === true) {
+        t = t.replace("hersHis", "theirs");
+      } else if (she === true) {
+        t = t.replace("hersHis", "hers");
+      } else if (he === true) {
+        t = t.replace("hersHis", "his")
+      } else {
+        t = t.replace("hersHis", "undefined")
+      }
+    } else if (t && t.includes("herselfHimself")) {
+      let he = false;
+      let she = false;
+      let they = false;
+      let count = 0;
+      for (let j = 0; j < w.refs.length; j++) {
+        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+        if (maleIndex > -1) {
+          he = true;
+          count += 1
+        }
+        if (femaleIndex > -1) {
+          she = true;
+          count += 1
+        }
+        if (nonbinaryIndex > -1) {
+          they = true;
+          count += 1
+        }
+      }
+      if (count > 1) {
+        t = t.replace("herselfHimself", "themselves");
+      } else if (they === true) {
+        t = t.replace("herselfHimself", "themselves");
+      } else if (she === true) {
+        t = t.replace("herselfHimself", "herself");
+      } else if (he === true) {
+        t = t.replace("herselfHimself", "himself")
+      } else {
+        t = t.replace("herselfHimself", "undefined")
+      }
+    } else if (t && t.includes("sheHe")) {
+      let he = false;
+      let she = false;
+      let they = false;
+      let count = 0;
+      for (let j = 0; j < w.refs.length; j++) {
+        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+        if (maleIndex > -1) {
+          he = true;
+          count += 1
+        }
+        if (femaleIndex > -1) {
+          she = true;
+          count += 1
+        }
+        if (nonbinaryIndex > -1) {
+          they = true;
+          count += 1
+        }
+      }
+      if (count > 1) {
+        t = t.replace("sheHe", "they");
+      } else if (they === true) {
+        t = t.replace("sheHe", "they");
+      } else if (she === true) {
+        t = t.replace("sheHe", "she");
+      } else if (he === true) {
+        t = t.replace("sheHe", "he")
+      } else {
+        t = t.replace("sheHe", "undefined")
+      }
+    } else if (t && t.includes("herHim")) {
+      let him = false;
+      let her = false;
+      let them = false;
+      let count = 0;
+      for (let j = 0; j < w.lastRefs.length; j++) {
+        let maleIndex = w.tags[`${w.lastRefs[j]}`].indexOf("male");
+        let femaleIndex = w.tags[`${w.lastRefs[j]}`].indexOf("female");
+        let nonbinaryIndex = w.tags[`${w.lastRefs[j]}`].indexOf("nonbinary");
+        if (maleIndex > -1) {
+          him = true;
+          count += 1
+        }
+        if (femaleIndex > -1) {
+          her = true;
+          count += 1
+        }
+        if (nonbinaryIndex > -1) {
+          them = true;
+          count += 1
+        }
+      }
+      if (count > 1) {
+        t = t.replace("herHim", "them");
+      } else if (them === true) {
+        t = t.replace("herHim", "them");
+      } else if (her === true) {
+        t = t.replace("herHim", "her");
+      } else if (him === true) {
+        t = t.replace("herHim", "him")
+      } else {
+        t = t.replace("herHim", "undefined")
+      }
+    } else if (t && t.includes("herHis")) {
+      //replaces herHis with his, her, or their depending on current reference objects
+      let his = false;
+      let her = false;
+      let their = false;
+      let count = 0;
+      for (let j = 0; j < w.refs.length; j++) {
+        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+        if (maleIndex > -1) {
+          his = true;
+          count += 1
+        }
+        if (femaleIndex > -1) {
+          her = true;
+          count += 1
+        }
+        if (nonbinaryIndex > -1) {
+          their = true;
+          count += 1
+        }
+      }
+      if (count > 1) {
+        t = t.replace("herHis", "their");
+      } else if (their === true) {
+        t = t.replace("herHis", "their");
+      } else if (her === true) {
+        t = t.replace("herHis", "her");
+      } else if (his === true) {
+        t = t.replace("herHis", "his")
+      } else {
+        t = t.replace("herHis", "undefined")
+      }
+    } else if (t && t.match(/\d\(/)) {
+      let m = t.match(/(\d+)\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\)/)
+      let frequency = parseInt(m[1]);
+      let frequencyText = m[2];
+      let rand = getRandomInt(0, 100);
+      console.log(frequency);
+      console.log(rand)
+      if (rand <= frequency) {
+        t = t.replace(/\d+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, frequencyText)
+      } else {
+        t = t.replace(/\d+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, "")
+      }
+      console.log(t);
+    } else if (t && t.match(/\*[\w\d]+\*[\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\*[\w\d]+\*/)) {
+      console.log("trig")
+      //checks whether a tag exists on any of the currently selected reference objects. If so, use this text. If not, discard.
+      let m = t.match(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/)
+      let tag = m[1];
+      let tagText = m[2];
+      let conflicts = false;
+
+      for (let j = 0; j < w.refs.length; j++) {
+        let index = w.tags[`${w.refs[j]}`].indexOf(tag);
+        if (index === -1) {
+          conflicts = true;
+        }
+      }
+      if (conflicts === true) {
+        t = t.replace(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/, "")
+      } else {
+        t = t.replace(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/, tagText)
+      }
+    } else if (t && t.includes("**")) {
+      let m = t.match(/\*\*([\w\s\d]+)\*\*/);
+      let arr = m[1].split(" ");
+      let res = arr[getRandomInt(0, arr.length -1)];
+      t = t.replace(/\*\*[\w\s\d]+\*\*/, res)
+    } else if (t && t.includes("pt(")) {
       let m = t.match(/pt\(([\w\"\/\d]+)\)/);
       let tileName = m[1];
       let tileText = tile(w.x, w.y, m[1]);
@@ -2294,7 +2501,7 @@ function runFunctions(w, t) {
         t = t.replace(/indent\(\d+\)/, indent)
       }
     } else if (t && t.includes("replaceKey(")) {
-      let m = t.match(/replaceKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/)
+      let m = t.match(/replaceKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+)\)/)
       m[1] = replaceVariable(w, m[1]);
       m[2] = replaceVariable(w, m[2]);
       let exists = false;
@@ -2313,7 +2520,7 @@ function runFunctions(w, t) {
         o.lastChange = 0;
         kv.push(o);
       }
-      t = t.replace(/replaceKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/, "")
+      t = t.replace(/replaceKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+)\)/, "")
     } else if (t && t.includes("addKey(")) {
       let m = t.match(/addKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\,\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/)
       m[1] = replaceVariable(w, m[1]);
@@ -2333,7 +2540,7 @@ function runFunctions(w, t) {
         o.lastChange = 0;
         kv.push(o);
       }
-      t = t.replace(/addKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\(\)\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\/\\]+)\)/, "")
+      t = t.replace(/addKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\(\)\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\'\/\\]+)\)/, "")
     } else if (t && t.match(/\<speak\((\w+)\)\>/)) {
       let m = t.match(/\<speak\((\w+)\)\>([\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+)\<\/speak>/);
       let f = t.match(/\<speak\((\w+)\)\>[\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+\<\/speak\>/);
@@ -2349,11 +2556,19 @@ function runFunctions(w, t) {
   return t;
 }
 
+function saveOldRefs(w) {
+  w.lastRefs = []
+  for (let j = 0; j < w.refs.length; j++) {
+    w.lastRefs.push(w.refs[j])
+  }
+}
+
 function addComponentTo(w, comp) {
   //w.tags is the refs - each ref has array of tags
 
   if (comp.anyRef.length > 0) {
     let anyRefArr = [];
+    saveOldRefs(w);
     w.refs = [];
     for (let p in w.tags) {
       let hasAnyTag = false;
@@ -2372,6 +2587,7 @@ function addComponentTo(w, comp) {
 
   if (comp.randRef.length > 0) {
     let randRefArr = [];
+    saveOldRefs(w);
     w.refs = [];
     for (let p in w.tags) {
       let hasAllTags = true;
@@ -2391,6 +2607,7 @@ function addComponentTo(w, comp) {
 
   //allRefs matches refs with all tags listed
   if (comp.allRefs.length > 0) {
+    saveOldRefs(w);
     w.refs = [];
     for (let p in w.tags) {
       let allMatched = true;
@@ -2406,6 +2623,7 @@ function addComponentTo(w, comp) {
     }
   }
   if (comp.notRefs.length > 0) {
+    saveOldRefs(w);
     w.refs = [];
     for (let p in w.tags) {
       let matchedNot = false;
@@ -2421,6 +2639,7 @@ function addComponentTo(w, comp) {
     }
   }
   if (comp.refs.length > 0) {
+    saveOldRefs(w);
     w.refs = comp.refs
   }
   for (let j = 0; j < w.refs.length; j++) {
