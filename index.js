@@ -242,6 +242,11 @@ function parseTags(component) {
   let conditionalTags = component.text.match(/\?\(([\<\>\w\s]+)\)/)
   let notTags = component.text.match(/\!\(([\<\>\w\s]+)\)/)
 
+  let every = component.text.match(/every\((\w+)\,\s(\w+)/)
+
+  if (every) {
+    component.every = every;
+  }
 
 
   if (anyRef) {
@@ -1751,6 +1756,7 @@ function changeTheme(name) {
 }
 
 function genLoop(walker) {
+  //THIS IS THE HEART OF THE GENERATOR
   let res = ""
   let generating = true;
   //walker.res = "";
@@ -1767,7 +1773,6 @@ function genLoop(walker) {
     console.log(debug);
     addComponentTo(walker, currentComponent);
     //walker.res += compGen;
-
 
     if (currentComponent.text.includes("G(")) {
       walker.collecting = true;
@@ -1787,6 +1792,17 @@ function genLoop(walker) {
     }
     if (walker.collecting === false) {
         walker.res += compGen
+    }
+
+    console.log(currentComponent.text);
+    if (currentComponent.text.includes("every(")) {
+      console.log("EVERY!")
+      let graphName = currentComponent.every[2];
+      let tagName = currentComponent.every[1];
+      console.log(tagName);
+      console.log(graphName)
+      let res = loopTagRunGraphs(tagName, graphName, walker)
+      compGen = compGen.replace(/every\(\w+\,\s\w+\)/, res)
     }
 
     //This replaces inline tags if the tags exist on each reference object
@@ -2029,6 +2045,7 @@ for (let n = 0; n < w.refs.length; n++) {
 */
 
 function addChoiceToWalker(w, c) {
+  //THIS IS ONE OF THE FUNCTIONS THAT IS RUN WHEN YOU CLICK ON A CHOICE OR LINK
   for (let p in w.tags) {
      for (let i = 0; i < c.variables.length; i++) {
        let cv = _.cloneDeep(c.variables[i]);
@@ -2603,8 +2620,40 @@ function saveOldRefs(w) {
   }
 }
 
+function loopTagRunGraphs(tag, graph, w) {
+  console.log("looping")
+  let res = "";
+  for (let p in w.tags) {
+    let currentRef = w.tags[`${p}`]
+    console.log(currentRef)
+    if (currentRef.indexOf(tag) > -1) {
+      console.log(`${tag} exists on ${p}`)
+      w.refs = [`${p}`];
+      let lastGrid = g.currentGrid;
+      let lastX = w.x;
+      let lastY = w.y;
+      let lastZ = w.z
+      graph = replaceVariable(w, graph);
+      let nextGrid = getGridByName(g, graph);
+      nextGrid.stacked = true;
+      console.log(w.refs)
+      res += generate(nextGrid, w);
+      nextGrid.stacked = false;
+      g.currentGrid = lastGrid;
+      w.x = lastX;
+      w.y = lastY;
+      w.z = lastZ
+    }
+  }
+  return res;
+}
+
 function addComponentTo(w, comp) {
   //w.tags is the refs - each ref has array of tags
+
+  if (comp.every) {
+    w.every = comp.every;
+  }
 
   if (comp.anyRef.length > 0) {
     let anyRefArr = [];
@@ -2713,17 +2762,12 @@ function addComponentTo(w, comp) {
     }
   }
 
-
   if (comp.variables) {
 
     for (let p in w.tags) {
        for (let i = 0; i < comp.variables.length; i++) {
          let cv = _.cloneDeep(comp.variables[i]);
-         console.log(cv.ref);
-         console.log(p);
-         console.log(w.refs);
          if (cv.ref.indexOf(p) > -1 || (cv.ref === "refs" && w.refs.indexOf(p) > -1)) {
-           console.log("matched")
            let exists = false
            for (let n = 0; n < w.tags[`${p}`].variables.length; n++) {
              let wv = w.tags[`${p}`].variables[n];
