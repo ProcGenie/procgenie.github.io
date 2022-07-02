@@ -242,7 +242,7 @@ function parseTags(component) {
   let conditionalTags = component.text.match(/\?\(([\<\>\w\s]+)\)/)
   let notTags = component.text.match(/\!\(([\<\>\w\s]+)\)/)
 
-  let every = component.text.match(/every\((\w+)\,\s(\w+)/)
+  let every = component.text.match(/every\(([\w\s]+)\,\s(\w+)/)
 
   if (every) {
     component.every = every;
@@ -1725,11 +1725,11 @@ function genLoop(walker) {
     if (currentComponent.text.includes("every(")) {
       console.log("EVERY!")
       let graphName = currentComponent.every[2];
-      let tagName = currentComponent.every[1];
-      console.log(tagName);
+      let tagNames = currentComponent.every[1];
+      console.log(tagNames);
       console.log(graphName)
-      let res = loopTagRunGraphs(tagName, graphName, walker)
-      compGen = compGen.replace(/every\(\w+\,\s\w+\)/, res)
+      let res = loopTagRunGraphs(tagNames, graphName, walker)
+      compGen = compGen.replace(/every\([\w\s]+\,\s\w+\)/, res)
     }
 
     //This replaces inline tags if the tags exist on each reference object
@@ -2491,14 +2491,25 @@ function saveOldRefs(w) {
   }
 }
 
-function loopTagRunGraphs(tag, graph, w) {
+function loopTagRunGraphs(tags, graph, w) {
   console.log("looping")
+  tags = tags.split(" ")
+
   let res = "";
   for (let p in w.tags) {
+    let conflicts = false;
     let currentRef = w.tags[`${p}`]
+    console.log(p)
     console.log(currentRef)
-    if (currentRef.indexOf(tag) > -1) {
-      console.log(`${tag} exists on ${p}`)
+    console.log(tags)
+    for (let n = 0; n < tags.length; n++) {
+      if (currentRef.indexOf(tags[n]) === -1) {
+        conflicts = true;
+        console.log(conflicts)
+      }
+    }
+    if (conflicts === false) {
+      console.log(`${tags} exist on ${p}`)
       w.refs = [`${p}`];
       let lastGrid = g.currentGrid;
       let lastX = w.x;
