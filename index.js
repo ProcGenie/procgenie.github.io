@@ -236,7 +236,7 @@ function parseTags(component) {
   let allRefs = component.text.match(/allRefs\(([\<\>\w\s]+)\)/) //return refs with all tags
   let notRefs = component.text.match(/notRefs\(([\<\>\w\s]+)\)/) // return refs that do not match tags
   let getRefsByName = component.text.match(/getRefsByName\(([\<\>\w\s]+)\)/)
-  let ref = component.text.match(/refs\(([\<\>\w\s]+)\)/)
+  let ref = component.text.match(/refs\(([\<\>\w\s\(\)]+)\)/)
   let addTags = component.text.match(/\+\(([\<\>\w\s]+)\)/)
   let removeTags = component.text.match(/\-\(([\<\>\w\s]+)\)/)
   let conditionalTags = component.text.match(/\?\(([\<\>\w\s]+)\)/)
@@ -339,7 +339,7 @@ function parseTags(component) {
   } else {
     component.notTags = []
   }
-  component.text = component.text.replace(/refs\(([\<\>\w\s]+)\)/, "")
+  component.text = component.text.replace(/refs\(([\<\>\w\s\(\)]+)\)/, "")
   component.text = component.text.replace(/\+\([\<\>\w\s]+\)/, "")
   component.text = component.text.replace(/\-\([\<\>\w\s]+\)/, "")
   component.text = component.text.replace(/\?\([\<\>\w\s]+\)/, "")
@@ -2601,6 +2601,13 @@ function addComponentTo(w, comp) {
   if (comp.refs.length > 0) {
     saveOldRefs(w);
     w.refs = comp.refs
+    for (let n = 0; n < w.refs.length; n++) {
+      if (w.refs[n].includes("G(")) {
+        let arr = runGrids(w, w.refs[n])
+        arr = arr.split(" ");
+        w.refs = arr;
+      }
+    }
   }
   for (let j = 0; j < w.refs.length; j++) {
     //added below to fix bug where variables not available without prior tags. Need to clean up remainder of function
