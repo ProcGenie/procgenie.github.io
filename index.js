@@ -156,46 +156,46 @@ function replaceVariable(e, localization) {
   return l;
 }
 
-function getRandomInt(min, max) {
-  //inclusive on both sides
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function createGenerator() {
+  let g = {};
+  g.themes = [
+    {
+      name: "default",
+      color: "black",
+      bg: "white",
+      links: "#218c74",
+      choiceText: "black",
+      choicebg: "white",
+      choiceHoverbg: "black",
+      choiceHoverText: "white",
+      border: "black"
+    }
+  ];
+  g.currentTheme = g.themes[0]
+  g.parser = {
+    active: false,
+    directions: [],
+    gridName: "",
+    variables: []
+  }
+  g.timers = [];
+  g.defaultTimers = [];
+  g.textTimersTimeout = [];
+  g.callbacks = [];
+  g.output = "";
+  g.choices = [];
+  g.links = [];
+  g.speak = [];
+  g.speakers = [];
+  g.arrays = {}
+  g.locations = [];
+  g.gridTypes = ["default"];
+  g.savedObjects = [];
+  g.res = []
+  return g;
 }
 
-let g = {};
-g.themes = [
-  {
-    name: "default",
-    color: "black",
-    bg: "white",
-    links: "#218c74",
-    choiceText: "black",
-    choicebg: "white",
-    choiceHoverbg: "black",
-    choiceHoverText: "white",
-    border: "black"
-  }
-];
-g.currentTheme = g.themes[0]
-g.parser = {
-  active: false,
-  directions: [],
-  gridName: "",
-  variables: []
-}
-g.timers = [];
-g.defaultTimers = [];
-g.textTimersTimeout = [];
-g.callbacks = [];
-g.output = "";
-g.choices = [];
-g.links = [];
-g.speak = [];
-g.speakers = [];
-g.arrays = {}
-g.locations = [];
-g.gridTypes = ["default"];
-g.savedObjects = [];
-g.res = []
+
 
 
 
@@ -353,10 +353,6 @@ function parseTags(component) {
 
 let cellArray = [];
 
-function GID(el) {
-  return document.getElementById(el);
-}
-
 
 function startup() {
   g.grids = [];
@@ -366,6 +362,8 @@ function startup() {
   g.magnification = 5
 
 }
+let g = createGenerator()
+
 startup();
 
 function normBrackets(s) {
@@ -571,9 +569,6 @@ function process(unprocessed, coords) {
       c.teleport.y = m[3]
       c.teleport.z = m[4]
       c.text = c.text.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
-      /*currentCell = getCell(walker.x, walker.y);
-      possibleComponents = createPossibleComponentsArr(walker, currentCell.components);
-      currentComponent = getComponent(possibleComponents);*/
     }
 
 
@@ -862,11 +857,6 @@ function showHide(el) {
     GID(el).style.display = "none";
   }
 }
-
-/*GID("gogram").onclick = function() {
-  GID("landing").style.display = "none";
-}
-*/
 
 //otherwise, boxes only appear on second click...
 GID("cell-box").style.display = "none";
@@ -1244,9 +1234,6 @@ function addParserIfActive() {
     let grid = g.parser.gridName
     GID("main-text-box").innerHTML += `<input id="parser"'></input><div id="submit-parser">Submit</div>`
     g.parser.active = false;
-    /*g.parserEl = GID("submit-parser");
-    g.parserEl.addEventListener('click', myFunc, false);
-    g.parserEl.param = grid;*/
     addClickToParser();
   }
 }
@@ -1275,14 +1262,6 @@ function applyTheme() {
   for (let i = 0; i < links.length; i++) {
     links[i].style.color = g.currentTheme.links;
   }
-
-  /*
-  let els = document.getElementsByClassName("choiceslist");
-  for (let i = 0; i < els.length; i++) {
-    els[i].style.background = g.currentTheme.choicebg;
-    els[i].style.color = g.currentTheme.choiceText
-  }
-  */
 }
 
 function runGenerationProcess(grid, w) {
@@ -1527,58 +1506,6 @@ function getCell(sg, x, y, z) {
     if (parseInt(sg.cellArray[i].x) === parseInt(x) && parseInt(sg.cellArray[i].y) === parseInt(y) && parseInt(sg.cellArray[i].z) === parseInt(z)) {
       return sg.cellArray[i];
     }
-  }
-}
-function getCellArr(component, x, y, z) {
-  // TODO: incorporate weighting
-  //// TODO: NOT USED DELETE
-  if (component.directions && component.directions.length > 0) {
-    let dArr = [];
-    for (let i = 0; i < component.directions.length; i++) {
-      let targetX = parseInt(x);
-      let targetY = parseInt(y);
-      let targetZ = parseInt(z);
-      let validDirection = true;
-      let d = component.directions[i];
-
-      if (d === "E") {
-        targetX += 1;
-      } else if (d === "W") {
-        targetX -= 1;
-      } else if (d === "N") {
-        targetY += 1;
-      } else if (d === "S") {
-        targetY -= 1;
-      } else if (d === "NW") {
-        targetY += 1;
-        targetX -= 1;
-      } else if (d === "NE") {
-        targetY += 1;
-        targetX += 1;
-      } else if (d === "SE") {
-        targetY -= 1;
-        targetX += 1;
-      } else if (d === "SW") {
-        targetY -= 1;
-        targetX -= 1;
-      } else if (d === "U") {
-        targetZ += 1;
-      } else if (d === "D") {
-        targetZ -= 1;
-      } else {
-        validDirection = false;
-      }
-      if (validDirection === true) {
-        let dir = get(targetX, targetY);
-
-        if (dir !== undefined) {
-          dArr.push(dir)
-        }
-      }
-    }
-    return dArr;
-  } else {
-    return "STOP";
   }
 }
 
@@ -2015,35 +1942,6 @@ function genLoop(walker) {
   return res;
 }
 
-/*
-
-
-for (let n = 0; n < w.refs.length; n++) {
-  let p = w.refs[n];
-  let o = w.tags[`${p}`]
-  if (o && o.variables) {
-    for (let i = 0; i < o.variables.length; i++) {
-      if (variablesHaveSameName(o.variables[i], compVar)) {
-        exists = true;
-        if (compare(o.variables[i].value, compVar.operation, compVar.value) === false) {
-          return true;
-        }
-      }
-    }
-    if (exists === false) {
-      if (compVar.operation === "=") {
-        return false;
-      } else {
-        return true;
-      }
-    }
-    return false;
-  }
-  return false;
-}
-
-*/
-
 function addChoiceToWalker(w, c) {
   //THIS IS ONE OF THE FUNCTIONS THAT IS RUN WHEN YOU CLICK ON A CHOICE OR LINK
   for (let p in w.tags) {
@@ -2073,7 +1971,6 @@ function addChoiceToWalker(w, c) {
                wv.value = runFunctions(w, wv.value);
                console.log(wv.value);
                console.log(cv.value);
-               //cv.value = runFunctions(w, cv.value);
                let newValue = doMath(wv.value, cv.operation, cv.value, w)
                 w.tags[`${p}`].variables[n].value = replaceVariable(w, newValue);
              }
@@ -2104,29 +2001,6 @@ function addChoiceToWalker(w, c) {
        }
      }
   }
-  /*
-  if (c.variables) {
-    for (let i = 0; i < c.variables.length; i++) {
-      let trueValue = replaceVariable(w, c.variables[i].value)
-      let exists = false;
-      for (let j = 0; j < w.variables.length; j++) {
-        if (variablesHaveSameName(w.variables[j], c.variables[i])) {
-          exists = true;
-          if (isComparisonOperator(c.variables[i].operation) === false) {
-            let newValue = doMath(w.variables[j].value, c.variables[i].operation, trueValue, w)
-            w.variables[j].value = newValue;
-          }
-        }
-      }
-      if (exists === false) {
-        //address fact that some variables are strings.
-        let o = {};
-        o.name = c.variables[i].name;
-        o.value = doMath(0, c.variables[i].operation, c.variables[i].value, w)
-        w.variables.push(o);
-      }
-    }
-  }*/
 }
 
 function runGrids(w, t) {
@@ -2458,9 +2332,6 @@ function runFunctions(w, t) {
 
         }
       }
-      //let c = document.getElementById("outputCanvas");
-      //let ctx = c.getContext("2d");
-      //special case for image draw
       if (f.includes("drawImage")) {
         let img = new Image;
         img.src = `${args[0]}`;
@@ -2671,7 +2542,7 @@ function addComponentTo(w, comp) {
         anyRefArr.push(p)
       }
     }
-    w.refs = anyRefArr //DOES THIS WORK
+    w.refs = anyRefArr
   }
 
   if (comp.randRef.length > 0) {
@@ -2971,24 +2842,6 @@ function choiceVariableComparisonsFail(w, compVar) {
     }
     return false;
   }
-  /*
-  for (let i = 0; i < w.variables.length; i++) {
-    if (variablesHaveSameName(w.variables[i], compVar)) {
-      exists = true;
-      if (compare(w.variables[i].value, compVar.operation, compVar.value) === false) {
-        return true;
-      }
-    }
-  }
-  if (exists === false) {
-    if (compVar.operation === "=") {
-      return false;
-    } else {
-      return true;
-    }
-  }
-  return false;
-  */
 }
 
 function variablesConflict(w, c) {
