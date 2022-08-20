@@ -817,7 +817,7 @@ function drawGrid(fontSize) {
       g.currentGrid.currentX = x;
       g.currentGrid.currentY = y;
       g.currentGrid.currentZ = z
-      drawGrid();
+      //drawGrid();
       GID(coords).focus();
       GID("gridinfo").innerHTML = `Grid: ${g.currentGrid.name}, ${coords}`
     }
@@ -847,6 +847,17 @@ GID("minusicon").onclick = function() {
     g.currentGrid.magnification += 1;
   }
   drawGrid("s");
+}
+
+GID("increaseFontIcon").onclick = function() {
+  console.log("hi!")
+  globalFontSize += 3
+  drawGrid()
+}
+
+GID("decreaseFontIcon").onclick = function() {
+  globalFontSize -= 3
+  drawGrid()
 }
 
 function showHide(el) {
