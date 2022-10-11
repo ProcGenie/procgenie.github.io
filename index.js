@@ -1077,6 +1077,13 @@ function removeCapitalization(t) {
 }
 
 function outputText(t) {
+  t = deleteOptionalWords(t)
+  t = cutSentences(t)
+  t = deleteOptionalSentences(t);
+  t = deleteOptionalParagraphs(t)
+  t = deleteMultipleParagraphs(t);
+  t = deleteLargeChunk(t)
+  t = correctPunctuation(t)
   t = replaceAnythingInBrackets(t);
   t = addCapitalization(t);
   t = removeCapitalization(t);
@@ -2280,10 +2287,15 @@ function runFunctions(w, t) {
         t = t.replace(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/, tagText)
       }
     } else if (t && t.includes("**")) {
-      let m = t.match(/\*\*([\w\s\d]+)\*\*/);
-      let arr = m[1].split(" ");
+      let m = t.match(/\*\*([\w\s\d,]+)\*\*/);
+      let arr = [];
+      if (m[1].includes(",")) {
+        arr = m[1].split(",")
+      } else {
+        arr = arr = m[1].split(" ")
+      }
       let res = arr[getRandomInt(0, arr.length -1)];
-      t = t.replace(/\*\*[\w\s\d]+\*\*/, res)
+      t = t.replace(/\*\*[\w\s\d,]+\*\*/, res)
     } else if (t && t.includes("pt(")) {
       let m = t.match(/pt\(([\w\"\/\d]+)\)/);
       let tileName = m[1];
@@ -3135,4 +3147,94 @@ GID("delete-rule-btn").onclick = function() {
   GID("gridType").value = g.currentGrid.type;
   drawGrid();
   alert(`You have deleted the ${deleted} grid and are now on the ${g.currentGrid.name} grid.`)
+}
+
+function deleteOptionalWords(text) {
+  let matches = text.match(/<DW(\d+>|>)[A-Za-z\w\s\+\.\-\=\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+<\/DW>/g);
+  if (matches) {
+    text = probabilityDelete(matches, text, "");
+  }
+  text = text.replace(/<DW(\d+>|>)/g, "")
+  text = text.replace(/<\/DW>/g, "")
+  return text
+}
+
+function deleteOptionalSentences(text) {
+  let matches = text.match(/<DS(\d+>|>)[A-Za-z\w\s\+\.\-\=\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+<\/DS>/g)
+  if (matches) {
+    console.log(matches)
+    text = probabilityDelete(matches, text, "");
+  }
+  console.log(text)
+  text = text.replace(/<DS(\d+>|>)/g, "")
+  text = text.replace(/<\/DS>/g, "")
+  return text
+}
+
+function deleteOptionalParagraphs(text) {
+  let matches = text.match(/<DP(\d+>|>)[A-Za-z\w\s\+\.\-\=\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+<\/DP>/g)
+  if (matches) {
+    text = probabilityDelete(matches, text, "");
+  }
+  text = text.replace(/<DP(\d+>|>)/g, "")
+  text = text.replace(/<\/DP>/g, "")
+  return text
+}
+
+function deleteMultipleParagraphs(text) {
+  let matches = text.match(/<DM(\d+>|>)[A-Za-z\w\s\+\.\-\=\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+<\/DM>/g)
+  if (matches) {
+    text = probabilityDelete(matches, text, "");
+  }
+  text = text.replace(/<DM(\d+>|>)/g, "")
+  text = text.replace(/<\/DM>/g, "")
+  return text
+}
+
+function deleteLargeChunk(text) {
+  let matches = text.match(/<DL(\d+>|>)[A-Za-z\w\s\+\.\-\=\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+<\/DLL>/g)
+  if (matches) {
+    text = probabilityDelete(matches, text, "");
+  }
+  text = text.replace(/<DL(\d+>|>)/g, "")
+  text = text.replace(/<\/DL>/g, "")
+  return text
+}
+
+function cutSentences(text) {
+  //ends a sentence at that point and deletes remainder
+  let matches = text.match(/<CS(\d+>|>)[A-Za-z\w\s\+\.\-\=\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+<\/CS>/g)
+  if (matches) {
+    text = probabilityDelete(matches, text, ".");
+  }
+  text = text.replace(/<CS(\d+>|>)/g, "")
+  text = text.replace(/<\/CS>/g, "")
+  return text
+}
+
+function probabilityDelete(matches, text, rep) {
+  for (let i = 0; i < matches.length; i++) {
+    console.log(matches[i])
+    let m = matches[i].match(/\d+/)
+    let comp;
+    if (m) {
+      m = parseInt(m)
+      comp = m
+    } else {
+      comp = 50;
+    }
+    let num = getRandomInt(1, 100)
+    if (num < comp) {
+      text = text.replace(matches[i], rep)
+    }
+  }
+  return text
+}
+
+function correctPunctuation(text) {
+  console.log(text)
+  text = text.replace(/\s+,/g, ", ")
+  text = text.replace(/\s+\./g, ". ")
+  text = text.replace(/\s+\?/g, "? ")
+  return text
 }
