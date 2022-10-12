@@ -877,8 +877,8 @@ GID("cell-box").onclick = function() {
   //showHide("cell-box");
 }
 
-function keep(t) {
-  if (t.includes("keep()")) {
+function keep(t, num) {
+  if (num || t.includes("keep()")) {
     t = t.replace(/keep\(\)/g, "")
   } else {
     GID("main-text-box").innerHTML = "";
@@ -1203,8 +1203,8 @@ function addChoiceClickEvents() {
   }
 }
 
-function processRawGeneration(t) {
-  t = keep(t);
+function processRawGeneration(t, num) {
+  t = keep(t, num);
   t = addKeyValues(t);
   t = deleteUnprocessedChoices(t);
   t = addHyperlinks(t);
@@ -1282,16 +1282,30 @@ function applyTheme() {
   }
 }
 
-function runGenerationProcess(grid, w) {
+function runGenerationProcess(grid, w, num) {
   g.output = "";
   //SHOULD the first if grid && w be fleshed out more with some of the else logic?
   let t = "";
   if (grid && w) {
-    t = generate(grid, w, true);
+    if (num) {
+      while (num > 0) {
+        t += generate(grid, w, true);
+        num -= 1;
+      }
+    } else {
+      t += generate(grid, w, true);
+    }
   } else {
-    t = generate(null, null, null);
+    if (num) {
+      while (num > 0) {
+        t += generate(null, null, null);
+        num -= 1;
+      }
+    } else {
+      t += generate(null, null, null);
+    }
   }
-  t = processRawGeneration(t);
+  t = processRawGeneration(t, num);
   applyTheme();  //APPLYING THEME TWICE ENSURES THAT THEME IS CORRECT ON FIRST GENERATION
   t = postProcess(t);
   outputText(t);
@@ -1378,6 +1392,29 @@ GID("run-grid-drop").onclick = function() {
   applyTheme();
   kv = [];
   runGenerationProcess(null, null);
+  //reset any loop components; only works on second click for some reason.
+  if (g.loop) {
+    let lg = getGridByName(g, g.loop.gridName);
+    let cell = getCell(lg, g.loop.x, g.loop.y, g.loop.z)
+    let component = cell.components[0];
+    component.loop.iterations = component.loop.maxIterations;
+  }
+  GID("generator-area").style.display = "none";
+  GID("flexcontainer").style.display = "block";
+  //showHide("cell-box")
+  let c = document.getElementById("outputCanvas");
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
+}
+
+GID("big-run-grid-drop").onclick = function() {
+  resetTheme();
+  console.log(g.currentTheme);
+  g.savedObjects = [];
+  g.currentGrid.stacked = false;
+  applyTheme();
+  kv = [];
+  runGenerationProcess(null, null, 100);
   //reset any loop components; only works on second click for some reason.
   if (g.loop) {
     let lg = getGridByName(g, g.loop.gridName);
@@ -1730,6 +1767,7 @@ function genLoop(walker) {
       console.log(walker.res);
     } else {
       compGen += replaceVariable(walker, currentComponent.text);
+      compGen = runAnonymous(compGen)
       compGen = runFunctions(walker, compGen);
       //walker.res = replaceVariable(walker, walker.res);
       //walker.res = runFunctions(walker, walker.res)
@@ -2022,6 +2060,7 @@ function addChoiceToWalker(w, c) {
 }
 
 function runGrids(w, t) {
+  t = runAnonymous(t)
   console.log(t);
   let stillT = true;
   while (stillT === true) {
@@ -3237,4 +3276,115 @@ function correctPunctuation(text) {
   text = text.replace(/\s+\./g, ". ")
   text = text.replace(/\s+\?/g, "? ")
   return text
+}
+
+function runAnonymous(t) {
+  while(t.match(/\<\d\>/)) {
+    if (t && t.includes("<0>")) {
+     let m = t.match(/\<0\>([\w\s,\.\?\!\;\:\(\)]+)\<\/0\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<0\>([\w\s,\.\?\!\;\:\(\)]+)\<\/0\>/, res)
+   } else if (t && t.includes("<1>")) {
+     let m = t.match(/\<1\>([\w\s,\.\?\!\;\:\(\)0]+)\<\/1\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<1\>([\w\s,\.\?\!\;\:\(\)0]+)\<\/1\>/, res)
+   } else if (t && t.includes("<2>")) {
+     let m = t.match(/\<2\>([\w\s,\.\?\!\;\:\(\)0-1]+)\<\/2\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<2\>([\w\s,\.\?\!\;\:\(\)0-1]+)\<\/2\>/, res)
+   } else if (t && t.includes("<3>")) {
+     let m = t.match(/\<3\>([\w\s,\.\?\!\;\:\(\)0-2]+)\<\/3\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<3\>([\w\s,\.\?\!\;\:\(\)0-2]+)\<\/3\>/, res)
+   } else if (t && t.includes("<4>")) {
+     let m = t.match(/\<4\>([\w\s,\.\?\!\;\:\(\)0-3]+)\<\/4\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<4\>([\w\s,\.\?\!\;\:\(\)0-3]+)\<\/4\>/, res)
+   } else if (t && t.includes("<5>")) {
+     let m = t.match(/\<4\>([\w\s,\.\?\!\;\:\(\)0-4]+)\<\/5\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<5\>([\w\s,\.\?\!\;\:\(\)0-4]+)\<\/5\>/, res)
+   } else if (t && t.includes("<6>")) {
+     let m = t.match(/\<6\>([\w\s,\.\?\!\;\:\(\)0-5]+)\<\/5\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<6\>([\w\s,\.\?\!\;\:\(\)0-5]+)\<\/5\>/, res)
+   } else if (t && t.includes("<7>")) {
+     let m = t.match(/\<7\>([\w\s,\.\?\!\;\:\(\)0-6]+)\<\/7\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<7\>([\w\s,\.\?\!\;\:\(\)0-6]+)\<\/7\>/, res)
+   } else if (t && t.includes("<8>")) {
+     let m = t.match(/\<8\>([\w\s,\.\?\!\;\:\(\)0-7]+)\<\/8\>/);
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<8\>([\w\s,\.\?\!\;\:\(\)0-7]+)\<\/8\>/, res)
+   } else if (t && t.includes("<9>")) {
+     console.log("NINE!")
+     let m = t.match(/\<9\>([\w\s\,\.\?\!\(\)0-8]+)\<\/9\>/);
+     console.log(t)
+     console.log(m)
+     let arr = [];
+     if (m[1].includes(",")) {
+       arr = m[1].split(",")
+     } else {
+       arr = arr = m[1].split(" ")
+     }
+     let res = arr[getRandomInt(0, arr.length -1)];
+     t = t.replace(/\<9\>([\w\s,\.\?\!\;\:\(\)0-8]+)\<\/9\>/, res)
+   }
+  }
+  console.log(t)
+  return t;
 }
