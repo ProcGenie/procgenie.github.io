@@ -1767,7 +1767,6 @@ function genLoop(walker) {
       console.log(walker.res);
     } else {
       compGen += replaceVariable(walker, currentComponent.text);
-      compGen = runAnonymous(compGen)
       compGen = runFunctions(walker, compGen);
       //walker.res = replaceVariable(walker, walker.res);
       //walker.res = runFunctions(walker, walker.res)
@@ -2060,7 +2059,6 @@ function addChoiceToWalker(w, c) {
 }
 
 function runGrids(w, t) {
-  t = runAnonymous(t)
   console.log(t);
   let stillT = true;
   while (stillT === true) {
@@ -3276,115 +3274,4 @@ function correctPunctuation(text) {
   text = text.replace(/\s+\./g, ". ")
   text = text.replace(/\s+\?/g, "? ")
   return text
-}
-
-function runAnonymous(t) {
-  while(t.match(/\<\d\>/)) {
-    if (t && t.includes("<0>")) {
-     let m = t.match(/\<0\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)]+)\<\/0\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<0\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)]+)\<\/0\>/, res)
-   } else if (t && t.includes("<1>")) {
-     let m = t.match(/\<1\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0]+)\<\/1\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<1\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0]+)\<\/1\>/, res)
-   } else if (t && t.includes("<2>")) {
-     let m = t.match(/\<2\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-1]+)\<\/2\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<2\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-1]+)\<\/2\>/, res)
-   } else if (t && t.includes("<3>")) {
-     let m = t.match(/\<3\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-2]+)\<\/3\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<3\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-2]+)\<\/3\>/, res)
-   } else if (t && t.includes("<4>")) {
-     let m = t.match(/\<4\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-3]+)\<\/4\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<4\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-3]+)\<\/4\>/, res)
-   } else if (t && t.includes("<5>")) {
-     let m = t.match(/\<4\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-4]+)\<\/5\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<5\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-4]+)\<\/5\>/, res)
-   } else if (t && t.includes("<6>")) {
-     let m = t.match(/\<6\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-5]+)\<\/5\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<6\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-5]+)\<\/5\>/, res)
-   } else if (t && t.includes("<7>")) {
-     let m = t.match(/\<7\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-6]+)\<\/7\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<7\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-6]+)\<\/7\>/, res)
-   } else if (t && t.includes("<8>")) {
-     let m = t.match(/\<8\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-7]+)\<\/8\>/);
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<8\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-7]+)\<\/8\>/, res)
-   } else if (t && t.includes("<9>")) {
-     console.log("NINE!")
-     let m = t.match(/\<9\>([\w\s\,\.\?\!\(\)0-8]+)\<\/9\>/);
-     console.log(t)
-     console.log(m)
-     let arr = [];
-     if (m[1].includes(",")) {
-       arr = m[1].split(",")
-     } else {
-       arr = arr = m[1].split(" ")
-     }
-     let res = arr[getRandomInt(0, arr.length -1)];
-     t = t.replace(/\<9\>([\w\s,\.\?\!\;\:\"\”\“\'\(\)0-8]+)\<\/9\>/, res)
-   }
-  }
-  console.log(t)
-  return t;
 }
