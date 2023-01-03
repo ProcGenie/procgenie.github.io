@@ -59,8 +59,8 @@ textarea {
 
 
 .small-icon {
-  width: 8vh;
-  height: 8vh;
+  width: 2vh;
+  height: 2vh;
 }
 
 .small-icon:hover {
@@ -220,10 +220,12 @@ textarea {
 
 .inner-cell {
   resize: none;
-  width: 98%;
   height: 100%;
+	width: 100%;
   border: 1px solid black;
 	font-size: 9px;
+	margin: 0px;
+	display: inline-block;
 }
 
 .grid-list {
@@ -489,11 +491,8 @@ textarea {
 }
 
 .big-table {
-  width: 80vw;
-  height: 70vh;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: 10px;
+  width: 100vw;
+  height: 85vh;
 }
 
 #run-grid-drop:hover {
@@ -564,4 +563,71 @@ textarea {
 	color: white;
 	width: 100vw;
 	height: 100vh;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #ecf0f1;
+  font-size: 0.9em
+}
+
+li {
+  float: left;
+}
+
+li a, .dropbtn {
+  display: inline-block;
+  color: black;
+  text-align: center;
+  padding: 5px 7px;
+  text-decoration: none;
+}
+
+li.dropdown2 {
+  display: inline-block;
+}
+
+.dropdown2-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown2-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown2-content label {
+	color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown2-content label:hover {
+	background-color: #f1f1f1;
+	cursor: pointer
+}
+
+
+.dropdown2-content a:hover {background-color: #f1f1f1;}
+
+.dropdown2:hover .dropdown2-content {
+  display: block;
+}
+
+.dropdownlink:hover {
+	cursor: pointer;
+	color: #2980b9;
 }

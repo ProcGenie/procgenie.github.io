@@ -14,39 +14,70 @@
 <!--BEGIN GENERATOR----------------------------->
 <div id="generator-area">
 
-    <nav class="slab" id="navbar">
-      <div class="dropdown">
-        <span onclick ="fileDropdown()" class="dropbtn seplinks">File</span>
-        <div id="fileDropdown" class="dropdown-content">
-          <a href="#" id="new-generator">New</a>
-          <a href="#" id="save-generator">Local Save</a>
-          <a href="#" id="load-generator">Local Load</a>
-          <a href="#" id="export-grid">Export Grid</a>
-          <a href="index.html" id="new-generator">Home Page</a>
+  <div class="menu">
+    <ul>
+      <li class="dropdown2">
+        <a href="javascript:void(0)" class="dropbtn">File</a>
+        <div class="dropdown2-content">
+          <a class="dropdownlink" href="#" id="new-generator">New</a>
+          <a class="dropdownlink" href="#" id="save-generator">Local Save</a>
+          <a class="dropdownlink" href="#" id="load-generator">Local Load</a>
+          <a class="dropdownlink" href="#" id="export-grid">Export Grid</a>
+          <a class="dropdownlink" href="index.html" id="new-generator">Home Page</a>
         </div>
-      </div>
-      <div class="dropdown">
-        <span onclick ="ruleDropdown()" class="dropbtn seplinks">Graphs</span>
-        <div id="ruleDropdown" class="dropdown-content">
-          <a href="#" id="create-rule-btn">Create Graph</a>
-          <a href="#" id="create-themes-btn">Change Theme</a>
-          <a href="#" id="help-btn">Help</a>
+      </li>
+      <li class="dropdown2">
+        <a href="javascript:void(0)" class="dropbtn">Graphs</a>
+        <div class="dropdown2-content">
+          <a class="dropdownlink" href="#" id="create-rule-btn">Create Graph</a>
+          <a class="dropdownlink" href="#" id="create-themes-btn">Change Theme</a>
         </div>
-      </div>
-      <div class="dropdown">
-        <span onclick ="gridDropdown()" class="dropbtn seplinks">Prefabs</span>
-        <div id="gridDropdown" class="dropdown-content">
-          <a href="#" id="load-prefabs">Load Prefab Grids</a>
+      </li>
+      <li class="dropdown2">
+        <a href="javascript:void(0)" class="dropbtn">Prefabs</a>
+        <div class="dropdown2-content">
+          <a class="dropdownlink" href="#" id="load-prefabs">Load Prefab Grids</a>
         </div>
-      </div>
-      <div class="dropdown">
-        <span id="run-grid-drop">Run</span>
-        <span id="big-run-grid-drop">Run100</span>
-      </div>
-    </nav>
-    <div id="left-sidebar">
+      </li>
+      <li class="dropdown2">
+        <a href="javascript:void(0)" class="dropbtn">Generate</a>
+        <div class="dropdown2-content">
+          <a class="dropdownlink" id="run-grid-drop">Generate Once</a>
+          <a class="dropdownlink" id="big-run-grid-drop">Generate 100 Times</a>
+        </div>
+      </li>
+      <li class="dropdown2">
+        <a href="javascript:void(0)" class="dropbtn">Help</a>
+        <div class="dropdown2-content">
+          <a class="dropdownlink" href="guide.html" id="help-btn">Guide</a>
+          <a class="dropdownlink" href="reference.html">Quick Reference</a>
+          <a class="dropdownlink" href="https://www.youtube.com/playlist?list=PL00f4P8CC8bXEsFxg0Y1XIuhce6sDac7Z">Video Tutorial</a>
+        </div>
+      </li>
+      <li class="dropdown2">
+        <a href="javascript:void(0)" class="dropbtn">About</a>
+        <div class="dropdown2-content">
+          <a class="dropdownlink" href="https://twitter.com/procgenie">Twitter</a>
+        </div>
+      </li>
+    </ul>
+  </div>
 
-    </div>
+    <nav class="slab" id="navbar">
+      <div class="tooltip"><img class="small-icon tooltip" id="plusicon" src="plussign.png"></img><span class="tooltiptext">Zoom In</span></div>
+      <div class="tooltip"><img class="small-icon" id="minusicon" src="minussign.png"></img><span class="tooltiptext">Zoom Out</span></div>
+      <div class="tooltip"><img class="small-icon" id="saveicon" src="save.png"></img><span class="tooltiptext">Save</span></div>
+      <div class="tooltip"><img class="small-icon" id="loadicon" src="load.png"></img><span class="tooltiptext">Load</span></div>
+      <div class="tooltip"><img class="small-icon" id="increaseFontIcon" src="increasefont.png"></img><span class="tooltiptext">Increase Font Size</span></div>
+      <div class="tooltip"><img class="small-icon" id="decreaseFontIcon" src="decreasefont.png"></img><span class="tooltiptext">Decrease Font Size</span></div>
+      <div class="tooltip"><img class="small-icon" id="upIcon" src="uparrow.png"></img><span class="tooltiptext">Scroll Up</span></div>
+      <div class="tooltip"><img class="small-icon" id="downIcon" src="downarrow.png"></img><span class="tooltiptext">Scroll Down</span></div>
+      <div class="tooltip"><img class="small-icon" id="leftIcon" src="leftarrow.png"></img><span class="tooltiptext">Scroll Left</span></div>
+      <div class="tooltip"><img class="small-icon" id="rightIcon" src="rightarrow.png"></img><span class="tooltiptext">Scroll Right</span></div>
+    </nav>
+
+
+
 
     <!--TRANSPLANT-->
 
@@ -65,30 +96,11 @@
     </div>
 
     <div class="hidable" id="grammar-gen">
-      <form class="table-form slab">
-        <div class="tableRow">
-          <p>Graph Name:</p>
-          <p><input type="text" name="gridName" id="gridName"></p>
-        </div>
-        <div class="tableRow">
-          <p>Graph Type:</p>
-          <p><input type="text" name="gridType" id="gridType"></p>
-        </div>
-      </form>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
-      <button style="margin-left: 20px; margin-bottom: 20px;" id="delete-rule-btn">Delete</button>
       <div id="grid">
 
       </div>
 
-      <div class="toolbar">
-        <div class="tooltip"><img class="small-icon tooltip" id="plusicon" src="plussign.png"></img><span class="tooltiptext">Zoom In</span></div>
-        <div class="tooltip"><img class="small-icon" id="minusicon" src="minussign.png"></img><span class="tooltiptext">Zoom Out</span></div>
-        <div class="tooltip"><img class="small-icon" id="saveicon" src="save.png"></img><span class="tooltiptext">Save</span></div>
-        <div class="tooltip"><img class="small-icon" id="loadicon" src="load.png"></img><span class="tooltiptext">Load</span></div>
-        <div class="tooltip"><img class="small-icon" id="increaseFontIcon" src="increasefont.png"></img><span class="tooltiptext">Increase Font Size</span></div>
-        <div class="tooltip"><img class="small-icon" id="decreaseFontIcon" src="decreasefont.png"></img><span class="tooltiptext">Decrease Font Size</span></div>
-      </div>
+
 
 
       <div id="cell-box">
@@ -100,7 +112,25 @@
       </div>
       <div id="gridinfo"></div>
     </div>
+
+    <div id="left-sidebar">
+
+    </div>
+    <form class="table-form slab">
+      <div class="tableRow">
+        <p>Graph Name:</p>
+        <p><input type="text" name="gridName" id="gridName"></p>
+      </div>
+      <div class="tableRow">
+        <p>Graph Type:</p>
+        <p><input type="text" name="gridType" id="gridType"></p>
+      </div>
+    </form>
+    <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
+    <button style="margin-left: 20px; margin-bottom: 20px;" id="delete-rule-btn">Delete</button>
 </div>
+
+
     <!--END GENERATOR----------------------------->
 
     <!--BEGIN PRODUCER-->

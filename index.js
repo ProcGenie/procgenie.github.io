@@ -767,7 +767,7 @@ function buildGrid(size) {
       for (let j = g.currentGrid.currentX - size; j < g.currentGrid.currentX + size + 1; j++) {
         let cellCoords = `x${j}y${i}z${g.currentGrid.currentZ}`
         t += `<td class="event-map-cell">
-          <td><textarea class="inner-cell" id="${cellCoords}"></textarea></td>
+          <textarea class="inner-cell" id="${cellCoords}"></textarea>
         </td>`
       }
       t += "</tr>"
@@ -798,6 +798,8 @@ function drawGrid(fontSize) {
       globalFontSize -= 3;
     }
   }
+  let numberOfCellsInColumn = g.currentGrid.magnification * 2 + 1
+  let height = Math.ceil(85 /numberOfCellsInColumn) // 70 is the current table height, but will break if that changes
   for (let i = 0; i < els.length; i++) {
     if (fontSize && fontSize === "l") {
       els[i].style.fontSize = `${globalFontSize}px`;
@@ -806,6 +808,7 @@ function drawGrid(fontSize) {
     } else {
       els[i].style.fontSize = `${globalFontSize}px`;
     }
+    els[i].style.height = `${height}vh`
     els[i].onclick = function() {
       let coords = els[i].id;
       let rx = /x([\-\d]+)/
@@ -1455,7 +1458,25 @@ GID("load-generator").onclick = function() {
   fillSidebar();
 }
 
+GID("upIcon").onclick = function() {
+  g.currentGrid.currentY += 1;
+  drawGrid();
+}
 
+GID("downIcon").onclick = function() {
+  g.currentGrid.currentY -= 1;
+  drawGrid();
+}
+
+GID("leftIcon").onclick = function() {
+  g.currentGrid.currentX -= 1;
+  drawGrid();
+}
+
+GID("rightIcon").onclick = function() {
+  g.currentGrid.currentX += 1;
+  drawGrid();
+}
 
 document.onkeydown = move
 
