@@ -228,6 +228,18 @@ textarea {
 	display: inline-block;
 }
 
+.light-inner-cell {
+	resize: none;
+	height: 100%;
+	width: 100%;
+	border: 1px solid black;
+	font-size: 9px;
+	margin: 0px;
+	display: inline-block;
+	color: black;
+	background: white;
+}
+
 .grid-list {
 	text-align: center;
 	font-size: 2em

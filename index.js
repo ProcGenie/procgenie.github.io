@@ -158,6 +158,7 @@ function replaceVariable(e, localization) {
 
 function createGenerator() {
   let g = {};
+  g.lightDark = "dark"
   g.themes = [
     {
       name: "default",
@@ -755,11 +756,17 @@ function saveCell(g, coords) {
 
 
 function buildGrid(size) {
+  let th = ""
+  if (g.lightDark === "light") {
+    th = "light-inner-cell"
+  } else {
+    th = "inner-cell"
+  }
 
   let t = "<table class=big-table>"
   if (size === -1) {
     t += "<tr>"
-    t += `<td class="event-map-cell"><textarea class="inner-cell" id="x${g.currentGrid.currentX}y${g.currentGrid.currentY}z${g.currentGrid.currentZ}"></textarea></td>`
+    t += `<td class="event-map-cell"><textarea class="${th}" id="x${g.currentGrid.currentX}y${g.currentGrid.currentY}z${g.currentGrid.currentZ}"></textarea></td>`
     t += "</tr>"
   } else {
     for (let i = g.currentGrid.currentY + size; i > g.currentGrid.currentY - size - 1; i--) {
@@ -767,7 +774,7 @@ function buildGrid(size) {
       for (let j = g.currentGrid.currentX - size; j < g.currentGrid.currentX + size + 1; j++) {
         let cellCoords = `x${j}y${i}z${g.currentGrid.currentZ}`
         t += `<td class="event-map-cell">
-          <textarea class="inner-cell" id="${cellCoords}"></textarea>
+          <textarea class="${th}" id="${cellCoords}"></textarea>
         </td>`
       }
       t += "</tr>"
@@ -788,7 +795,12 @@ function drawGrid(fontSize) {
 
     }
   }
-  let els = document.getElementsByClassName("inner-cell")
+  let els;
+  if (g.lightDark === "dark") {
+    els = document.getElementsByClassName("inner-cell")
+  } else {
+    els = document.getElementsByClassName("light-inner-cell")
+  }
   if (fontSize === "l") {
     if (g.currentGrid.magnification < 10) {
       globalFontSize += 3;
@@ -3337,4 +3349,13 @@ GID("change-graph-btn").onclick = function() {
   } else {
     GID("file-explorer").style.display = "none"
   }
+}
+
+GID("toggle-light-dark").onclick = function() {
+  if (g.lightDark === "dark") {
+    g.lightDark = "light"
+  } else {
+    g.lightDark = "dark"
+  }
+  drawGrid()
 }
