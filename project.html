@@ -14,6 +14,26 @@
 <!--BEGIN GENERATOR----------------------------->
 <div id="generator-area">
 
+  <div id="file-explorer">
+    <div class="header">Graphs<div id="close-file-explorer">X</div></div>
+    <div id="file-list"></div>
+  </div>
+
+  <div id="create-graph-box">
+    <div class="header">Create New Graph<div id="close-create-graph">X</div></div>
+    <form class="table-form slab">
+      <div class="tableRow">
+        <p>Graph Name:</p>
+        <p><input type="text" name="gridName" id="gridName"></p>
+      </div>
+      <div class="tableRow">
+        <p>Graph Type:</p>
+        <p><input type="text" name="gridType" id="gridType"></p>
+      </div>
+    </form>
+    <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">Create New Graph</button>
+  </div>
+
   <div class="menu">
     <ul>
       <li class="dropdown2">
@@ -23,20 +43,22 @@
           <a class="dropdownlink" href="#" id="save-generator">Local Save</a>
           <a class="dropdownlink" href="#" id="load-generator">Local Load</a>
           <a class="dropdownlink" href="#" id="export-grid">Export Grid</a>
-          <a class="dropdownlink" href="index.html" id="new-generator">Home Page</a>
         </div>
       </li>
       <li class="dropdown2">
         <a href="javascript:void(0)" class="dropbtn">Graphs</a>
         <div class="dropdown2-content">
-          <a class="dropdownlink" href="#" id="create-rule-btn">Create Graph</a>
-          <a class="dropdownlink" href="#" id="create-themes-btn">Change Theme</a>
+          <a class="dropdownlink" href="#" id="create-rule-btn">Show Current Graph</a>
+          <a class="dropdownlink" href="#" id="change-graph-btn">Change Graph</a>
+          <a class="dropdownlink" href="#" id="create-new-graph-btn">Create New Graph</a>
+          <a class="dropdownlink" href="#" id="delete-rule-btn">Delete Current Graph</a>
+          <!--<a class="dropdownlink" href="#" id="create-themes-btn">Change Theme</a>-->
         </div>
       </li>
       <li class="dropdown2">
         <a href="javascript:void(0)" class="dropbtn">Prefabs</a>
         <div class="dropdown2-content">
-          <a class="dropdownlink" href="#" id="load-prefabs">Load Prefab Grids</a>
+          <a class="dropdownlink" href="#" id="load-prefabs">Load Prefab Graphs</a>
         </div>
       </li>
       <li class="dropdown2">
@@ -57,6 +79,8 @@
       <li class="dropdown2">
         <a href="javascript:void(0)" class="dropbtn">About</a>
         <div class="dropdown2-content">
+          <a class="dropdownlink" href="index.html">Project Home</a>
+          <a class="dropdownlink" href="https://github.com/ProcGenie/procgenie.github.io">Github</a>
           <a class="dropdownlink" href="https://twitter.com/procgenie">Twitter</a>
         </div>
       </li>
@@ -74,6 +98,7 @@
       <div class="tooltip"><img class="small-icon" id="downIcon" src="downarrow.png"></img><span class="tooltiptext">Scroll Down</span></div>
       <div class="tooltip"><img class="small-icon" id="leftIcon" src="leftarrow.png"></img><span class="tooltiptext">Scroll Left</span></div>
       <div class="tooltip"><img class="small-icon" id="rightIcon" src="rightarrow.png"></img><span class="tooltiptext">Scroll Right</span></div>
+      <div class="tooltip"><img class="small-icon" id="gridIcon" src="grid.png"></img><span class="tooltiptext">Show Graphs</span></div>
     </nav>
 
 
@@ -116,18 +141,7 @@
     <div id="left-sidebar">
 
     </div>
-    <form class="table-form slab">
-      <div class="tableRow">
-        <p>Graph Name:</p>
-        <p><input type="text" name="gridName" id="gridName"></p>
-      </div>
-      <div class="tableRow">
-        <p>Graph Type:</p>
-        <p><input type="text" name="gridType" id="gridType"></p>
-      </div>
-    </form>
-    <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">New</button>
-    <button style="margin-left: 20px; margin-bottom: 20px;" id="delete-rule-btn">Delete</button>
+
 </div>
 
 

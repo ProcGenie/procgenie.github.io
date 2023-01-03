@@ -3109,6 +3109,7 @@ function newRule() {
   g.gridIndex = g.grids.length - 1;
   drawGrid();
   alert(`You created the ${n} grid. The ${n} grid is now your current grid.`)
+  GID("create-graph-box").style.display = "none"
   fillSidebar();
 }
 
@@ -3151,12 +3152,12 @@ function fillThemeSidebar() {
 }
 
 function fillSidebar() {
-  GID("left-sidebar").innerHTML = ``;
+  GID("file-list").innerHTML = ``;
   let text = "";
   for (let i = 0; i < g.gridTypes.length; i++) {
     text += `<div id="gridType${g.gridTypes[i]}"><a href="#">&#8680 ${g.gridTypes[i]}</a></div>`
   }
-  GID("left-sidebar").innerHTML = `${text}`;
+  GID("file-list").innerHTML = `${text}`;
   GID("new-rule-btn").onclick = function() {
     newRule();
   }
@@ -3181,6 +3182,7 @@ function fillSidebar() {
             GID("gridName").value = g.currentGrid.name;
             GID("gridType").value = g.currentGrid.type;
             hideAll();
+            showHide("file-explorer")
             drawGrid();
             showHide("grammar-gen")
           }
@@ -3295,4 +3297,44 @@ function correctPunctuation(text) {
   text = text.replace(/\s+\./g, ". ")
   text = text.replace(/\s+\?/g, "? ")
   return text
+}
+
+
+
+GID("file-explorer").style.display = "none"
+GID("create-graph-box").style.display = "none"
+
+GID("close-file-explorer").onclick = function() {
+  GID("file-explorer").style.display = "none"
+}
+GID("close-create-graph").onclick = function() {
+  GID("create-graph-box").style.display = "none"
+}
+
+GID("create-new-graph-btn").onclick = function() {
+  let style = GID("create-graph-box").style.display;
+  if (style === "none") {
+    GID("create-graph-box").style.display = "block"
+  } else {
+    GID("create-graph-box").style.display = "none"
+  }
+
+}
+
+GID("gridIcon").onclick = function() {
+  let style = GID("file-explorer").style.display
+  if (style === "none") {
+    GID("file-explorer").style.display = "block"
+  } else {
+    GID("file-explorer").style.display = "none"
+  }
+}
+
+GID("change-graph-btn").onclick = function() {
+  let style = GID("file-explorer").style.display
+  if (style === "none") {
+    GID("file-explorer").style.display = "block"
+  } else {
+    GID("file-explorer").style.display = "none"
+  }
 }

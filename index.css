@@ -311,6 +311,9 @@ textarea {
 	bottom: 0px;
 	right: 0px;
 	color: black;
+	background: white;
+	border: 1px solid black;
+	padding: 2px;
 }
 
 .centered {
@@ -459,6 +462,7 @@ textarea {
 }
 
 #left-sidebar {
+	display: none;
 	float: left;
 	width: 10vw;
 	height: 100vh;
@@ -630,4 +634,55 @@ li.dropdown2 {
 .dropdownlink:hover {
 	cursor: pointer;
 	color: #2980b9;
+}
+
+#file-explorer {
+	display: none;
+	position: absolute;
+	background: white;
+	left: 30vw;
+	top: 20vh;
+	height: 60vh;
+	width: 40vw;
+	border: 2px solid #3498db;
+	box-shadow: 2px 2px 2px grey
+}
+
+#create-graph-box {
+	display: none;
+	position: absolute;
+	background: white;
+	left: 30vw;
+	top: 20vh;
+	height: 60vh;
+	width: 40vw;
+	border: 2px solid #3498db;
+	box-shadow: 2px 2px 2px grey
+}
+
+#close-create-graph {
+	float: right;
+	display: inline-block;
+	color: white;
+	background: red;
+	height: 100%;
+	padding: 1px;
+	border-radius: 0.1em
+}
+
+#close-file-explorer {
+	float: right;
+	display: inline-block;
+	color: white;
+	background: red;
+	height: 100%;
+	padding: 1px;
+	border-radius: 0.1em
+}
+
+.header {
+  background: #3498db;
+  color: #ecf0f1;
+  padding: 5px;
+  font-size: 0.95em
 }

@@ -115,11 +115,12 @@ GID("create-rule-btn").onclick = function() {
   fillSidebar();
 }
 
-GID("create-themes-btn").onclick = function() {
+/*GID("create-themes-btn").onclick = function() {
   hideAll();
   showHide("theme-gen")
   fillThemeSidebar();
 }
+*/
 
 GID("delete-theme-btn").onclick = function() {
   if (g.themes.length > 1) {
