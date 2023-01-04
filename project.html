@@ -33,13 +33,19 @@
     </form>
     <button style="margin-left: 20px; margin-bottom: 20px;" id="new-rule-btn">Create New Graph</button>
   </div>
-
   <div class="menu">
     <ul>
       <li class="dropdown2">
         <a href="javascript:void(0)" class="dropbtn">File</a>
         <div class="dropdown2-content">
           <a class="dropdownlink" href="#" id="new-generator">New</a>
+          <a class="dropdwonlink" href="#" id="save-as-text">Save Generator as JSON</a>
+          <a class="dropdwonlink" href="#">
+            <label for="load-from-text">
+            Load Generator From JSON
+            <input type="file" name="load-from-text" id="load-from-text" style="display: none" accept=".doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.txt">
+          </label>
+          </a>
           <a class="dropdownlink" href="#" id="save-generator">Local Save</a>
           <a class="dropdownlink" href="#" id="load-generator">Local Load</a>
           <a class="dropdownlink" href="#" id="export-grid">Export Grid</a>

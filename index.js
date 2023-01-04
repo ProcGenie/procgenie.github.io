@@ -811,7 +811,10 @@ function drawGrid(fontSize) {
     }
   }
   let numberOfCellsInColumn = g.currentGrid.magnification * 2 + 1
-  let height = Math.ceil(85 /numberOfCellsInColumn) // 70 is the current table height, but will break if that changes
+  if (numberOfCellsInColumn < 0) {
+    numberOfCellsInColumn *= -1
+  }
+  let height = Math.ceil(85 / numberOfCellsInColumn) // 70 is the current table height, but will break if that changes
   for (let i = 0; i < els.length; i++) {
     if (fontSize && fontSize === "l") {
       els[i].style.fontSize = `${globalFontSize}px`;
@@ -820,6 +823,7 @@ function drawGrid(fontSize) {
     } else {
       els[i].style.fontSize = `${globalFontSize}px`;
     }
+    console.log(`The height is ${height}`)
     els[i].style.height = `${height}vh`
     els[i].onclick = function() {
       let coords = els[i].id;
@@ -3359,3 +3363,32 @@ GID("toggle-light-dark").onclick = function() {
   }
   drawGrid()
 }
+
+GID("save-as-text").onclick = function() {
+  let link = document.createElement('a');
+  link.download = 'generator.txt';
+  let t = JSON.stringify(g)
+  var data = new Blob([t], {type: 'text/plain'})
+  link.href = URL.createObjectURL(data);
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+GID("load-from-text").onclick = function() {
+  let fr = new FileReader();
+  let o = {}
+  fr.onload=function(){
+    g = JSON.parse(fr.result)
+  }
+}
+
+document.getElementById('load-from-text')
+            .addEventListener('change', function() {
+              
+            var fr=new FileReader();
+            fr.onload=function(){
+               g = JSON.parse(fr.result)
+            }
+              
+            fr.readAsText(this.files[0]);
+        })
