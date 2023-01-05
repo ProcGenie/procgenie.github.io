@@ -523,16 +523,25 @@ function getLinkFromMatch(m, coords) {
 }
 
 function process(unprocessed, coords) {
+  //Define regular expression for bracketed text
   let total = /\[[\{\}\w\s\+\.\-\=\*\<\>\!\?\d\,\:\;\(\)\$\'\"\”\“\”\“\%\/]+\]/g
+
+  //get coordinates of cell
   let rx = /x([\-\d]+)/
   let ry = /y([\-\d]+)/
   let rz = /z([\-\d]+)/
   let x = parseInt(coords.match(rx)[1]);
   let y = parseInt(coords.match(ry)[1]);
   let z = parseInt(coords.match(rz)[1]);
+
+
   let digits = /\[(\d+)\]/
+
+  // Split unprocessed string into an array of component text
   let components = unprocessed.split("|")
   let cArr = [];
+
+  //loop through each component and initialize object for current component
   for (let j = 0; j < components.length; j++) {
     let c = {};
     c.variables = [];
@@ -546,8 +555,12 @@ function process(unprocessed, coords) {
     c.notRefs = [];
     c.randRef = []
     c.anyRef = [];
+
+     // Parse tags and inline tags for component
     parseTags(c)
     parseInlineTags(c);
+
+    // Check for break(), loop(), and teleport() syntax in component text
     if (c.text.includes("break()")) {
       c.break = true;
       c.text = c.text.replace("break()", "")
@@ -572,8 +585,7 @@ function process(unprocessed, coords) {
       c.text = c.text.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
     }
 
-
-    //c.text = c.text.replace(/\[[\{\}\w\s\=\<\>\*\+\.\-\!\?\,\:\d\(\)\$\'\"\”\“\%\/]+\]/g, "")
+    //Extract information from text in square brackets.
     let matches = components[j].match(total);
     if (matches) {
       for (let n = 0; n < matches.length; n++) {
@@ -585,10 +597,7 @@ function process(unprocessed, coords) {
         if (matches[n].includes("[START]")) {
           c.start = true;
         } else if (matches[n].includes("choice:")) {
-
           c.choices.push(getChoiceFromMatch(matches[n], coords))
-
-
         } else if (matches[n].includes("link:")) {
           c.links.push(getLinkFromMatch(matches[n], coords))
         } else if (matches[n].includes("bg:")) {
@@ -607,6 +616,7 @@ function process(unprocessed, coords) {
     }
     cArr.push(c);
   }
+  //return an array of component objects, with properties defined by this process() function.
   return cArr
 }
 
@@ -728,7 +738,6 @@ function saveCell(g, coords) {
       o.y = y;
       o.z = z
       o.unprocessed = v;
-      //o.unprocessed = o.unprocessed.replace(/"/g, `\\\"`)
       let cArr = process(o.unprocessed, o.coords);
       o.components = cArr
       g.currentGrid.cellArray.push(o);
@@ -751,7 +760,6 @@ function saveCell(g, coords) {
       g.currentGrid.cellArray.splice(deleteIndex, 1);
     }
   }
-  //g.currentGrid.cellArray[g.currentGrid.cellArray.length - 1].unprocessed = g.currentGrid.cellArray[g.currentGrid.cellArray.length - 1].unprocessed.replace(/"/g, '\\\"')
 }
 
 
