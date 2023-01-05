@@ -1462,6 +1462,7 @@ GID("loadicon").onclick = function() {
   GID("gridinfo").innerHTML = `Grid: ${g.currentGrid.name}, x:${g.currentGrid.currentX}y:${g.currentGrid.currentY}z:${g.currentGrid.currentZ}`
 }
 
+/*
 GID("save-generator").onclick = function() {
   let n = prompt("What name should this generator be saved under?")
   localStorage.setItem(n, JSON.stringify(g))
@@ -1473,6 +1474,15 @@ GID("load-generator").onclick = function() {
   drawGrid();
   fillSidebar();
 }
+
+GID("export-grid").onclick = function() {
+  GID("export-box").style.display = "block";
+  GID("generator-area").style.display = "none";
+  let t = JSON.stringify(g.currentGrid);
+  GID("export-box").innerHTML = `let ${g.currentGrid.name} = ${t}`;
+}
+
+*/
 
 GID("upIcon").onclick = function() {
   g.currentGrid.currentY += 1;
@@ -3091,14 +3101,6 @@ function generate(grid, w, continuing) {
     g.currentGrid = lastGrid
   }
   return res
-}
-
-
-GID("export-grid").onclick = function() {
-  GID("export-box").style.display = "block";
-  GID("generator-area").style.display = "none";
-  let t = JSON.stringify(g.currentGrid);
-  GID("export-box").innerHTML = `let ${g.currentGrid.name} = ${t}`;
 }
 
 GID("new-rule-btn").onclick = function() {
