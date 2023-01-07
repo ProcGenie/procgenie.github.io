@@ -586,8 +586,8 @@ ul {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #ecf0f1;
-  font-size: 0.9em
+  background: #dfe6e9;
+  font-size: 1em
 }
 
 li {
@@ -677,8 +677,12 @@ li.dropdown2 {
 	color: white;
 	background: red;
 	height: 100%;
-	padding: 1px;
+	padding: 2px;
 	border-radius: 0.1em
+}
+
+#close-create-graph:hover {
+	cursor: pointer;
 }
 
 #close-file-explorer {
@@ -687,8 +691,12 @@ li.dropdown2 {
 	color: white;
 	background: red;
 	height: 100%;
-	padding: 1px;
+	padding: 2px;
 	border-radius: 0.1em
+}
+
+#close-file-explorer:hover {
+	cursor: pointer
 }
 
 .header {

@@ -3375,6 +3375,7 @@ GID("toggle-light-dark").onclick = function() {
 }
 
 GID("save-as-text").onclick = function() {
+  g.res = [] //don't need to save results to generator JSON
   let link = document.createElement('a');
   link.download = 'generator.txt';
   let t = JSON.stringify(g)
