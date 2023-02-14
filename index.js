@@ -1,3 +1,72 @@
+function createGenerator() {
+  let g = {};
+  g.lightDark = "dark"
+  g.themes = [
+    {
+      name: "default",
+      color: "black",
+      bg: "white",
+      links: "#218c74",
+      choiceText: "black",
+      choicebg: "white",
+      choiceHoverbg: "black",
+      choiceHoverText: "white",
+      border: "black"
+    }
+  ];
+  g.currentTheme = g.themes[0]
+  g.parser = {
+    active: false,
+    directions: [],
+    gridName: "",
+    variables: []
+  }
+  g.timers = [];
+  g.defaultTimers = [];
+  g.textTimersTimeout = [];
+  g.callbacks = [];
+  g.output = "";
+  g.choices = [];
+  g.links = [];
+  g.speak = [];
+  g.speakers = [];
+  g.arrays = {}
+  g.locations = [];
+  g.gridTypes = ["default"];
+  g.savedObjects = [];
+  g.res = []
+  g.rooms = {};
+  //g.people = {}
+  return g;
+}
+
+function startup() {
+  g.grids = [];
+  g.grids.push(createGrid("newGrid"))
+  g.grids[0].type = "default"
+  g.currentGrid = g.grids[0]
+  g.magnification = 5
+}
+
+let g = createGenerator()
+startup();
+
+let rx = /x([\-\d]+)/
+let ry = /y([\-\d]+)/
+let rz = /z([\-\d]+)/
+
+function getX(coords) {
+  return parseInt(coords.match(rx)[1]);
+}
+
+function getY(coords) {
+  return parseInt(coords.match(ry)[1]);
+}
+
+function getZ(coords) {
+  return parseInt(coords.match(rz)[1]);
+}
+
 function tile(x, y, name) {
   let t = `<img src="${name}.png" class="tile" style="left: ${x * 32}px; top: ${y * 32}px">`
   return t
@@ -45,10 +114,6 @@ function postProcess(t) {
   }
   return t;
 }
-
-//MAJOR NEED TO REFACTOR AND CLEAN UP TECHNICAL DEBT
-
-
 
 let globalFontSize = 9;
 
@@ -155,50 +220,6 @@ function replaceVariable(e, localization) {
   }
   return l;
 }
-
-function createGenerator() {
-  let g = {};
-  g.lightDark = "dark"
-  g.themes = [
-    {
-      name: "default",
-      color: "black",
-      bg: "white",
-      links: "#218c74",
-      choiceText: "black",
-      choicebg: "white",
-      choiceHoverbg: "black",
-      choiceHoverText: "white",
-      border: "black"
-    }
-  ];
-  g.currentTheme = g.themes[0]
-  g.parser = {
-    active: false,
-    directions: [],
-    gridName: "",
-    variables: []
-  }
-  g.timers = [];
-  g.defaultTimers = [];
-  g.textTimersTimeout = [];
-  g.callbacks = [];
-  g.output = "";
-  g.choices = [];
-  g.links = [];
-  g.speak = [];
-  g.speakers = [];
-  g.arrays = {}
-  g.locations = [];
-  g.gridTypes = ["default"];
-  g.savedObjects = [];
-  g.res = []
-  return g;
-}
-
-
-
-
 
 function createGrid(n) {
   let grid = {};
@@ -355,17 +376,7 @@ function parseTags(component) {
 let cellArray = [];
 
 
-function startup() {
-  g.grids = [];
-  g.grids.push(createGrid("newGrid"))
-  g.grids[0].type = "default"
-  g.currentGrid = g.grids[0]
-  g.magnification = 5
 
-}
-let g = createGenerator()
-
-startup();
 
 function normBrackets(s) {
   let arr = [];
@@ -419,12 +430,9 @@ function parseVariableFromText(t) {
 
 function getChoiceFromMatch(m, coords) {
   let o = {};
-  let rx = /x([\-\d]+)/
-  let ry = /y([\-\d]+)/
-  let rz = /z([\-\d]+)/
-  o.x = parseInt(coords.match(rx)[1]);
-  o.y = parseInt(coords.match(ry)[1]);
-  o.z = parseInt(coords.match(rz)[1]);
+  o.x = getX(coords);
+  o.y = getY(coords);
+  o.z = getZ(coords);
   let parens = /G?\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
@@ -470,12 +478,9 @@ function getChoiceFromMatch(m, coords) {
 function getLinkFromMatch(m, coords) {
   console.log(m);
   let o = {};
-  let rx = /x([\-\d]+)/
-  let ry = /y([\-\d]+)/
-  let rz = /z([\-\d]+)/
-  o.x = parseInt(coords.match(rx)[1]);
-  o.y = parseInt(coords.match(ry)[1]);
-  o.z = parseInt(coords.match(rz)[1]);
+  o.x = getX(coords);
+  o.y = getY(coords);
+  o.z = getZ(coords);
   let parens = /G?\([\w\s\d\,\!\/\'\"\”\“\$\.\*\/\=\+\-\>\<\%\:]+\)/g;
   let  parensArr = m.match(parens) || [];
   //o.text = m.replace(parens, "");
@@ -522,20 +527,71 @@ function getLinkFromMatch(m, coords) {
   return o
 }
 
-function process(unprocessed, coords) {
-  //Define regular expression for bracketed text
+function addLoopToComponent(c) {
+  c.loop = {};
+  c.loop.x = x;
+  c.loop.y = y;
+  c.loop.z = z;
+  c.loop.gridName = g.currentGrid.name;
+  c.loop.iterations = parseInt(c.text.match(/loop\(([\w\d]+)\)/)[1])
+  c.loop.maxIterations = c.loop.iterations;
+  c.text = c.text.replace(/loop\(\d+\)/, "")
+  c.text = c.text.replace(/loop\(\w+\)/, "")
+}
+
+function addLoopBreakToComponent(c) {
+  c.break = true;
+  c.text = c.text.replace("break()", "")
+}
+
+function addBracketInformationToComponent(unprocessedComponent, c, coords) {
   let total = /\[[\{\}\w\s\+\.\-\=\*\<\>\!\?\d\,\:\;\(\)\$\'\"\”\“\”\“\%\/]+\]/g
-
-  //get coordinates of cell
-  let rx = /x([\-\d]+)/
-  let ry = /y([\-\d]+)/
-  let rz = /z([\-\d]+)/
-  let x = parseInt(coords.match(rx)[1]);
-  let y = parseInt(coords.match(ry)[1]);
-  let z = parseInt(coords.match(rz)[1]);
-
-
   let digits = /\[(\d+)\]/
+  let matches = unprocessedComponent.match(total);
+  if (matches) {
+    for (let n = 0; n < matches.length; n++) {
+      let dig = matches[n].match(digits);
+      if (dig) {
+        c.probability = dig[1];
+        matches[n] = matches[n].replace(/\[(\d+)\]/, "")
+      }
+      if (matches[n].includes("[START]")) {
+        c.start = true;
+      } else if (matches[n].includes("choice:")) {
+        c.choices.push(getChoiceFromMatch(matches[n], coords))
+      } else if (matches[n].includes("link:")) {
+        c.links.push(getLinkFromMatch(matches[n], coords))
+      } else if (matches[n].includes("bg:")) {
+        c.background = matches[n].replace("bg: ", "").replace("[", "").replace("]", "");
+      } else if (matches[n].includes("color:")) {
+        c.color = matches[n].replace("color: ", "").replace("[", "").replace("]", "")
+      } else if (matches[n].includes("img:")) {
+        c.img = matches[n].replace("img: ", "").replace("[", "").replace("]", "")
+      } else if (matches[n].includes("=") || matches[n].includes("<") || matches[n].includes(">") || matches[n].includes("includes")) {
+        let unprocessedVariables = normBrackets(matches[n])
+        c.variables = setVariableArray(unprocessedVariables);
+      } else {
+        c.directions = normBrackets(matches[n])
+      }
+    }
+  }
+}
+
+function addTeleportToComponent(c) {
+  let m = c.text.match(/teleport\(([\w\d\$\{\}]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\)/)
+  c.teleport = {};
+  c.teleport.gridName = m[1];
+  c.teleport.x = m[2];
+  c.teleport.y = m[3]
+  c.teleport.z = m[4]
+  c.text = c.text.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
+}
+
+function process(unprocessed, coords) {
+  //get coordinates of cell
+  let x = getX(coords);
+  let y = getY(coords);
+  let z = getZ(coords);
 
   // Split unprocessed string into an array of component text
   let components = unprocessed.split("|")
@@ -543,87 +599,186 @@ function process(unprocessed, coords) {
 
   //loop through each component and initialize object for current component
   for (let j = 0; j < components.length; j++) {
-    let c = {};
-    c.variables = [];
-    c.directions = [];
-    c.choices = [];
-    c.links = [];
-    c.text = components[j].trim();
-    c.tags = []
-    c.refs = []
-    c.allRefs = []
-    c.notRefs = [];
-    c.randRef = []
-    c.anyRef = [];
+    let unprocessedComponent = components[j]
+    let c = createEmptyComponent();
+    c.text = unprocessedComponent.trim();
 
      // Parse tags and inline tags for component
     parseTags(c)
     parseInlineTags(c);
 
-    // Check for break(), loop(), and teleport() syntax in component text
     if (c.text.includes("break()")) {
-      c.break = true;
-      c.text = c.text.replace("break()", "")
+      addLoopBreakToComponent(c);
     }
     if (c.text.includes("loop(")) {
-      c.loop = {};
-      c.loop.x = x;
-      c.loop.y = y;
-      c.loop.z = z;
-      c.loop.gridName = g.currentGrid.name;
-      c.loop.iterations = parseInt(c.text.match(/loop\(([\w\d]+)\)/)[1])
-      c.loop.maxIterations = c.loop.iterations;
-      c.text = c.text.replace(/loop\(\d+\)/, "")
-      c.text = c.text.replace(/loop\(\w+\)/, "")
+      addLoopToComponent(c);
     } else if (c.text.includes("teleport(")) {
-      let m = c.text.match(/teleport\(([\w\d\$\{\}]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\,\s([\d\-\$\{\}\w]+)\)/)
-      c.teleport = {};
-      c.teleport.gridName = m[1];
-      c.teleport.x = m[2];
-      c.teleport.y = m[3]
-      c.teleport.z = m[4]
-      c.text = c.text.replace(/teleport\([\w\$\d\s\,\-\{\}]+\)/, "")
+      addTeleportToComponent(c);
     }
 
     //Extract information from text in square brackets.
-    let matches = components[j].match(total);
-    if (matches) {
-      for (let n = 0; n < matches.length; n++) {
-        let dig = matches[n].match(digits);
-        if (dig) {
-          c.probability = dig[1];
-          matches[n] = matches[n].replace(/\[(\d+)\]/, "")
-        }
-        if (matches[n].includes("[START]")) {
-          c.start = true;
-        } else if (matches[n].includes("choice:")) {
-          c.choices.push(getChoiceFromMatch(matches[n], coords))
-        } else if (matches[n].includes("link:")) {
-          c.links.push(getLinkFromMatch(matches[n], coords))
-        } else if (matches[n].includes("bg:")) {
-          c.background = matches[n].replace("bg: ", "").replace("[", "").replace("]", "");
-        } else if (matches[n].includes("color:")) {
-          c.color = matches[n].replace("color: ", "").replace("[", "").replace("]", "")
-        } else if (matches[n].includes("img:")) {
-          c.img = matches[n].replace("img: ", "").replace("[", "").replace("]", "")
-        } else if (matches[n].includes("=") || matches[n].includes("<") || matches[n].includes(">") || matches[n].includes("includes")) {
-          let unprocessedVariables = normBrackets(matches[n])
-          c.variables = setVariableArray(unprocessedVariables);
-        } else {
-          c.directions = normBrackets(matches[n])
-        }
-      }
-    }
+    addBracketInformationToComponent(unprocessedComponent, c, coords);
     cArr.push(c);
   }
   //return an array of component objects, with properties defined by this process() function.
   return cArr
 }
 
+function createEmptyComponent() {
+  let c = {};
+  c.variables = [];
+  c.directions = []
+  c.choices = [];
+  c.links = []
+  c.tags = []
+  c.refs = [];
+  c.allRefs = [];
+  c.anyRef = [];
+  c.randRef = []
+  c.notRefs = [];
+  c.addTags = [];
+  c.removeTags = [];
+  c.conditionalTags = []
+  c.notTags = []
+  c.inlineTags = []
+  return c;
+}
+
+function breakText(v, coords) {
+  let m = v.match(/BREAK\(([\s\S]+)\)END/);
+  if (m && m[1]) {
+    let x = getX(coords);
+    let y = getY(coords);
+    let z = getZ(coords);
+    let arr = m[1].split(/\s/);
+    for (let i = 0; i < arr.length; i++) {
+      let cell = {};
+      let o = createEmptyComponent()
+
+      if (i === arr.length - 1) {
+        cell.unprocessed = `${arr[i]} `
+        o.text = ` ${arr[i]}`
+      } else {
+        cell.unprocessed = `${arr[i]} [E]`;
+        o.text = `${arr[i]} `;
+      }
+      cell.coords = `x${x}y${y}z${z}`;
+      cell.x = x;
+      cell.y = y;
+      cell.z = z;
+
+      let cArr = [];
+
+
+
+      if (i === arr.length - 1) {
+        o.directions = [];
+      }  else {
+        o.directions = ["E"];
+      }
+
+      o.choices = [];
+      x += 1;
+      cArr.push(o);
+      cell.components = cArr;
+      g.currentGrid.cellArray.push(cell);
+
+    }
+    drawGrid();
+  }
+}
+
+function splitText(v, coords) {
+  let m = v.match(/SPLIT\(([\w\s]+)\)/);
+  if (m && m[1]) {
+    console.log(m)
+    let x = getX(coords);
+    let y = getY(coords);
+    let z = getZ(coords);
+    let arr = m[1].split(/\,?\s/);
+    console.log(arr)
+    let cell = {};
+    cell.coords = `x${x}y${y}z${z}`;
+    cell.x = x;
+    cell.y = y;
+    cell.z = z;
+    let cArr = []
+    cell.unprocessed = "";
+    for (let i = 0; i < arr.length; i++) {
+      let o = createEmptyComponent()
+      if (i === 0) {
+        cell.unprocessed += `${arr[i]} [1]|`
+        o.text = `${arr[i]}`
+        o.probability = 1;
+      } else if (i === arr.length - 1) {
+        cell.unprocessed += `${arr[i]} [1]`
+        o.text = ` ${arr[i]}`
+        o.probability = 1;
+      } else {
+        cell.unprocessed += `${arr[i]} [1]|`;
+        o.text = `${arr[i]}`;
+        o.probability = 1;
+      }
+      cArr.push(o);
+    }
+    cell.components = cArr;
+    console.log(cell)
+    g.currentGrid.cellArray.push(cell);
+  }
+  drawGrid();
+}
+
+function changeExistingCell(v, coords, i) {
+  g.currentGrid.cellArray[i].unprocessed = v;
+  let cArr = process(g.currentGrid.cellArray[i].unprocessed, coords);
+  g.currentGrid.cellArray[i].components = cArr;
+}
+
+function createNonExistantCell(v, coords) {
+  let o = {};
+  o.coords = coords
+  let x = parseInt(o.coords.match(rx)[1]);
+  let y = parseInt(o.coords.match(ry)[1]);
+  let z = parseInt(o.coords.match(rz)[1]);
+  o.x = x;
+  o.y = y;
+  o.z = z
+  o.unprocessed = v;
+  let cArr = process(o.unprocessed, o.coords);
+  o.components = cArr
+  g.currentGrid.cellArray.push(o);
+}
+
+function changeOrCreateCell(v, coords) {
+  let exists = false;
+  for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
+    if (g.currentGrid.cellArray[i].coords === coords) {
+      changeExistingCell(v, coords, i)
+      exists = true;
+    }
+  }
+  if (exists === false) {
+    createNonExistantCell(v, coords)
+  }
+}
+
+function deleteCellIfEmpty(coords) {
+  let x = getX(coords);
+  let y = getY(coords);
+  let z = getZ(coords);
+  let deleteIndex = false
+  for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
+    if (g.currentGrid.cellArray[i].x === x && g.currentGrid.cellArray[i].y === y && g.currentGrid.cellArray[i].z === z) {
+      deleteIndex = i
+    }
+  }
+  if (typeof deleteIndex === 'number') {
+    g.currentGrid.cellArray.splice(deleteIndex, 1);
+  }
+}
+
 function saveCell(g, coords) {
-  let rx = /x([\-\d]+)/
-  let ry = /y([\-\d]+)/
-  let rz = /z([\-\d]+)/
+
   let v = GID(`${coords}`).value
   let teleport;
   if (v.match(/(\w+)\s\=\s\[\]/)) {
@@ -634,131 +789,14 @@ function saveCell(g, coords) {
     }
   }
   if (v.length > 0 && v.includes("BREAK(")) {
-    let m = v.match(/BREAK\(([\s\S]+)\)END/);
-    if (m && m[1]) {
-      let x = parseInt(coords.match(rx)[1]);
-      let y = parseInt(coords.match(ry)[1]);
-      let z = parseInt(coords.match(rz)[1]);
-      let arr = m[1].split(/\s/);
-      for (let i = 0; i < arr.length; i++) {
-        let cell = {};
-        let o = {};
-        if (i === 0) {
-          cell.unprocessed = `${arr[i]} [E]`
-          o.text = `${arr[i]}`
-        } else if (i === arr.length - 1) {
-          cell.unprocessed = `${arr[i]} `
-          o.text = ` ${arr[i]}`
-        } else {
-          cell.unprocessed = `${arr[i]} [E]`;
-          o.text = `${arr[i]} `;
-        }
-        cell.coords = `x${x}y${y}z${z}`;
-        cell.x = x;
-        cell.y = y;
-        cell.z = z;
-
-        let cArr = [];
-
-
-
-        o.variables = [];
-        if (i === arr.length - 1) {
-          o.directions = [];
-        }  else {
-          o.directions = ["E"];
-        }
-
-        o.choices = [];
-        x += 1;
-        cArr.push(o);
-        cell.components = cArr;
-        g.currentGrid.cellArray.push(cell);
-
-      }
-      drawGrid();
-    }
+    breakText(v, coords);
   } else if (v.length > 0 && v.includes("SPLIT(")) {
-    let m = v.match(/SPLIT\(([\s\S]+)\)(\w+)/);
-    if (m && m[1]) {
-      let x = parseInt(coords.match(rx)[1]);
-      let y = parseInt(coords.match(ry)[1]);
-      let z = parseInt(coords.match(rz)[1]);
-      let arr = m[1].split(/\,?\s/);
-      let cell = {};
-      cell.coords = `x${x}y${y}z${z}`;
-      cell.x = x;
-      cell.y = y;
-      cell.z = z;
-      let cArr = []
-      cell.unprocessed = "";
-      for (let i = 0; i < arr.length; i++) {
-        let o = {};
-        if (i === 0) {
-          cell.unprocessed += `${arr[i]}[${m[2]}]|`
-          o.text = `${arr[i]}`
-          o.probability = m[2];
-        } else if (i === arr.length - 1) {
-          cell.unprocessed += `${arr[i]}[${m[2]}]`
-          o.text = ` ${arr[i]}`
-          o.probability = m[2];
-        } else {
-          cell.unprocessed += `${arr[i]}[${m[2]}]|`;
-          o.text = `${arr[i]}`;
-          o.probability = m[2];
-        }
-        cArr.push(o);
-      }
-      cell.components = cArr;
-      g.currentGrid.cellArray.push(cell);
-    }
-    drawGrid();
+    console.log(v)
+    splitText(v, coords)
   } else if (v.length > 0) {
-    let o = {};
-    let exists = false;
-
-    for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
-
-      if (g.currentGrid.cellArray[i].coords === coords) {
-        g.currentGrid.cellArray[i].unprocessed = v;
-        //g.currentGrid.cellArray[i].unprocessed = g.currentGrid.cellArray[i].unprocessed.replace(/"/g, `\\\"`)
-        let cArr = process(g.currentGrid.cellArray[i].unprocessed, coords);
-        g.currentGrid.cellArray[i].components = cArr;
-        exists = true;
-      }
-    }
-
-    //non existant cell => create
-    if (exists === false) {
-      o.coords = coords
-      let x = parseInt(o.coords.match(rx)[1]);
-      let y = parseInt(o.coords.match(ry)[1]);
-      let z = parseInt(o.coords.match(rz)[1]);
-      o.x = x;
-      o.y = y;
-      o.z = z
-      o.unprocessed = v;
-      let cArr = process(o.unprocessed, o.coords);
-      o.components = cArr
-      g.currentGrid.cellArray.push(o);
-    }
+    changeOrCreateCell(v, coords)
   } else {
-    //delete cell if it is later empty
-    let rx = /x([\-\d]+)/
-    let ry = /y([\-\d]+)/
-    let rz = /z([\-\d]+)/
-    let x = parseInt(coords.match(rx)[1]);
-    let y = parseInt(coords.match(ry)[1]);
-    let z = parseInt(coords.match(rz)[1]);
-    let deleteIndex = false
-    for (let i = 0; i < g.currentGrid.cellArray.length; i++) {
-      if (g.currentGrid.cellArray[i].x === x && g.currentGrid.cellArray[i].y === y && g.currentGrid.cellArray[i].z === z) {
-        deleteIndex = i
-      }
-    }
-    if (typeof deleteIndex === 'number') {
-      g.currentGrid.cellArray.splice(deleteIndex, 1);
-    }
+    deleteCellIfEmpty(coords)
   }
 }
 
@@ -835,12 +873,9 @@ function drawGrid(fontSize) {
     els[i].style.height = `${height}vh`
     els[i].onclick = function() {
       let coords = els[i].id;
-      let rx = /x([\-\d]+)/
-      let ry = /y([\-\d]+)/
-      let rz = /z([\-\d]+)/
-      let x = parseInt(coords.match(rx)[1]);
-      let y = parseInt(coords.match(ry)[1]);
-      let z = parseInt(coords.match(rz)[1]);
+      let x = getX(coords);
+      let y = getY(coords);
+      let z = getZ(coords);
       g.currentGrid.currentX = x;
       g.currentGrid.currentY = y;
       g.currentGrid.currentZ = z
@@ -877,7 +912,6 @@ GID("minusicon").onclick = function() {
 }
 
 GID("increaseFontIcon").onclick = function() {
-  console.log("hi!")
   globalFontSize += 3
   drawGrid()
 }
@@ -909,6 +943,11 @@ function keep(t, num) {
     t = t.replace(/keep\(\)/g, "")
   } else {
     GID("main-text-box").innerHTML = "";
+    GID("room-box").innerHTML = ""
+    GID("room-exits-box").innerHTML = ""
+    GID("main-text-box").innerHTML = ""
+    GID("new-choices-box").innerHTML = ""
+    GID("goback-box").innerHTML = ""
   }
   return t;
 }
@@ -937,6 +976,7 @@ function addHyperlinks(t) {
 }
 
 function createTimerArrayAndHTML(t) {
+  //SYNTAX within a component: (timer: digit, text to be deleted)
   while (t.includes("(timer:")) {
     //// TODO: change separating text to allow commas, etc in timer text...
     let m = t.match(/\(timer\:\s(\d+)\,\s([\w\s\.]+)\,?\s?([\w\s]+)?\)/);
@@ -955,6 +995,26 @@ function createTimerArrayAndHTML(t) {
   return t;
 }
 
+function handleOldLinks(id) {
+  //needs commenting and explanation; just refactored for DRY
+  if (g.oldLinks[id].directions && g.oldLinks[id].directions.length > 0) {
+    let walker = g.lastWalker;
+    addChoiceToWalker(walker, g.oldLinks[id])
+    let directions = g.oldLinks[id].directions;
+    let nextDirection = directions[getRandomInt(0, directions.length - 1)];
+    let possibleNextCells = createPossibleCellsArr(walker, g.oldLinks[id], g.oldLinks[id].x, g.oldLinks[id].y, g.oldLinks[id].z)
+    let choiceGrid = g.oldLinks[id].gridName
+    if (possibleNextCells.length > 0) {
+      let nextCell = getRandomFromArr(possibleNextCells);
+      walker.x = nextCell.x;
+      walker.y = nextCell.y;
+      walker.z = nextCell.z
+    }
+    g.lastWalker = walker;
+    runGenerationProcess(getGridByName(g, choiceGrid), walker);
+  }
+}
+
 function addClickToHyperlinks() {
   let clicked = false;
   let els = document.getElementsByClassName("hyperlink-text");
@@ -970,44 +1030,20 @@ function addClickToHyperlinks() {
           let currentLink = g.oldLinks[id];
           clearDefaultTimers()
           //THIS IS NOT DRY - REPETITIVE OF BELOW AND NEEdS TO BE FIXED
-          if (g.oldLinks[id].directions && g.oldLinks[id].directions.length > 0) {
-            let walker = g.lastWalker;
-            addChoiceToWalker(walker, g.oldLinks[id])
-            let directions = g.oldLinks[id].directions;
-            let nextDirection = directions[getRandomInt(0, directions.length - 1)];
-            let possibleNextCells = createPossibleCellsArr(walker, g.oldLinks[id], g.oldLinks[id].x, g.oldLinks[id].y, g.oldLinks[id].z)
-            let choiceGrid = g.oldLinks[id].gridName
-            if (possibleNextCells.length > 0) {
-              let nextCell = getRandomFromArr(possibleNextCells);
-              walker.x = nextCell.x;
-              walker.y = nextCell.y;
-              walker.z = nextCell.z
-            }
-            g.lastWalker = walker;
-            runGenerationProcess(getGridByName(g, choiceGrid), walker);
-          }
+          handleOldLinks(id)
         }, timer)
         g.defaultTimers.push(a);
       }
+      if (currentLink.timer) {
+        let timer = parseInt(currentLink.timer) * 1000;
+        let a = setTimeout(function() {
+          els[n].style.display = "none";
+        }, timer)
+        g.timers.push(a)
+      }
       els[n].onclick = function() {
-
         console.log("clicked!")
-        if (g.oldLinks[id].directions && g.oldLinks[id].directions.length > 0) {
-          let walker = g.lastWalker;
-          addChoiceToWalker(walker, g.oldLinks[id])
-          let directions = g.oldLinks[id].directions;
-          let nextDirection = directions[getRandomInt(0, directions.length - 1)];
-          let possibleNextCells = createPossibleCellsArr(walker, g.oldLinks[id], g.oldLinks[id].x, g.oldLinks[id].y, g.oldLinks[id].z)
-          let choiceGrid = g.oldLinks[id].gridName
-          if (possibleNextCells.length > 0) {
-            let nextCell = getRandomFromArr(possibleNextCells);
-            walker.x = nextCell.x;
-            walker.y = nextCell.y;
-            walker.z = nextCell.z
-          }
-          g.lastWalker = walker;
-          runGenerationProcess(getGridByName(g, choiceGrid), walker);
-        }
+        handleOldLinks(id)
       }
     }
   }
@@ -1103,7 +1139,7 @@ function removeCapitalization(t) {
   return t;
 }
 
-function outputText(t) {
+function cleanText(t) {
   t = deleteOptionalWords(t)
   t = cutSentences(t)
   t = deleteOptionalSentences(t);
@@ -1114,6 +1150,17 @@ function outputText(t) {
   t = replaceAnythingInBrackets(t);
   t = addCapitalization(t);
   t = removeCapitalization(t);
+  return t
+}
+
+function outputText(t) {
+  if (t.includes("showRoom")) {
+    g.currentRoom = t.match(/showRoom\(([\w\s\d]+)\)/)[1]
+    t = t.replace(/showRoom\([\w\s\d]+\)/, "")
+  } else {
+    g.currentRoom = null
+  }
+  t = cleanText(t)
   GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
 }
 
@@ -1284,7 +1331,7 @@ function addParserIfActive() {
 }
 
 function hideChoiceBoxIfNone() {
-  if (g.choices.length > 0) {
+  if (g.choices.length > 0 || GID("new-choices-box").innerHTML !== "") {
     GID("new-choices-box").style.display = "block";
   } else {
     GID("new-choices-box").style.display = "none";
@@ -1306,6 +1353,33 @@ function applyTheme() {
   let links = document.getElementsByClassName("hyperlink-text");
   for (let i = 0; i < links.length; i++) {
     links[i].style.color = g.currentTheme.links;
+  }
+}
+
+function emptyOutput() {
+  GID("room-box").innerHTML = ""
+  GID("room-exits-box").innerHTML = ""
+  GID("main-text-box").innerHTML = ""
+  GID("new-choices-box").innerHTML = ""
+  GID("goback-box").innerHTML = ""
+}
+
+function setGoback() {
+  let t = GID("main-text-box").innerHTML;
+  if (t.includes("GOBACK")) {
+    createGoback(t)
+  }
+}
+
+function createGoback(t) {
+  t = t.replace("GOBACK", "")
+  GID("main-text-box").innerHTML = t
+  GID("goback-box").innerHTML += `<p id="goback">...</p>`
+  GID("goback-box").style.display = "block"
+  GID("goback").onclick = function() {
+    emptyOutput()
+    showRoom(g.lastRoom, g.lastWalker)
+    linkUpText()
   }
 }
 
@@ -1333,16 +1407,21 @@ function runGenerationProcess(grid, w, num) {
     }
   }
   t = processRawGeneration(t, num);
-  applyTheme();  //APPLYING THEME TWICE ENSURES THAT THEME IS CORRECT ON FIRST GENERATION
+  //applyTheme();  //APPLYING THEME TWICE ENSURES THAT THEME IS CORRECT ON FIRST GENERATION
   t = postProcess(t);
   outputText(t);
   g.res.push(t);
-  addClickToHyperlinks();
+  if (g.currentRoom) {
+    showRoom(g.currentRoom, w)
+  }
+
   setTextTimerTimeouts()
   addChoicesAndTimers();
   addChoiceClickEvents()
   hideChoiceBoxIfNone()
-  applyTheme()
+  setGoback()
+  addClickToHyperlinks();
+  //applyTheme()
   addParserIfActive();
   textToSpeech(g);
   g.oldChoices = g.choices;
@@ -1351,7 +1430,7 @@ function runGenerationProcess(grid, w, num) {
   g.links = [];
   g.choices = [];
   let res = GID("main-text-box").innerHTML;
-  applyTheme()
+  //applyTheme()
 
   return res;
 }
@@ -1416,7 +1495,7 @@ GID("run-grid-drop").onclick = function() {
   console.log(g.currentTheme);
   g.savedObjects = [];
   g.currentGrid.stacked = false;
-  applyTheme();
+  //applyTheme();
   kv = [];
   runGenerationProcess(null, null);
   //reset any loop components; only works on second click for some reason.
@@ -1439,7 +1518,7 @@ GID("big-run-grid-drop").onclick = function() {
   console.log(g.currentTheme);
   g.savedObjects = [];
   g.currentGrid.stacked = false;
-  applyTheme();
+  //applyTheme();
   kv = [];
   runGenerationProcess(null, null, 100);
   //reset any loop components; only works on second click for some reason.
@@ -1469,28 +1548,6 @@ GID("loadicon").onclick = function() {
   drawGrid();
   GID("gridinfo").innerHTML = `Grid: ${g.currentGrid.name}, x:${g.currentGrid.currentX}y:${g.currentGrid.currentY}z:${g.currentGrid.currentZ}`
 }
-
-/*
-GID("save-generator").onclick = function() {
-  let n = prompt("What name should this generator be saved under?")
-  localStorage.setItem(n, JSON.stringify(g))
-}
-
-GID("load-generator").onclick = function() {
-  let n = prompt("What generator would you like to load?")
-  g = JSON.parse(localStorage.getItem(n))
-  drawGrid();
-  fillSidebar();
-}
-
-GID("export-grid").onclick = function() {
-  GID("export-box").style.display = "block";
-  GID("generator-area").style.display = "none";
-  let t = JSON.stringify(g.currentGrid);
-  GID("export-box").innerHTML = `let ${g.currentGrid.name} = ${t}`;
-}
-
-*/
 
 GID("upIcon").onclick = function() {
   g.currentGrid.currentY += 1;
@@ -1794,6 +1851,7 @@ function changeTheme(name) {
 
 function genLoop(walker) {
   //THIS IS THE HEART OF THE GENERATOR
+  //REFACTOR
   let res = ""
   let generating = true;
   //walker.res = "";
@@ -1828,7 +1886,11 @@ function genLoop(walker) {
 
     }
     if (walker.collecting === false) {
+      if (currentComponent.noText) {
+
+      } else {
         walker.res += compGen
+      }
     }
 
     console.log(currentComponent.text);
@@ -2004,8 +2066,12 @@ function genLoop(walker) {
         compGen = compGen.replace("listRefs()", `${nt}`)
       }
     }
+    if (currentComponent.noText) {
 
-    res += replaceVariable(walker, compGen);
+    } else {
+      res += replaceVariable(walker, compGen);
+    }
+
     console.log(res);
 
 
@@ -2172,6 +2238,470 @@ function getRandomColor() {
 
 let kv = [];
 
+function replaceHerHis(w, t) {
+  let he = false;
+  let she = false;
+  let they = false;
+  let count = 0;
+  for (let j = 0; j < w.refs.length; j++) {
+    let personIndex = w.tags[`${w.refs[j]}`].indexOf("person");
+    let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+    let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+    let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+    if (maleIndex > -1) {
+      he = true;
+      count += 1
+    } else if (femaleIndex > -1) {
+      she = true;
+      count += 1
+    } else if (nonbinaryIndex > -1) {
+      they = true;
+      count += 1
+    } else if (personIndex > -1) {
+      count += 1
+    }
+  }
+  if (count > 1) {
+    t = t.replace("hersHis", "theirs");
+  } else if (they === true) {
+    t = t.replace("hersHis", "theirs");
+  } else if (she === true) {
+    t = t.replace("hersHis", "hers");
+  } else if (he === true) {
+    t = t.replace("hersHis", "his")
+  } else {
+    t = t.replace("hersHis", "undefined")
+  }
+  return t;
+}
+
+function replaceHerselfHimself(w, t) {
+  let he = false;
+  let she = false;
+  let they = false;
+  let count = 0;
+  for (let j = 0; j < w.refs.length; j++) {
+    let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+    let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+    let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+    if (maleIndex > -1) {
+      he = true;
+      count += 1
+    }
+    if (femaleIndex > -1) {
+      she = true;
+      count += 1
+    }
+    if (nonbinaryIndex > -1) {
+      they = true;
+      count += 1
+    }
+  }
+  if (count > 1) {
+    t = t.replace("herselfHimself", "themselves");
+  } else if (they === true) {
+    t = t.replace("herselfHimself", "themselves");
+  } else if (she === true) {
+    t = t.replace("herselfHimself", "herself");
+  } else if (he === true) {
+    t = t.replace("herselfHimself", "himself")
+  } else {
+    t = t.replace("herselfHimself", "undefined")
+  }
+  return t;
+}
+
+function replaceSheHe(w, t) {
+  let he = false;
+  let she = false;
+  let they = false;
+  let count = 0;
+  for (let j = 0; j < w.refs.length; j++) {
+    let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+    let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+    let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+    if (maleIndex > -1) {
+      he = true;
+      count += 1
+    }
+    if (femaleIndex > -1) {
+      she = true;
+      count += 1
+    }
+    if (nonbinaryIndex > -1) {
+      they = true;
+      count += 1
+    }
+  }
+  if (count > 1) {
+    t = t.replace("sheHe", "they");
+  } else if (they === true) {
+    t = t.replace("sheHe", "they");
+  } else if (she === true) {
+    t = t.replace("sheHe", "she");
+  } else if (he === true) {
+    t = t.replace("sheHe", "he")
+  } else {
+    t = t.replace("sheHe", "undefined")
+  }
+  return t;
+}
+
+function replaceHerHim(w, t) {
+  let him = false;
+  let her = false;
+  let them = false;
+  let count = 0;
+  for (let j = 0; j < w.lastRefs.length; j++) {
+    let maleIndex = w.tags[`${w.lastRefs[j]}`].indexOf("male");
+    let femaleIndex = w.tags[`${w.lastRefs[j]}`].indexOf("female");
+    let nonbinaryIndex = w.tags[`${w.lastRefs[j]}`].indexOf("nonbinary");
+    if (maleIndex > -1) {
+      him = true;
+      count += 1
+    }
+    if (femaleIndex > -1) {
+      her = true;
+      count += 1
+    }
+    if (nonbinaryIndex > -1) {
+      them = true;
+      count += 1
+    }
+  }
+  if (count > 1) {
+    t = t.replace("herHim", "them");
+  } else if (them === true) {
+    t = t.replace("herHim", "them");
+  } else if (her === true) {
+    t = t.replace("herHim", "her");
+  } else if (him === true) {
+    t = t.replace("herHim", "him")
+  } else {
+    t = t.replace("herHim", "undefined")
+  }
+  return t;
+}
+
+function replaceHerHis(w, t) {
+  //replaces herHis with his, her, or their depending on current reference objects
+  let his = false;
+  let her = false;
+  let their = false;
+  let count = 0;
+  for (let j = 0; j < w.refs.length; j++) {
+    let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
+    let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
+    let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
+    if (maleIndex > -1) {
+      his = true;
+      count += 1
+    }
+    if (femaleIndex > -1) {
+      her = true;
+      count += 1
+    }
+    if (nonbinaryIndex > -1) {
+      their = true;
+      count += 1
+    }
+  }
+  if (count > 1) {
+    t = t.replace("herHis", "their");
+  } else if (their === true) {
+    t = t.replace("herHis", "their");
+  } else if (her === true) {
+    t = t.replace("herHis", "her");
+  } else if (his === true) {
+    t = t.replace("herHis", "his")
+  } else {
+    t = t.replace("herHis", "undefined")
+  }
+  return t;
+}
+
+function isFrequencyTextThere(w, t) {
+  let m = t.match(/(\d+)\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\)/)
+  let frequency = parseInt(m[1]);
+  let frequencyText = m[2];
+  let rand = getRandomInt(0, 100);
+  if (rand <= frequency) {
+    t = t.replace(/\d+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, frequencyText)
+  } else {
+    t = t.replace(/\d+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, "")
+  }
+  return t;
+}
+
+function retainOrDeleteTaggedText(w, t) {
+  //checks whether a tag exists on any of the currently selected reference objects. If so, use this text. If not, discard.
+  let m = t.match(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/)
+  let tag = m[1];
+  let tagText = m[2];
+  let conflicts = false;
+
+  for (let j = 0; j < w.refs.length; j++) {
+    let index = w.tags[`${w.refs[j]}`].indexOf(tag);
+    if (index === -1) {
+      conflicts = true;
+    }
+  }
+  if (conflicts === true) {
+    t = t.replace(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/, "")
+  } else {
+    t = t.replace(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/, tagText)
+  }
+  return t;
+}
+
+function collapseAnonymousNonterminal(w, t) {
+  let m = t.match(/\*\*([\w\s,\.\?\!\;\:\"\”\“\']+)\*\*/);
+  let arr = [];
+  if (m[1].includes(",")) {
+    arr = m[1].split(",")
+  } else {
+    arr = arr = m[1].split(" ")
+  }
+  let res = arr[getRandomInt(0, arr.length -1)];
+  t = t.replace(/\*\*[\w\s\d,]+\*\*/, res)
+  return t;
+}
+
+function drawTile(w, t) {
+  let m = t.match(/tile\((\d+)\,\s(\d+)\,\s([\w\"\/\d]+)\)/)
+  let x = m[1];
+  let y = m[2];
+  let name = m[3];
+  let tileText = tile(m[1], m[2], m[3]);
+  t = t.replace(/tile\((\d+)\,\s(\d+)\,\s([\w\"\\/\d]+)\)/, tileText)
+  return t;
+}
+
+function changeCanvasSettings(w, t) {
+  //canvas settings (like fillStyle)  - must end in semicolon
+  let p = t.match(/ctx\.(\w+)\s\=\s[A-Za-z\s\d\,\"\'\(\)]+\;/)[1];
+  let setting = t.match(/ctx\.\w+\s\=\s([A-Za-z\s\d\,\"\'\(\)]+)\;/)[1]
+  let c = document.getElementById("outputCanvas");
+  let ctx = c.getContext("2d");
+  ctx[p] = setting;
+  t = t.replace(/ctx\.\w+\s\=\s[A-Za-z\s\d\,\"\'\(\)]+\;/, "")
+  return t;
+}
+
+function runCanvasFunctions(w, t) {
+  //canvas functions
+  let f = t.match(/ctx\.(\w+)\(/)[1]
+  let args;
+  if (t.match(/ctx\.\w+\(([\w\d\,\s\<\/\>\"\'\.\=]+)\)/)) {
+    args = t.match(/ctx\.\w+\(([\w\d\,\s\<\/\>\"\'\.\=]+)\)/)[1]
+    t = t.replace(/ctx\.\w+\(([\w\d\,\s\<\/\>\"\'\.\=]+)\)/, "")
+  } else {
+    args = null;
+    t = t.replace(/ctx\.\w+\(\)/, "")
+  }
+  if (args && args.includes(",")) {
+    args = args.split(",");
+    for (let i = 0; i < args.length; i++) {
+      if (isNumeric(args[i])) {
+        args[i] = parseInt(args[i].trim());
+      } else {
+        args[i] = args[i].trim();
+      }
+
+    }
+  }
+  if (f.includes("drawImage")) {
+    let img = new Image;
+    img.src = `${args[0]}`;
+    args[0] = img
+  }
+  if (args) {
+    ctx[f](...args)
+  } else {
+    ctx[f]
+  }
+  return t;
+}
+
+function replaceRandomInt(w, t) {
+  let m = t.match(/getRandomInt\((\d+)\,\s?(\d+)\)/);
+  if (m && m[1] && m[2])  {
+    t = t.replace(/getRandomInt\((\d+)\,\s?(\d+)\)/, getRandomInt(parseInt(m[1]), parseInt(m[2])))
+  } else {
+    stillT = false;
+  }
+  return t;
+}
+
+function setSpeaker(w, t) {
+  let m = t.match(/\<speaker\>([\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\/)\=\/]+)\<\/speaker\>/)
+  try {
+    let o = {};
+    o.name = m[1].match(/name\:\s(\w+)/)[1]
+    o.lang = m[1].match(/lang\:\s(\w+)/)[1];
+    o.pitch = m[1].match(/pitch:\s(\d\.\d)/)[1];
+    o.rate = m[1].match(/rate:\s(\d\.\d)/)[1];
+    if (o.pitch > 2.0) {
+      o.pitch = `2.0`;
+    }
+    if (o.rate > 10) {
+      o.rate = `10`;
+    }
+    if (o.rate < 0.1) {
+      o.rate = `0.1`
+    }
+    let synth = window.speechSynthesis;
+    let voices = synth.getVoices();
+    let voiceMatches = [];
+    for (let i = 0; i < voices.length; i++) {
+      if (voices[i].lang.includes(`${o.lang}`)) {
+        voiceMatches.push(voices[i])
+      }
+    }
+    let rand = getRandomInt(0, voiceMatches.length - 1);
+    o.voice = voiceMatches[rand];
+    g.speakers.push(o)
+  } catch {
+    console.log(`ERROR: something went wrong when setting speaker with ${m[0]}`)
+  }
+  t = t.replace(/\<speaker\>([\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\/)\<\>\=\/]+)\<\/speaker\>/, "")
+  return t;
+}
+
+function replaceWithNoiseOutput(w, t) {
+  let m = t.match(/noise\(([\w\d]+)\,\s(\d+)\,\s(\d+)\)/)
+  t = t.replace(/noise\([\w\d]+\,\s\d+\,\s\d+\)/, `${noise(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]))}`)
+  return t;
+}
+
+function replaceWithNoiseAt(w, t) {
+  let m = t.match(/noiseAt\(([\w\d]+)\,\s(\d+)\,\s(\d+)\,\s(\d+)\)/)
+  t = t.replace(/noiseAt\(([\w\d]+)\,\s(\d+)\,\s(\d+)\,\s(\d+)\)/, `${noiseAt(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), parseInt(m[4]))}`)
+  return t;
+}
+
+function replaceCompromiseWithOutput(w, t) {
+  let m = t.match(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/);
+  console.log(m[1])
+  let res;
+  res = runCompromise(m[2], replaceVariable(w, m[1]));
+  if (res) {
+    t = t.replace(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/, res)
+  } else {
+    t = t.replace(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/, "")
+  }
+  return t;
+}
+
+function replaceMarkovWithOutput(w, t) {
+  let m = t.match(/markov\(([\(\)\{\}\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\'\"\”\“\%\/$]+)\,\s(\d+)\,\s(\d+)\)/)
+  markov.addStates(m[1]);
+  markov.train(parseInt(m[2]));
+  let rep = markov.generateRandom(parseInt(m[3]))
+  t = t.replace(/markov\(([\{\}\w\s\+\.\-\=\<\>\!\?\d\,\:\;\(\)\$\'\"\”\“\%\/]+)\,\s(\d+)\,\s(\d+)\)/, rep)
+  return t;
+}
+
+function replaceGridWithGridName(w, t) {
+  t = t.replace("grid()", `${g.currentGrid.name}`)
+  return t;
+}
+
+function replaceCoordsWithXYZ(w, t) {
+  t = t.replace("coords()", `x:${w.x}y:${w.y}z:${w.z}`);
+  return t;
+}
+
+function replaceX(w, t) {
+  t = t.replace("x()", `${w.x}`)
+  return t;
+}
+
+function replaceY(w, t) {
+  t = t.replace("y()", `${w.y}`)
+  return t;
+}
+
+function replaceZ(w, t) {
+  t = t.replace("z()", `${w.z}`)
+  return t;
+}
+
+function addIndentation(w, t) {
+  let m = t.match(/indent\((\d+)\)/)
+  if (m && m[1]){
+    let d = parseInt(m[1]);
+    let indent = "";
+    for (let i = 0; i < d; i++) {
+      indent += "&nbsp&nbsp";
+    }
+    t = t.replace(/indent\(\d+\)/, indent)
+  }
+  return t;
+}
+
+function replaceKey(w, t) {
+  let m = t.match(/replaceKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+)\)/)
+  m[1] = replaceVariable(w, m[1]);
+  m[2] = replaceVariable(w, m[2]);
+  let exists = false;
+  for (let i = 0; i < kv.length; i++) {
+    if (kv[i].k === m[1]) {
+      exists = true
+      kv[i].v = ` ${m[2]}`
+      kv[i].lastChange = 0;
+    }
+  }
+  if (exists === false) {
+    let o = {};
+    o.k = m[1];
+    o.v = m[2];
+    //lastChange is an experimental value that one could use to track the forgetting of knowledge over time. No use at moment.
+    o.lastChange = 0;
+    kv.push(o);
+  }
+  t = t.replace(/replaceKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+)\)/, "")
+}
+
+function addKey(w, t) {
+  let m = t.match(/addKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\,\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/)
+  m[1] = replaceVariable(w, m[1]);
+  m[2] = replaceVariable(w, m[2]);
+  let exists = false;
+  for (let i = 0; i < kv.length; i++) {
+    if (kv[i].k === m[1]) {
+      exists = true
+      kv[i].v += ` ${m[2]}`
+      kv[i].lastChange = 0;
+    }
+  }
+  if (exists === false) {
+    let o = {};
+    o.k = m[1];
+    o.v = m[2];
+    o.lastChange = 0;
+    kv.push(o);
+  }
+  t = t.replace(/addKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\(\)\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\'\/\\]+)\)/, "")
+}
+
+function pushSpeechToGenerator(w, t) {
+  let m = t.match(/\<speak\((\w+)\)\>([\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+)\<\/speak>/);
+  let f = t.match(/\<speak\((\w+)\)\>[\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+\<\/speak\>/);
+  let o = {};
+  o.text = `${m[2]}`
+  o.voice = `${m[1]}`
+  g.speak.push(o)
+  t = t.replace(/\<speak\((\w+)\)\>([\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/\\]+)<\/speak\>/, "")
+}
+
+function drawTileAtCurrentWalkerPosition(w, t) {
+  let m = t.match(/pt\(([\w\"\/\d]+)\)/);
+  let tileName = m[1];
+  let tileText = tile(w.x, w.y, m[1]);
+  t = t.replace(/pt\([\w\"\/\d]+\)/, tileText)
+}
+
 function runFunctions(w, t) {
   let stillT = true;
   let c = document.getElementById("outputCanvas");
@@ -2180,229 +2710,25 @@ function runFunctions(w, t) {
     t = `${t}`
     t = replaceVariable(w, t);
     if (t && t.includes("hersHis")) {
-      let he = false;
-      let she = false;
-      let they = false;
-      let count = 0;
-      for (let j = 0; j < w.refs.length; j++) {
-        let personIndex = w.tags[`${w.refs[j]}`].indexOf("person");
-        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
-        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
-        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
-        if (maleIndex > -1) {
-          he = true;
-          count += 1
-        } else if (femaleIndex > -1) {
-          she = true;
-          count += 1
-        } else if (nonbinaryIndex > -1) {
-          they = true;
-          count += 1
-        } else if (personIndex > -1) {
-          count += 1
-        }
-      }
-      if (count > 1) {
-        t = t.replace("hersHis", "theirs");
-      } else if (they === true) {
-        t = t.replace("hersHis", "theirs");
-      } else if (she === true) {
-        t = t.replace("hersHis", "hers");
-      } else if (he === true) {
-        t = t.replace("hersHis", "his")
-      } else {
-        t = t.replace("hersHis", "undefined")
-      }
+      t = replaceHerHis(w, t)
     } else if (t && t.includes("herselfHimself")) {
-      let he = false;
-      let she = false;
-      let they = false;
-      let count = 0;
-      for (let j = 0; j < w.refs.length; j++) {
-        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
-        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
-        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
-        if (maleIndex > -1) {
-          he = true;
-          count += 1
-        }
-        if (femaleIndex > -1) {
-          she = true;
-          count += 1
-        }
-        if (nonbinaryIndex > -1) {
-          they = true;
-          count += 1
-        }
-      }
-      if (count > 1) {
-        t = t.replace("herselfHimself", "themselves");
-      } else if (they === true) {
-        t = t.replace("herselfHimself", "themselves");
-      } else if (she === true) {
-        t = t.replace("herselfHimself", "herself");
-      } else if (he === true) {
-        t = t.replace("herselfHimself", "himself")
-      } else {
-        t = t.replace("herselfHimself", "undefined")
-      }
+      t = replaceHerselfHimself(w, t)
     } else if (t && t.includes("sheHe")) {
-      let he = false;
-      let she = false;
-      let they = false;
-      let count = 0;
-      for (let j = 0; j < w.refs.length; j++) {
-        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
-        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
-        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
-        if (maleIndex > -1) {
-          he = true;
-          count += 1
-        }
-        if (femaleIndex > -1) {
-          she = true;
-          count += 1
-        }
-        if (nonbinaryIndex > -1) {
-          they = true;
-          count += 1
-        }
-      }
-      if (count > 1) {
-        t = t.replace("sheHe", "they");
-      } else if (they === true) {
-        t = t.replace("sheHe", "they");
-      } else if (she === true) {
-        t = t.replace("sheHe", "she");
-      } else if (he === true) {
-        t = t.replace("sheHe", "he")
-      } else {
-        t = t.replace("sheHe", "undefined")
-      }
+      t = replaceSheHe(w, t)
     } else if (t && t.includes("herHim")) {
-      let him = false;
-      let her = false;
-      let them = false;
-      let count = 0;
-      for (let j = 0; j < w.lastRefs.length; j++) {
-        let maleIndex = w.tags[`${w.lastRefs[j]}`].indexOf("male");
-        let femaleIndex = w.tags[`${w.lastRefs[j]}`].indexOf("female");
-        let nonbinaryIndex = w.tags[`${w.lastRefs[j]}`].indexOf("nonbinary");
-        if (maleIndex > -1) {
-          him = true;
-          count += 1
-        }
-        if (femaleIndex > -1) {
-          her = true;
-          count += 1
-        }
-        if (nonbinaryIndex > -1) {
-          them = true;
-          count += 1
-        }
-      }
-      if (count > 1) {
-        t = t.replace("herHim", "them");
-      } else if (them === true) {
-        t = t.replace("herHim", "them");
-      } else if (her === true) {
-        t = t.replace("herHim", "her");
-      } else if (him === true) {
-        t = t.replace("herHim", "him")
-      } else {
-        t = t.replace("herHim", "undefined")
-      }
+      t = replaceHerHim(w, t)
     } else if (t && t.includes("herHis")) {
-      //replaces herHis with his, her, or their depending on current reference objects
-      let his = false;
-      let her = false;
-      let their = false;
-      let count = 0;
-      for (let j = 0; j < w.refs.length; j++) {
-        let maleIndex = w.tags[`${w.refs[j]}`].indexOf("male");
-        let femaleIndex = w.tags[`${w.refs[j]}`].indexOf("female");
-        let nonbinaryIndex = w.tags[`${w.refs[j]}`].indexOf("nonbinary");
-        if (maleIndex > -1) {
-          his = true;
-          count += 1
-        }
-        if (femaleIndex > -1) {
-          her = true;
-          count += 1
-        }
-        if (nonbinaryIndex > -1) {
-          their = true;
-          count += 1
-        }
-      }
-      if (count > 1) {
-        t = t.replace("herHis", "their");
-      } else if (their === true) {
-        t = t.replace("herHis", "their");
-      } else if (her === true) {
-        t = t.replace("herHis", "her");
-      } else if (his === true) {
-        t = t.replace("herHis", "his")
-      } else {
-        t = t.replace("herHis", "undefined")
-      }
+      t = replaceHerHis(w, t);
     } else if (t && t.match(/\d\(/)) {
-      let m = t.match(/(\d+)\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\)/)
-      let frequency = parseInt(m[1]);
-      let frequencyText = m[2];
-      let rand = getRandomInt(0, 100);
-      console.log(frequency);
-      console.log(rand)
-      if (rand <= frequency) {
-        t = t.replace(/\d+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, frequencyText)
-      } else {
-        t = t.replace(/\d+\([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\)/, "")
-      }
-      console.log(t);
+      t = isFrequencyTextThere(w, t)
     } else if (t && t.match(/\*[\w\d]+\*[\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+\*[\w\d]+\*/)) {
-      console.log("trig")
-      //checks whether a tag exists on any of the currently selected reference objects. If so, use this text. If not, discard.
-      let m = t.match(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/)
-      let tag = m[1];
-      let tagText = m[2];
-      let conflicts = false;
-
-      for (let j = 0; j < w.refs.length; j++) {
-        let index = w.tags[`${w.refs[j]}`].indexOf(tag);
-        if (index === -1) {
-          conflicts = true;
-        }
-      }
-      if (conflicts === true) {
-        t = t.replace(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/, "")
-      } else {
-        t = t.replace(/\*([\w\d]+)\*([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\]+)\*[\w\d]+\*/, tagText)
-      }
+      t = retainOrDeleteTaggedText(w, t)
     } else if (t && t.includes("**")) {
-      let m = t.match(/\*\*([\w\s,\.\?\!\;\:\"\”\“\']+)\*\*/);
-      let arr = [];
-      if (m[1].includes(",")) {
-        arr = m[1].split(",")
-      } else {
-        arr = arr = m[1].split(" ")
-      }
-      let res = arr[getRandomInt(0, arr.length -1)];
-      t = t.replace(/\*\*[\w\s\d,]+\*\*/, res)
+      t = collapseAnonymousNonterminal(w, t)
     } else if (t && t.includes("pt(")) {
-      let m = t.match(/pt\(([\w\"\/\d]+)\)/);
-      let tileName = m[1];
-      let tileText = tile(w.x, w.y, m[1]);
-      t = t.replace(/pt\([\w\"\/\d]+\)/, tileText)
+      drawTileAtCurrentWalkerPosition(w, t);
     } else if (t && t.includes("tile(")) {
-      console.log("TILE")
-      let m = t.match(/tile\((\d+)\,\s(\d+)\,\s([\w\"\/\d]+)\)/)
-      let x = m[1];
-      let y = m[2];
-      let name = m[3];
-      console.log(m)
-      let tileText = tile(m[1], m[2], m[3]);
-      t = t.replace(/tile\((\d+)\,\s(\d+)\,\s([\w\"\\/\d]+)\)/, tileText)
-      console.log(t)
+      t = drawTile(w, t)
     } else if (t && t.includes(".push(")) {
       let m = t.match(/(\w+)\.push\((\w+)\)/)
       let arrName = m[1];
@@ -2418,180 +2744,41 @@ function runFunctions(w, t) {
       g.arrays[arrName].push(o)
       t = t.replace(/(\w+)\.push\((\w+)\)/)
     } else if (t && t.match(/ctx\.\w+\s\=\s[A-Za-z\s\d\,\"\'\(\)]+\;/)) {
-      //canvas settings (like fillStyle)  - must end in semicolon
-      let p = t.match(/ctx\.(\w+)\s\=\s[A-Za-z\s\d\,\"\'\(\)]+\;/)[1];
-      let setting = t.match(/ctx\.\w+\s\=\s([A-Za-z\s\d\,\"\'\(\)]+)\;/)[1]
-      let c = document.getElementById("outputCanvas");
-      let ctx = c.getContext("2d");
-      ctx[p] = setting;
-      t = t.replace(/ctx\.\w+\s\=\s[A-Za-z\s\d\,\"\'\(\)]+\;/, "")
+      t = changeCanvasSettings(w, t);
     } else if (t && t.match(/ctx\.\w+\(/)) {
-      //canvas functions
-      let f = t.match(/ctx\.(\w+)\(/)[1]
-      let args;
-      if (t.match(/ctx\.\w+\(([\w\d\,\s\<\/\>\"\'\.\=]+)\)/)) {
-        args = t.match(/ctx\.\w+\(([\w\d\,\s\<\/\>\"\'\.\=]+)\)/)[1]
-        t = t.replace(/ctx\.\w+\(([\w\d\,\s\<\/\>\"\'\.\=]+)\)/, "")
-      } else {
-        args = null;
-        t = t.replace(/ctx\.\w+\(\)/, "")
-      }
-      if (args && args.includes(",")) {
-        args = args.split(",");
-        for (let i = 0; i < args.length; i++) {
-          if (isNumeric(args[i])) {
-            args[i] = parseInt(args[i].trim());
-          } else {
-            args[i] = args[i].trim();
-          }
-
-        }
-      }
-      if (f.includes("drawImage")) {
-        let img = new Image;
-        img.src = `${args[0]}`;
-        args[0] = img
-      }
-      if (args) {
-        ctx[f](...args)
-      } else {
-        ctx[f]
-      }
-
+      t = runCanvasFunctions(w, t);
     } else if (t && t.includes("getRandomInt(")) {
-      let m = t.match(/getRandomInt\((\d+)\,\s?(\d+)\)/);
-      if (m && m[1] && m[2])  {
-        t = t.replace(/getRandomInt\((\d+)\,\s?(\d+)\)/, getRandomInt(parseInt(m[1]), parseInt(m[2])))
-      } else {
-        stillT = false;
-      }
+      t = replaceRandomInt(w, t)
     } else if (t && t.includes("<speaker>")) {
-      let m = t.match(/\<speaker\>([\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\/)\=\/]+)\<\/speaker\>/)
-      try {
-        let o = {};
-        o.name = m[1].match(/name\:\s(\w+)/)[1]
-        o.lang = m[1].match(/lang\:\s(\w+)/)[1];
-        o.pitch = m[1].match(/pitch:\s(\d\.\d)/)[1];
-        o.rate = m[1].match(/rate:\s(\d\.\d)/)[1];
-        if (o.pitch > 2.0) {
-          o.pitch = `2.0`;
-        }
-        if (o.rate > 10) {
-          o.rate = `10`;
-        }
-        if (o.rate < 0.1) {
-          o.rate = `0.1`
-        }
-        let synth = window.speechSynthesis;
-        let voices = synth.getVoices();
-        let voiceMatches = [];
-        for (let i = 0; i < voices.length; i++) {
-          if (voices[i].lang.includes(`${o.lang}`)) {
-            voiceMatches.push(voices[i])
-          }
-        }
-        let rand = getRandomInt(0, voiceMatches.length - 1);
-        o.voice = voiceMatches[rand];
-        g.speakers.push(o)
-      } catch {
-        console.log(`ERROR: something went wrong when setting speaker with ${m[0]}`)
-      }
-      t = t.replace(/\<speaker\>([\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\/)\<\>\=\/]+)\<\/speaker\>/, "")
+      setSpeaker(w, t);
     } else if (t && t.includes("getRandomColor()")) {
       t = t.replace("getRandomColor()", getRandomColor());
     } else if (t && t.includes("noise(")) {
-      let m = t.match(/noise\(([\w\d]+)\,\s(\d+)\,\s(\d+)\)/)
-      t = t.replace(/noise\([\w\d]+\,\s\d+\,\s\d+\)/, `${noise(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]))}`)
+      t = replaceWithNoiseOutput(w, t);
     } else if (t && t.includes("noiseAt(")) {
-      let m = t.match(/noiseAt\(([\w\d]+)\,\s(\d+)\,\s(\d+)\,\s(\d+)\)/)
-      t = t.replace(/noiseAt\(([\w\d]+)\,\s(\d+)\,\s(\d+)\,\s(\d+)\)/, `${noiseAt(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), parseInt(m[4]))}`)
+      t = replaceWithNoiseAt(w, t);
     } else if (t && t.match(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\`\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/)) {
-      //compromise
-      let m = t.match(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/);
-      console.log(m[1])
-      let res;
-      res = runCompromise(m[2], replaceVariable(w, m[1]));
-      if (res) {
-        t = t.replace(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/, res)
-      } else {
-        t = t.replace(/\{([A-Za-z\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\{\}\'\"\”\“\%\/$\n]+)\}\.([\w\#\(\)\s\.]+)/, "")
-      }
-
+      t = replaceCompromiseWithOutput(w, t)
     } else if(t && t.includes("markov(")) {
-      let m = t.match(/markov\(([\(\)\{\}\w\s\+\.\-\=\<\>\!\?\d\,\n\:\;\$\'\"\”\“\%\/$]+)\,\s(\d+)\,\s(\d+)\)/)
-      markov.addStates(m[1]);
-      markov.train(parseInt(m[2]));
-      let rep = markov.generateRandom(parseInt(m[3]))
-      t = t.replace(/markov\(([\{\}\w\s\+\.\-\=\<\>\!\?\d\,\:\;\(\)\$\'\"\”\“\%\/]+)\,\s(\d+)\,\s(\d+)\)/, rep)
+      t = replaceMarkovWithOutput(w, t)
     } else if (t && t.includes("grid()")) {
-      t = t.replace("grid()", `${g.currentGrid.name}`)
+      t = replaceGridWithGridName(w, t);
     } else if (t && t.includes("coords()")) {
-      t = t.replace("coords()", `x:${w.x}y:${w.y}z:${w.z}`);
+      t = replaceCoordsWithXYZ(w, t);
     } else if (t && t.includes("x()")) {
-      t = t.replace("x()", `${w.x}`)
+      t = replaceX(w, t)
     } else if (t && t.includes("y()")) {
-      t = t.replace("y()", `${w.y}`)
-    }else if (t && t.includes("z()")) {
-      t = t.replace("z()", `${w.z}`)
+      t = replaceY(w, t);
+    } else if (t && t.includes("z()")) {
+      t = replaceZ(w, t);
     } else if (t && t.includes("indent(")) {
-      let m = t.match(/indent\((\d+)\)/)
-      if (m && m[1]){
-        let d = parseInt(m[1]);
-        let indent = "";
-        for (let i = 0; i < d; i++) {
-          indent += "&nbsp&nbsp";
-        }
-        t = t.replace(/indent\(\d+\)/, indent)
-      }
+      t = addIndentation(w, t);
     } else if (t && t.includes("replaceKey(")) {
-      let m = t.match(/replaceKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+)\)/)
-      m[1] = replaceVariable(w, m[1]);
-      m[2] = replaceVariable(w, m[2]);
-      let exists = false;
-      for (let i = 0; i < kv.length; i++) {
-        if (kv[i].k === m[1]) {
-          exists = true
-          kv[i].v = ` ${m[2]}`
-          kv[i].lastChange = 0;
-        }
-      }
-      if (exists === false) {
-        let o = {};
-        o.k = m[1];
-        o.v = m[2];
-        //lastChange is an experimental value that one could use to track the forgetting of knowledge over time. No use at moment.
-        o.lastChange = 0;
-        kv.push(o);
-      }
-      t = t.replace(/replaceKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+)\)/, "")
+      t = replaceKey(w, t);
     } else if (t && t.includes("addKey(")) {
-      let m = t.match(/addKey\(([\w\d\s\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+),\s([\w\d\s\,\.\!\?\;\:\<\>\-\+\=\"\”\“\/\\\(\)]+)\)/)
-      m[1] = replaceVariable(w, m[1]);
-      m[2] = replaceVariable(w, m[2]);
-      let exists = false;
-      for (let i = 0; i < kv.length; i++) {
-        if (kv[i].k === m[1]) {
-          exists = true
-          kv[i].v += ` ${m[2]}`
-          kv[i].lastChange = 0;
-        }
-      }
-      if (exists === false) {
-        let o = {};
-        o.k = m[1];
-        o.v = m[2];
-        o.lastChange = 0;
-        kv.push(o);
-      }
-      t = t.replace(/addKey\(([\w\d\s\.\,\?\!\;\:\<\>\-\+\=\"\”\“\'\/\\\(\)]+),\s([\(\)\w\d\s\.\,\?\;\!\:\<\>\-\+\=\"\”\“\'\/\\]+)\)/, "")
+      t = addKey(w, t)
     } else if (t && t.match(/\<speak\((\w+)\)\>/)) {
-      let m = t.match(/\<speak\((\w+)\)\>([\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+)\<\/speak>/);
-      let f = t.match(/\<speak\((\w+)\)\>[\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/]+\<\/speak\>/);
-      let o = {};
-      o.text = `${m[2]}`
-      o.voice = `${m[1]}`
-      g.speak.push(o)
-      t = t.replace(/\<speak\((\w+)\)\>([\$\{\}\w\s\.\-\!\?\d\,\:\;\'\"\”\“\%\(/)\<\>\=\/\\]+)<\/speak\>/, "")
+      t = pushSpeechToGenerator(w, t)
     } else {
       stillT = false;
     }
@@ -2645,13 +2832,13 @@ function loopTagRunGraphs(tags, graph, w) {
   return res;
 }
 
-function addComponentTo(w, comp) {
-  //w.tags is the refs - each ref has array of tags
-
+function addEveryToWalker(w, comp) {
   if (comp.every) {
     w.every = comp.every;
   }
+}
 
+function addAnyRefToWalker(w, comp) {
   if (comp.anyRef.length > 0) {
     let anyRefArr = [];
     saveOldRefs(w);
@@ -2670,7 +2857,9 @@ function addComponentTo(w, comp) {
     }
     w.refs = anyRefArr
   }
+}
 
+function addRandRefToWalker(w, comp) {
   if (comp.randRef.length > 0) {
     let randRefArr = [];
     saveOldRefs(w);
@@ -2690,7 +2879,9 @@ function addComponentTo(w, comp) {
     let rand = randRefArr[getRandomInt(0, randRefArr.length - 1)]
     w.refs.push(rand);
   }
+}
 
+function addAllRefsToWalker(w, comp) {
   //allRefs matches refs with all tags listed
   if (comp.allRefs.length > 0) {
     saveOldRefs(w);
@@ -2708,6 +2899,9 @@ function addComponentTo(w, comp) {
       }
     }
   }
+}
+
+function addNotRefsToWalker(w, comp) {
   if (comp.notRefs.length > 0) {
     saveOldRefs(w);
     w.refs = [];
@@ -2724,6 +2918,9 @@ function addComponentTo(w, comp) {
       }
     }
   }
+}
+
+function addRefsToWalker(w, comp) {
   if (comp.refs.length > 0) {
     saveOldRefs(w);
     w.refs = comp.refs
@@ -2735,6 +2932,10 @@ function addComponentTo(w, comp) {
       }
     }
   }
+}
+
+function weirdFunction(w, comp) {
+  //TODO: COME BACK TO THIS and rename - code not explained
   for (let j = 0; j < w.refs.length; j++) {
     //added below to fix bug where variables not available without prior tags. Need to clean up remainder of function
     if (w.tags[`${w.refs[j]}`]) {
@@ -2765,9 +2966,10 @@ function addComponentTo(w, comp) {
       }
     }
   }
+}
 
+function addVariablesToWalker(w, comp) {
   if (comp.variables) {
-
     for (let p in w.tags) {
        for (let i = 0; i < comp.variables.length; i++) {
          let cv = _.cloneDeep(comp.variables[i]);
@@ -2823,8 +3025,71 @@ function addComponentTo(w, comp) {
        }
     }
   }
+}
 
-  if (comp.choices && comp.choices.length > 0) {
+function changeBackground(comp) {
+  if (comp.background && comp.background.length > 0) {
+    GID("cell-box").style.backgroundColor = `${comp.background}`
+  }
+}
+
+function changeColor(comp) {
+  if (comp.color && comp.color.length > 0) {
+    GID("cell-box").style.color = `${comp.color}`
+  }
+}
+
+function changeImage(comp) {
+  if (comp.img && comp.img.length > 0) {
+    GID("left-img").src = `${comp.img}`;
+    GID("left-img").style.display = "block"
+  }
+}
+
+function ignoreText(comp) {
+  //use this for components that should create component objects without generating any of the underlying text (e.g., create_room)
+  comp.noText = true
+  comp.noChoices = true;
+  comp.noLinks = true
+}
+
+function createRoom(w, comp) {
+  console.log("CREATING ROOM")
+  if (comp.text.includes("create_room")) {
+    console.log("CREATING ROOM 2")
+    parseRoom(comp, w)
+    ignoreText(comp)
+  }
+}
+
+function addComponentTo(w, comp) {
+  //w.tags is the refs - each ref has array of tags
+
+  addEveryToWalker(w, comp);
+  addAnyRefToWalker(w, comp)
+  addRandRefToWalker(w, comp)
+  addAllRefsToWalker(w, comp);
+  addNotRefsToWalker(w, comp);
+  addRefsToWalker(w, comp);
+  weirdFunction(w, comp);
+  addVariablesToWalker(w, comp);
+  changeBackground(comp);
+  changeColor(comp);
+  changeImage(comp)
+  createRoom(w, comp)
+  addChoicesToGenerator(comp, w)
+  addLinksToGenerator(comp, w)
+  /*if (comp.text.includes("create_person")) {
+    parsePerson(comp.text, w);
+    comp.text = ""
+  }
+  */
+}
+
+function addChoicesToGenerator(comp, w) {
+  if (comp.noChoices) {
+
+  } else if (comp.choices && comp.choices.length > 0) {
     for (let i = 0; i < comp.choices.length; i++) {
       if (choiceVariablesConflict(w, comp.choices[i])) {
         //do nothing
@@ -2840,7 +3105,12 @@ function addComponentTo(w, comp) {
       }
     }
   }
-  if (comp.links && comp.links.length > 0) {
+}
+
+function addLinksToGenerator(comp, w) {
+  if (comp.noLinks) {
+
+  } else if (comp.links && comp.links.length > 0) {
     for (let i = 0; i < comp.links.length; i++) {
       if (choiceVariablesConflict(w, comp.links[i])) {
         //do nothing
@@ -2852,15 +3122,6 @@ function addComponentTo(w, comp) {
         g.links.push(o);
       }
     }
-  }
-  if (comp.background && comp.background.length > 0) {
-    GID("cell-box").style.backgroundColor = `${comp.background}`
-  }
-  if (comp.color && comp.color.length > 0) {
-    GID("cell-box").style.color = `${comp.color}`
-  }
-  if (comp.img && comp.img.length > 0) {
-    GID("left-img").src = `${comp.img}`;
   }
 }
 
@@ -3094,6 +3355,7 @@ function generate(grid, w, continuing) {
     start = setStart()
     walker = getWalker(start, null)
     walker.collecting = false;
+    g.lastWalker = walker //POTENTIAL PROBLEM
   }
   if (continuing) {
 
@@ -3385,21 +3647,252 @@ GID("save-as-text").onclick = function() {
   URL.revokeObjectURL(link.href);
 }
 
+function clearRooms() {
+  g.rooms = {}
+}
+
 GID("load-from-text").onclick = function() {
   let fr = new FileReader();
   let o = {}
   fr.onload=function(){
     g = JSON.parse(fr.result)
+    clearRooms()
   }
 }
 
-document.getElementById('load-from-text')
-            .addEventListener('change', function() {
-              
-            var fr=new FileReader();
-            fr.onload=function(){
-               g = JSON.parse(fr.result)
-            }
-              
-            fr.readAsText(this.files[0]);
-        })
+GID('load-from-text').addEventListener('change', function() {
+  var fr=new FileReader();
+  fr.onload=function(){
+    g = JSON.parse(fr.result)
+    clearRooms()
+  }
+  fr.readAsText(this.files[0]);
+})
+
+function parseRoomVariables(t) {
+  let vArr = []
+  let tArr = t.split(",")
+  for (let i = 0; i < tArr.length; i++) {
+    tArr[i] = tArr[i].trim();
+    let o = {};
+    o.name = tArr[i].match(/([\w\d]+)\s\=/)[1]
+    o.value = tArr[i].match(/\=\s([\w\d\s]+)/)[1]
+    vArr.push(o)
+  }
+  return vArr
+}
+
+
+function parseRoom(comp, w) {
+  //NOTE: Use L(gridname) to call grids when displayed instead of immediately
+  let room = {}
+  room.exits = []
+  room.people = []
+  room.variables = []
+  //room.variables = comp.variables
+  //room.tags = comp.tags
+  room.choices = comp.choices
+  //START WORK HERE ON INCORPORATING CHOICES AND VARIABLES IN ROOM
+  let t = comp.text
+  t = t.replace("create_room", "")
+  let nt = ""
+  if (t.includes("G(")) {
+    w.collecting = true;
+    nt += runGrids(w, t);
+    w.collecting = false;
+    nt = runFunctions(w, nt);
+  } else {
+    nt = t
+  }
+  nt = replaceAnythingInBrackets(nt)
+  let els = nt.split(";")
+  for (let i = 0; i < els.length; i++) {
+    if (els[i].includes("title:")) {
+      room.title = els[i].replace(/\n?title\:\s/, "")
+    }
+    if (els[i].includes("desc: ")) {
+      room.description = els[i].replace(/\n?desc\:\s/, "")
+    }
+    if (els[i].includes("id: ")) {
+      room.uid = els[i].replace(/\n?id\:\s/, "")
+    }
+    if (els[i].includes("img:")) {
+      console.log(els[i])
+      room.img = els[i].replace(/\n?img\:\s/, "")
+      console.log(room.img)
+    }
+    if (els[i].includes("tags:")) {
+      let tags = els[i].replace(/\n?tags\:\s/, "")
+      tags = tags.replace(/\r?\n|\r/g, "");
+      tags = tags.split(" ")
+      room.tags = tags
+    }
+    if (els[i].includes("variables")) {
+      let variables = els[i].replace(/\n?variables\:\s/, "")
+      room.variables = parseRoomVariables(variables)
+    }
+    if (els[i].includes("exit:")) {
+      let exit = {};
+      if (els[i].includes("conditions(")) {
+        exit.conditions = els[i].match(/conditions\(([A-Za-z\w\s\+\.\-\=\!\?\d\,\:\$\{\}\'\"\”\“\`\%\/$\<\>]+)\)/)[1]
+      }
+      if (els[i].includes("show(")) {
+        exit.show = els[i].match(/show\(([A-Za-z\w\s\+\.\-\=\!\?\d\,\:\$\{\}\'\"\”\“\`\%\/$\(\)]+)\)\s+go\(/)[1]
+      }
+      if (els[i].includes("go(")) {
+        exit.go = els[i].match(/go\(([A-Za-z\w\s\+\.\-\=\!\?\d\,\n\:\$\{\}\'\"\”\“\`\%\/$]+)\)/)[1]
+      }
+      room.exits.push(exit)
+    }
+  }
+  g.rooms[`${room.uid}`] = room
+  console.log(g.rooms)
+}
+
+/*function parsePerson(t, w) {
+  let person = {};
+  t = t.replace("create_person", "")
+  let nt = "";
+  if (t.includes("G(")) {
+    w.collecting = true;
+    nt += runGrids(w, t);
+    w.collecting = false;
+    nt = runFunctions(w, nt);
+  } else {
+    nt = t
+  }
+  nt = replaceAnythingInBrackets(nt)
+  let els = nt.split(";")
+  for (let i = 0; i < els.length; i++) {
+    if (els[i].includes("id:")) {
+      person.uid = els[i].replace(/\n?id\:\s/, "")
+    }
+    if (els[i].includes("img:")) {
+      person.img = els[i].replace(/\n?img\:\s/, "")
+    }
+    if (els[i].includes("unknown:")) {
+      //description if unknown
+      person.unknown = els[i].replace(/\n?unknown\:\s/, "")
+    }
+    if (els[i].includes("first:")) {
+      person.firstName = els[i].replace(/\n?first\:\s/, "")
+    }
+    if (els[i].includes("last:")) {
+      person.lastName = els[i].replace(/\n?last\:\s/, "")
+    }
+    if (els[i].includes("age:")) {
+      person.age = els[i].replace(/\n?age\:\s/, "")
+    }
+    if (els[i].includes("location:")) {
+      person.location = els[i].replace(/\n?location\:\s/, "")
+    }
+    if (els[i].includes("short_desc: ")) {
+      person.shortDesc = els[i].replace(/\n?short\_desc\:\s/, "")
+    }
+    if (els[i].includes("long_desc: ")) {
+      person.longDesc = els[i].replace(/\n?long\_desc\:\s/, "")
+    }
+    if (els[i].includes("tags:")) {
+      let tags = els[i].replace(/\n?tags\:\s/, "")
+      tags = tags.replace(/\r?\n|\r/g, "");
+      tags = tags.split(" ")
+      room.tags = tags
+    }
+  }
+  g.people[`${person.uid}`] = person
+}
+*/
+
+
+
+function setWalkerRoomVariables(w, room) {
+  if (room) {
+    w.tags["room"] = []
+    w.tags["room"].variables = room.variables
+  }
+}
+
+function saveWalkerRoomVariablesToRoom(w, room) {
+  if(w && w.tags["room"] && w.tags["room"].variables) {
+    room.variables = w.tags["room"].variables
+  }
+}
+
+function workOnText(t) {
+  let nt = t.replace("L(", "G(")
+  console.log(g.lastWalker)
+  console.log(nt)
+  nt = runGrids(g.lastWalker, nt)
+  nt = processRawGeneration(nt, 1);
+  nt = cleanText(nt)
+  return nt
+}
+
+function showRoom(r, w) {
+  g.currentRoom = r
+  g.lastRoom = g.currentRoom
+  if (g.lastRoom) {
+    saveWalkerRoomVariablesToRoom(w, g.lastRoom)
+  }
+  console.log(g.rooms[r])
+  console.log(g.rooms[`${r}`])
+  let room = g.rooms[`${r}`]
+  if (w) {
+
+  } else {
+    w = g.lastWalker
+  }
+  setWalkerRoomVariables(w, room)
+  console.log(g)
+  console.log(room)
+  addChoicesToGenerator(room, w);
+  addLinksToGenerator(room, w)
+  let img = GID("left-img");
+  if (room.img) {
+    img.src = room.img
+    img.style.display = "block"
+  } else {
+    img.style.display = "none"
+  }
+  let t = ""
+  let currentDescription = workOnText(room.description)
+  let currentTitle = workOnText(room.title)
+  t += `
+    <h1 style="text-align: center; margin-top: 10px; margin-bottom: 10px; font-size: 2em">${currentTitle}</h1>
+    <p style="margin-left: 10px">${currentDescription}</p>
+  `
+  GID("room-box").innerHTML = t
+
+  t = ""
+  for (let i = 0; i < room.exits.length; i++) {
+    let currentExit = workOnText(room.exits[i].show)
+    t += `<p class="roomExits" id="roomExit${i}">${currentExit}</p>`
+  }
+  GID("room-exits-box").innerHTML = t
+  for (let i = 0; i < room.exits.length; i++) {
+    let destination = room.exits[i].go
+    GID(`roomExit${i}`).onclick = function() {
+      emptyOutput()
+      //THIS COULD SCREW THINGS UP - TESTING USING LASTWALKER HERE BECAUSE W IS NULL
+      showRoom(destination, g.lastWalker)
+      linkUpText()
+    }
+  }
+
+}
+
+function linkUpText() {
+  addClickToHyperlinks();
+  setTextTimerTimeouts()
+  addChoicesAndTimers();
+  addChoiceClickEvents()
+  hideChoiceBoxIfNone()
+  //applyTheme()
+  addParserIfActive();
+  textToSpeech(g);
+  g.oldChoices = g.choices;
+  g.oldLinks = g.links;
+  g.oldParser = g.parser;
+  g.links = [];
+  g.choices = [];
+}
