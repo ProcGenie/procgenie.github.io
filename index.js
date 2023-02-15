@@ -36,7 +36,8 @@ function createGenerator() {
   g.savedObjects = [];
   g.res = []
   g.rooms = {};
-  //g.people = {}
+  g.people = {}
+  g.things = {}
   return g;
 }
 
@@ -1160,6 +1161,18 @@ function outputText(t) {
   } else {
     g.currentRoom = null
   }
+  if (t.includes("showPerson")) {
+    g.currentPerson = t.match(/showPerson\(([\w\s\d]+)\)/)[1]
+    t = t.replace(/showPerson\([\w\s\d]+\)/, "")
+  } else {
+    g.currentPerson = null
+  }
+  if (t.includes("showThing")) {
+    g.currentThing = t.match(/showThing\(([\w\s\d]+)\)/)[1]
+    t = t.replace(/showThing\([\w\s\d]+\)/, "")
+  } else {
+    g.currentThing = null
+  }
   t = cleanText(t)
   GID("main-text-box").innerHTML += `${replaceVariable(g.lastWalker, t)}`;
 }
@@ -1357,6 +1370,8 @@ function applyTheme() {
 }
 
 function emptyOutput() {
+  g.choices = [];
+  g.links = [];
   GID("room-box").innerHTML = ""
   GID("room-exits-box").innerHTML = ""
   GID("main-text-box").innerHTML = ""
@@ -1378,7 +1393,20 @@ function createGoback(t) {
   GID("goback-box").style.display = "block"
   GID("goback").onclick = function() {
     emptyOutput()
-    showRoom(g.lastRoom, g.lastWalker)
+    console.log(g.currentRoom);
+    console.log(g.currentPerson)
+    console.log(g.lastPerson);
+    console.log(g.lastRoom)
+    if (g.lastRoom) {
+      showRoom(g.lastRoom, g.lastWalker)
+    }
+    if (g.lastPerson) {
+      showPerson(g.lastPerson, g.lastWalker)
+    }
+    if (g.lastThing) {
+      showThing(g.lastThing, g.lastWalker);
+    }
+
     linkUpText()
   }
 }
@@ -1413,6 +1441,12 @@ function runGenerationProcess(grid, w, num) {
   g.res.push(t);
   if (g.currentRoom) {
     showRoom(g.currentRoom, w)
+  }
+  if (g.currentPerson) {
+    showPerson(g.currentPerson, w)
+  }
+  if (g.currentThing) {
+    showThing(g.currentThing, w)
   }
 
   setTextTimerTimeouts()
@@ -3062,6 +3096,24 @@ function createRoom(w, comp) {
   }
 }
 
+function createPerson(w, comp) {
+  if (comp.text.includes("create_person")) {
+    console.log("Creating person")
+    console.log(comp.text)
+    parsePerson(comp, w)
+    ignoreText(comp)
+  }
+}
+
+function createThing(w, comp) {
+  if (comp.text.includes("create_thing")) {
+    console.log("Creating thing")
+    console.log(comp.text)
+    parseThing(comp, w)
+    ignoreText(comp)
+  }
+}
+
 function addComponentTo(w, comp) {
   //w.tags is the refs - each ref has array of tags
 
@@ -3077,13 +3129,10 @@ function addComponentTo(w, comp) {
   changeColor(comp);
   changeImage(comp)
   createRoom(w, comp)
+  createPerson(w, comp)
+  createThing(w, comp)
   addChoicesToGenerator(comp, w)
   addLinksToGenerator(comp, w)
-  /*if (comp.text.includes("create_person")) {
-    parsePerson(comp.text, w);
-    comp.text = ""
-  }
-  */
 }
 
 function addChoicesToGenerator(comp, w) {
@@ -3647,8 +3696,16 @@ GID("save-as-text").onclick = function() {
   URL.revokeObjectURL(link.href);
 }
 
-function clearRooms() {
+function clearObjects() {
   g.rooms = {}
+  g.people = {}
+  g.things = {}
+  g.currentPerson = undefined
+  g.currentThing = undefined
+  g.currentRoom = undefined
+  g.lastPerson = undefined
+  g.lastRoom = undefined
+  g.lastThing = undefined
 }
 
 GID("load-from-text").onclick = function() {
@@ -3656,7 +3713,7 @@ GID("load-from-text").onclick = function() {
   let o = {}
   fr.onload=function(){
     g = JSON.parse(fr.result)
-    clearRooms()
+    clearObjects()
   }
 }
 
@@ -3664,12 +3721,12 @@ GID('load-from-text').addEventListener('change', function() {
   var fr=new FileReader();
   fr.onload=function(){
     g = JSON.parse(fr.result)
-    clearRooms()
+    clearObjects()
   }
   fr.readAsText(this.files[0]);
 })
 
-function parseRoomVariables(t) {
+function parseObjectVariables(t) {
   let vArr = []
   let tArr = t.split(",")
   for (let i = 0; i < tArr.length; i++) {
@@ -3729,7 +3786,7 @@ function parseRoom(comp, w) {
     }
     if (els[i].includes("variables")) {
       let variables = els[i].replace(/\n?variables\:\s/, "")
-      room.variables = parseRoomVariables(variables)
+      room.variables = parseObjectVariables(variables)
     }
     if (els[i].includes("exit:")) {
       let exit = {};
@@ -3749,8 +3806,51 @@ function parseRoom(comp, w) {
   console.log(g.rooms)
 }
 
-/*function parsePerson(t, w) {
+function parseThing(comp, w) {
+  let thing = {};
+  thing.variables = [];
+  thing.choices = comp.choices
+  let t = comp.text;
+  t = t.replace("create_thing", "")
+  let nt = "";
+  if (t.includes("G(")) {
+    w.collecting = true;
+    nt += runGrids(w, t);
+    w.collecting = false;
+    nt = runFunctions(w, nt);
+  } else {
+    nt = t
+  }
+  nt = replaceAnythingInBrackets(nt)
+  let els = nt.split(";")
+  for (let i = 0; i < els.length; i++) {
+    if (els[i].includes("title:")) {
+      thing.title = els[i].replace(/\n?title\:\s/, "")
+    }
+    if (els[i].includes("id:")) {
+      thing.uid = els[i].replace(/\n?id\:\s/, "")
+    }
+    if (els[i].includes("img:")) {
+      thing.img = els[i].replace(/\n?img\:\s/, "")
+    }
+    if (els[i].includes("variables")) {
+      let variables = els[i].replace(/\n?variables\:\s/, "")
+      thing.variables = parseObjectVariables(variables)
+    }
+    if (els[i].includes("desc: ")) {
+      thing.desc = els[i].replace(/\n?desc\:\s/, "")
+    }
+  }
+  g.things[`${thing.uid}`] = thing
+}
+
+function parsePerson(comp, w) {
   let person = {};
+  person.variables = []
+  person.choices = comp.choices
+  console.log(comp);
+  console.log(w)
+  let t = comp.text
   t = t.replace("create_person", "")
   let nt = "";
   if (t.includes("G(")) {
@@ -3798,10 +3898,14 @@ function parseRoom(comp, w) {
       tags = tags.split(" ")
       room.tags = tags
     }
+    if (els[i].includes("variables")) {
+      let variables = els[i].replace(/\n?variables\:\s/, "")
+      person.variables = parseObjectVariables(variables)
+    }
   }
   g.people[`${person.uid}`] = person
 }
-*/
+
 
 
 
@@ -3818,6 +3922,19 @@ function saveWalkerRoomVariablesToRoom(w, room) {
   }
 }
 
+function setWalkerPersonVariables(w, person) {
+  if (person) {
+    w.tags["person"] = []
+    w.tags["person"].variables = person.variables
+  }
+}
+
+function saveWalkerPersonVariablesToPerson(w, person) {
+  if(w && w.tags["person"] && w.tags["person"].variables) {
+    person.variables = w.tags["person"].variables
+  }
+}
+
 function workOnText(t) {
   let nt = t.replace("L(", "G(")
   console.log(g.lastWalker)
@@ -3828,14 +3945,91 @@ function workOnText(t) {
   return nt
 }
 
+function addObjectImage(o) {
+  let img = GID("left-img");
+  if (o.img) {
+    img.src = o.img
+    img.style.display = "block"
+  } else {
+    img.style.display = "none"
+  }
+}
+
+function showPerson(p, w) {
+  emptyOutput()
+  g.currentPerson = p;
+  g.lastPerson = g.currentPerson
+  if (g.lastPerson) {
+    saveWalkerPersonVariablesToPerson(w, g.lastPerson)
+  }
+  let person = g.people[`${p}`]
+  if (w) {
+
+  } else {
+    w = g.lastWalker
+  }
+  setWalkerPersonVariables(w, person)
+  addChoicesToGenerator(person, w);
+  addLinksToGenerator(person, w)
+  addObjectImage(person)
+  let t = ""
+  let currentDescription = workOnText(person.shortDesc);
+  let currentTitle = workOnText(person.firstName)
+  currentTitle += ` ${workOnText(person.lastName)}`
+  t += `
+    <h1 style="text-align: center; margin-top: 10px; margin-bottom: 10px; font-size: 2em">${currentTitle}</h1>
+    <p style="margin-left: 10px">${currentDescription}</p>
+  `
+  GID("room-box").innerHTML = t
+}
+
+function setWalkerThingVariables(w, thing) {
+  if (thing) {
+    w.tags["thing"] = []
+    w.tags["thing"].variables = thing.variables
+  }
+}
+
+function saveWalkerThingVariablesToThing(w, thing) {
+  if(w && w.tags["thing"] && w.tags["thing"].variables) {
+    thing.variables = w.tags["thing"].variables
+  }
+}
+
+function showThing(p, w) {
+  emptyOutput()
+  g.currentThing = p;
+  g.lastThing = g.currentThing
+  if (g.lastThing) {
+    saveWalkerThingVariablesToThing(w, g.lastThing)
+  }
+  let thing = g.things[`${p}`]
+  if (w) {
+
+  } else {
+    w = g.lastWalker
+  }
+  setWalkerThingVariables(w, thing)
+  addChoicesToGenerator(thing, w);
+  addLinksToGenerator(thing, w)
+  addObjectImage(thing)
+  let t = ""
+  let currentDescription = workOnText(thing.desc);
+  let currentTitle = workOnText(thing.title)
+  t += `
+    <h1 style="text-align: center; margin-top: 10px; margin-bottom: 10px; font-size: 2em">${currentTitle}</h1>
+    <p style="margin-left: 10px">${currentDescription}</p>
+  `
+  GID("room-box").innerHTML = t
+}
+
 function showRoom(r, w) {
+  emptyOutput()
   g.currentRoom = r
   g.lastRoom = g.currentRoom
   if (g.lastRoom) {
     saveWalkerRoomVariablesToRoom(w, g.lastRoom)
   }
-  console.log(g.rooms[r])
-  console.log(g.rooms[`${r}`])
   let room = g.rooms[`${r}`]
   if (w) {
 
@@ -3843,17 +4037,9 @@ function showRoom(r, w) {
     w = g.lastWalker
   }
   setWalkerRoomVariables(w, room)
-  console.log(g)
-  console.log(room)
   addChoicesToGenerator(room, w);
   addLinksToGenerator(room, w)
-  let img = GID("left-img");
-  if (room.img) {
-    img.src = room.img
-    img.style.display = "block"
-  } else {
-    img.style.display = "none"
-  }
+  addObjectImage(room)
   let t = ""
   let currentDescription = workOnText(room.description)
   let currentTitle = workOnText(room.title)
